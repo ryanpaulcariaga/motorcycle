@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Motorcycle.Api/Motorcycle.Api.csproj" />
+  <Project Path="Motorcycle.Application/Motorcycle.Application.csproj" />
+  <Project Path="Motorcycle.Domain/Motorcycle.Domain.csproj" />
+  <Project Path="Motorcycle.Infrastructure/Motorcycle.Infrastructure.csproj" />
+</Solution>
