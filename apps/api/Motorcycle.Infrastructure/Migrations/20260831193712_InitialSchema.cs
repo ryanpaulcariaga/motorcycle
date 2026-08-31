@@ -265,7 +265,7 @@ namespace Motorcycle.Infrastructure.Migrations
                 unique: true);
 
             // GIN index for JSONB specs column for fast filtering
-            migrationBuilder.Sql("CREATE INDEX idx_bikes_specs GIN (\"Specs\");");
+            migrationBuilder.Sql("CREATE INDEX idx_bikes_specs ON \"Bikes\" USING GIN (\"Specs\");");
         }
 
         /// <inheritdoc />

@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Host=localhost;Database=motorcycle_db;Username=postgres;Password=postgres";
+    ?? "Host=localhost;Database=motorcycle_db;Username=postgres;Password=Marione831";
 
 builder.Services.AddDbContext<MotorcycleDbContext>(options =>
     options.UseNpgsql(connectionString)
