@@ -1,0 +1,39 @@
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/deploy-api.yml"
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.x"
+
+      - name: Restore dependencies
+        run: dotnet restore apps/api
+
+      - name: Build
+        run: dotnet build apps/api --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test apps/api --configuration Release --no-build
+
+      - name: Publish
+        run: dotnet publish apps/api/Motorcycle.Api/Motorcycle.Api.csproj -c Release -o ./publish
+
+      - name: Run migrations
+        run: echo "Migration step placeholder"
+
+      - name: Deploy to Azure App Service
+        run: echo "Deploy step placeholder"

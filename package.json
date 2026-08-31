@@ -1,0 +1,9 @@
+{
+  "name": "motorcycle-app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Motorcycle comparison web app - monorepo",
+  "workspaces": [
+    "apps/*"
+  ]
+}

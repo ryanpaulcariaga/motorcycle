@@ -1,0 +1,30 @@
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+.pnp
+.pnp.js
+.yarn/
+*.tsbuildinfo
+dist/
+.next/
+.nuxt/
+out/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.sln.iml
+.vs/
+.vscode/.dotnet/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.DS_Store
+Thumbs.db
+Desktop.ini
