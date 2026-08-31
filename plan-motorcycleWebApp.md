@@ -1,5 +1,15 @@
 ## Plan: Motorcycle Specs & Comparison Web App (MVP)
 
+**Progress status (updated 2026-09-01, paused to conserve credits)**
+- ✅ Phase 0 — Monorepo Initialization — DONE
+- ✅ Phase 1 — Database Design — DONE (schema, migrations, GIN index, seed data all applied to local Postgres)
+- ✅ Phase 2 — Backend API — DONE (repositories, Strategy-pattern spec filters, services, controllers; smoke-tested against live DB)
+- ✅ Phase 3 — Frontend — DONE (Tailwind theme, layout components, typed API client, `/`, `/bikes`, `/bikes/[slug]`, `/compare`; smoke-tested end-to-end against live API)
+- ⏳ Phase 4 — Azure Infrastructure & Deployment — NOT STARTED (next step when resuming)
+- ⏳ Phase 5 — Future Backlog — NOT STARTED (intentionally deferred, schema stubs only)
+
+**Resume here:** Phase 4, step 19 (provision Azure resources). Local dev stack (Postgres + `dotnet run` API on :5050 + `pnpm run dev` web on :3000) is fully working — no rework needed on Phases 0-3 unless requirements change.
+
 Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering) + PostgreSQL (JSONB specs, schema versioned via EF Core Migrations) + Azure Blob Storage for images, all hosted on Azure App Service. MVP = browse/search/filter/compare bikes with grouped specs; no auth, no votes/comments, no admin UI yet (manual SQL seeding). Future-proofing baked into schema for: AI pros/cons, annual surveys, analytics (views/searches), and upvote/downvote + comments.
 
 **Decisions**
@@ -22,7 +32,7 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
 
 **Steps**
 
-### Phase 0 — Monorepo Initialization
+### Phase 0 — Monorepo Initialization ✅ DONE
 0. Set up `motorcycle-app` monorepo structure:
    - Create directories: `apps/web/`, `apps/api/`, `specs/`, `docs/`, `.github/workflows/`
    - Initialize root `package.json` with pnpm workspaces (targets `apps/*`)
@@ -34,7 +44,7 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
    - Create GitHub Actions workflow templates: `.github/workflows/deploy-web.yml`, `deploy-api.yml`
    - Initialize git repo and commit scaffold
 
-### Phase 1 — Database Design (PostgreSQL, Azure Flexible Server)
+### Phase 1 — Database Design (PostgreSQL, Azure Flexible Server) ✅ DONE
 1. Design core schema:
    - `brands` (id, name, logo_blob_url, created_at)
    - `categories` (id, name) — e.g., Sport, Cruiser, Scooter, ADV (simple lookup table)
@@ -47,7 +57,7 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
 4. Structure schema as **EF Core Migrations** in `Motorcycle.Infrastructure/Migrations`: entity classes + `DbContext` `OnModelCreating` configuration define the tables (generated via `dotnet ef migrations add`); the GIN/expression indexes from step 2 are added inside the same migration files via `migrationBuilder.Sql(...)` raw SQL, keeping schema, indexes, and any future views/stored procedures in one version-controlled, C#-visible history.
 5. Write manual SQL seed scripts (kept separate from EF migrations, e.g. `Infrastructure/Seed/*.sql` or an idempotent EF Core seeding method): brands, categories, spec_groups + spec_definitions (with correct sort_order), and a batch of sample bikes/specs/images for local dev.
 
-### Phase 2 — Backend API (ASP.NET Core Web API, Clean Architecture) — *depends on Phase 1 schema; can work in parallel with Phase 3 after API contracts drafted*
+### Phase 2 — Backend API (ASP.NET Core Web API, Clean Architecture) ✅ DONE — *depends on Phase 1 schema; can work in parallel with Phase 3 after API contracts drafted*
 6. Scaffold `apps/api` as a **Clean Architecture** solution with projects: `Motorcycle.Domain` (entities: Bike, Brand, Category, SpecGroup, SpecDefinition, BikeImage — no external dependencies), `Motorcycle.Application` (use-case services, DTOs, repository interfaces, `ISpecFilterStrategy` contract), `Motorcycle.Infrastructure` (EF Core `DbContext`, migrations, repositories, Npgsql provider setup, Azure Blob client, concrete strategy implementations), `Motorcycle.Api` (controllers/presentation, DI composition root, middleware). Dependency direction: `Api` → `Infrastructure`/`Application` → `Domain` only.
 7. Implement EF Core in `Infrastructure`: `MotorcycleDbContext` with entity configurations (`IEntityTypeConfiguration<T>` per entity), repositories wrapping the `DbContext` per `Application`-defined interfaces; `specs` column mapped as `jsonb` and deserialized to a `Dictionary<string, object>`/`JsonDocument` via Npgsql's JSON type mapping + a value comparer for change tracking.
 8. Implement the **Strategy pattern** for spec filtering/comparison in `Application`/`Infrastructure`: `ISpecFilterStrategy` with `NumberRangeFilterStrategy`, `ExactMatchFilterStrategy`, `MultiSelectFilterStrategy`, `BooleanFilterStrategy`; a `SpecFilterStrategyFactory` resolves the right strategy per `spec_definitions.data_type`/`filter_type` so `GET /api/bikes` filtering and the compare alignment logic share the same extensible pipeline.
@@ -61,7 +71,7 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
 11. Configure CORS for the Next.js origin, Swagger for dev, structured logging (Serilog) to App Service log stream.
 12. Add health check endpoint for App Service monitoring.
 
-### Phase 3 — Frontend (Next.js + Tailwind CSS) — *can start in parallel with Phase 2 once API contracts drafted (step 9)*
+### Phase 3 — Frontend (Next.js + Tailwind CSS) ✅ DONE — *can start in parallel with Phase 2 once API contracts drafted (step 9)*
 13. Scaffold `apps/web`: Next.js App Router, TypeScript, Tailwind CSS (mobile-first config), a data-fetching layer (typed API client) matching backend DTOs.
 14. Configure Tailwind theme tokens for the color palette: `header` black bg/white text, `page` background gold/orange, `content`/card areas white background, `sidebar` dark brown, `button-default` brown with `:active`/pressed state turning black (plus gold/orange, black, dark grey as alternate button variants for different emphasis levels).
 15. Build shared layout components mobile-first: `Header` (black bg, white text, top nav, collapses to mobile menu), `Sidebar` (dark brown, secondary nav links, becomes a drawer/hamburger panel below `md` breakpoint), `PageShell` (gold/orange page background wrapping a white-background central content area), `Button` (variant-driven brown/gold/black/dark-grey styles with active-state feedback).
@@ -73,13 +83,13 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
 17. Image handling: `next/image` with a remote pattern pointing at the Azure Blob public container hostname.
 18. Basic SEO metadata (per-bike titles/OG tags using bike name + primary image).
 
-### Phase 4 — Azure Infrastructure & Deployment — *can start in parallel with Phases 2–3, finalized once app configs are known*
+### Phase 4 — Azure Infrastructure & Deployment ⏳ NOT STARTED (resume here) — *can start in parallel with Phases 2–3, finalized once app configs are known*
 19. Provision: Resource Group → Azure Database for PostgreSQL Flexible Server → Azure Storage Account (Blob container, public read access for images) → Azure Key Vault (DB connection string, storage keys) → App Service Plan (Linux) with two Web Apps (`api`, `web`), each with managed identity + Key Vault references.
 20. CI/CD: GitHub Actions workflows in `.github/workflows/` — build/test both `apps/web` and `apps/api` on each push; deploy to corresponding App Services only if changes detected in that app's folder; API pipeline also runs `dotnet ef database update` against the target environment as a deploy step (deployment slots can be deferred to later).
 21. Configure `web` App Service for Next.js standalone output/Node runtime (source: `apps/web/`); configure `api` App Service for the ASP.NET Core runtime (source: `apps/api/`); wire environment variables/app settings for API base URL, DB connection, storage account URL.
 22. Point DNS/custom domain (if any) and confirm HTTPS.
 
-### Phase 5 — Future Backlog (not built now, tracked for later)
+### Phase 5 — Future Backlog (not built now, tracked for later) ⏳ NOT STARTED (intentionally deferred)
 23. AI-generated pros/cons for compared bikes (likely an async job hitting an LLM, cached per bike-set).
 24. Annual survey feature (preferred bike / owned bike + feedback) using `survey_responses` stub table.
 25. Analytics: most-viewed bikes, most-searched specs/categories, backed by `bike_views`/`spec_search_log` stub tables + a lightweight aggregation job/dashboard.
