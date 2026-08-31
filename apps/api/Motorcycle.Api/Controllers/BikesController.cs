@@ -81,6 +81,7 @@ public class BikesController : ControllerBase
     [HttpGet("compare")]
     public async Task<IActionResult> Compare([FromQuery] string ids, CancellationToken ct)
     {
+        //test comment
         if (string.IsNullOrWhiteSpace(ids))
             return BadRequest("Query parameter 'ids' is required (comma-separated bike GUIDs).");
 
