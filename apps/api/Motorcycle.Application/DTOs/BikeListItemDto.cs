@@ -1,0 +1,13 @@
+namespace Motorcycle.Application.DTOs;
+
+public class BikeListItemDto
+{
+    public Guid Id { get; set; }
+    public string ModelName { get; set; } = string.Empty;
+    public int Year { get; set; }
+    public decimal? MsrpPrice { get; set; }
+    public string Slug { get; set; } = string.Empty;
+    public string BrandName { get; set; } = string.Empty;
+    public string CategoryName { get; set; } = string.Empty;
+    public string? PrimaryImageUrl { get; set; }
+}
