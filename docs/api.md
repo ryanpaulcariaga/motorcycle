@@ -6,7 +6,7 @@
 https://api.motorcycle-app.example.com
 ```
 
-(Local dev: `http://localhost:5000`)
+(Local dev: `http://localhost:5050`)
 
 ## Endpoints
 
@@ -32,7 +32,7 @@ List motorcycles with pagination, sorting, and filtering.
 {
   "items": [
     {
-      "id": "uuid",
+      "id": 1,
       "modelName": "Ninja 400",
       "brandName": "Kawasaki",
       "categoryName": "Sport",
@@ -55,7 +55,7 @@ Get detailed motorcycle info + all images.
 **Response**:
 ```json
 {
-  "id": "uuid",
+  "id": 1,
   "modelName": "Ninja 400",
   "brandName": "Kawasaki",
   "categoryName": "Sport",
@@ -82,7 +82,7 @@ Compare multiple motorcycles side-by-side.
 **Response**:
 ```json
 {
-  "bikeIds": ["id1", "id2", "id3"],
+  "bikeIds": [1, 2, 3],
   "specsGrouped": {
     "Engine": {
       "cc": {
@@ -108,13 +108,13 @@ Get all spec groups and their definitions (drives filter UI + compare labels).
 {
   "groups": [
     {
-      "id": "uuid",
+      "id": 1,
       "code": "engine",
       "name": "Engine",
       "sortOrder": 1,
       "specs": [
         {
-          "id": "uuid",
+          "id": 1,
           "code": "cc",
           "label": "Displacement",
           "dataType": "number",

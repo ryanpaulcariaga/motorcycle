@@ -5,7 +5,7 @@
 ### brands
 ```sql
 CREATE TABLE brands (
-  id UUID PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL UNIQUE,
   logo_blob_url VARCHAR(2048),
   created_at TIMESTAMP DEFAULT NOW()
@@ -15,7 +15,7 @@ CREATE TABLE brands (
 ### categories
 ```sql
 CREATE TABLE categories (
-  id UUID PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL UNIQUE
 );
 ```
@@ -23,9 +23,9 @@ CREATE TABLE categories (
 ### bikes
 ```sql
 CREATE TABLE bikes (
-  id UUID PRIMARY KEY,
-  brand_id UUID NOT NULL REFERENCES brands(id),
-  category_id UUID NOT NULL REFERENCES categories(id),
+  id SERIAL PRIMARY KEY,
+  brand_id INT NOT NULL REFERENCES brands(id),
+  category_id INT NOT NULL REFERENCES categories(id),
   model_name VARCHAR(255) NOT NULL,
   year INT NOT NULL,
   msrp_price NUMERIC(10, 2),
@@ -50,8 +50,8 @@ CREATE INDEX idx_bikes_horsepower ON bikes (((specs->>'horsepower')::NUMERIC)) W
 ### bike_images
 ```sql
 CREATE TABLE bike_images (
-  id UUID PRIMARY KEY,
-  bike_id UUID NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
+  id SERIAL PRIMARY KEY,
+  bike_id INT NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
   blob_url VARCHAR(2048) NOT NULL,
   sort_order INT NOT NULL,
   is_primary BOOLEAN DEFAULT false,
@@ -64,7 +64,7 @@ CREATE INDEX idx_bike_images_bike_id ON bike_images(bike_id);
 ### spec_groups
 ```sql
 CREATE TABLE spec_groups (
-  id UUID PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   code VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255) NOT NULL,
   sort_order INT NOT NULL DEFAULT 0,
@@ -76,8 +76,8 @@ CREATE TABLE spec_groups (
 ### spec_definitions
 ```sql
 CREATE TABLE spec_definitions (
-  id UUID PRIMARY KEY,
-  group_id UUID NOT NULL REFERENCES spec_groups(id),
+  id SERIAL PRIMARY KEY,
+  group_id INT NOT NULL REFERENCES spec_groups(id),
   code VARCHAR(255) NOT NULL,
   label VARCHAR(255) NOT NULL,
   data_type VARCHAR(50) NOT NULL,  -- 'number', 'text', 'boolean', 'enum'
@@ -94,14 +94,14 @@ CREATE TABLE spec_definitions (
 ```sql
 -- Analytics
 CREATE TABLE bike_views (
-  id UUID PRIMARY KEY,
-  bike_id UUID REFERENCES bikes(id),
+  id SERIAL PRIMARY KEY,
+  bike_id INT REFERENCES bikes(id),
   session_hash VARCHAR(255),
   viewed_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE spec_search_log (
-  id UUID PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   spec_code VARCHAR(255),
   filter_value VARCHAR(255),
   searched_at TIMESTAMP DEFAULT NOW()
@@ -109,16 +109,16 @@ CREATE TABLE spec_search_log (
 
 -- User engagement (requires auth in Phase 5+)
 CREATE TABLE bike_votes (
-  id UUID PRIMARY KEY,
-  bike_id UUID NOT NULL REFERENCES bikes(id),
+  id SERIAL PRIMARY KEY,
+  bike_id INT NOT NULL REFERENCES bikes(id),
   session_or_user_id VARCHAR(255),
   vote_type VARCHAR(50),  -- 'upvote', 'downvote'
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE bike_comments (
-  id UUID PRIMARY KEY,
-  bike_id UUID NOT NULL REFERENCES bikes(id),
+  id SERIAL PRIMARY KEY,
+  bike_id INT NOT NULL REFERENCES bikes(id),
   author_name VARCHAR(255),
   body TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
@@ -127,7 +127,7 @@ CREATE TABLE bike_comments (
 
 -- Surveys
 CREATE TABLE survey_responses (
-  id UUID PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   year INT,
   respondent_ref VARCHAR(255),
   payload JSONB,
@@ -159,6 +159,8 @@ The relationship should support multiple dealers per motorcycle and multiple mot
 ## Notes
 
 - **JSONB specs**: Bikes store specs as a flat key-value map. Schema flexibility allows per-bike omissions without schema migration.
+- **Primary keys**: `int`/`SERIAL` identity columns (not UUID) — smaller, sequential, and more b-tree/index-friendly at this scale.
+- **Naming convention**: all tables/columns/keys/indexes are snake_case (PostgreSQL convention), enforced in `MotorcycleDbContext` rather than hand-annotated per property.
 - **Expression Indexes**: Per-spec indexes added via EF Core migrations for filterable numeric specs → fast range queries.
 - **GIN Index**: General JSONB filtering via `specs @> ...` or `specs ? 'key'` syntax.
 - **No category-spec scoping**: All specs available for all bikes; admin manages per-bike spec values. Future: add optional `category_id` to `spec_definitions` if needed.

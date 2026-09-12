@@ -51,13 +51,18 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Apply migrations and seed data on startup
+// Apply migrations on startup (safe in all environments - EF tracks applied migrations).
+// Demo/scraped sample data is dev-only; real content in staging/prod is seeded via manual SQL, not app code.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<MotorcycleDbContext>();
     await db.Database.MigrateAsync();
-    await DatabaseSeeder.SeedAsync(db);
-    await ScooterDataSeeder.SeedAsync(db);
+
+    if (app.Environment.IsDevelopment())
+    {
+        await DatabaseSeeder.SeedAsync(db);
+        await ScooterDataSeeder.SeedAsync(db);
+    }
 }
 
 if (app.Environment.IsDevelopment())

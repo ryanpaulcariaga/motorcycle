@@ -95,7 +95,11 @@ public static class ScooterDataSeeder
                 continue; // unknown brand, skip rather than guess
             }
 
-            var slug = MakeUniqueSlug($"{make} {model}", existingSlugs);
+            var slug = ToSlug($"{make} {model}");
+            if (!existingSlugs.Add(slug))
+            {
+                continue; // already seeded (or a duplicate row in the source file) - skip so reruns stay idempotent
+            }
 
             var specs = new Dictionary<string, object>();
             foreach (var prop in root.EnumerateObject())
@@ -144,16 +148,8 @@ public static class ScooterDataSeeder
         }
     }
 
-    private static string MakeUniqueSlug(string source, HashSet<string> existingSlugs)
+    private static string ToSlug(string source)
     {
-        var baseSlug = Regex.Replace(source.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
-        var slug = baseSlug;
-        var suffix = 2;
-        while (!existingSlugs.Add(slug))
-        {
-            slug = $"{baseSlug}-{suffix}";
-            suffix++;
-        }
-        return slug;
+        return Regex.Replace(source.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
     }
 }
