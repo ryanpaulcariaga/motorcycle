@@ -57,6 +57,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<MotorcycleDbContext>();
     await db.Database.MigrateAsync();
     await DatabaseSeeder.SeedAsync(db);
+    await ScooterDataSeeder.SeedAsync(db);
 }
 
 if (app.Environment.IsDevelopment())
