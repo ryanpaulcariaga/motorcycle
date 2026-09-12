@@ -9,7 +9,7 @@ public interface IBikeService
 {
     Task<PagedResult<BikeListItemDto>> GetBikesAsync(BikeQueryParameters query, CancellationToken ct = default);
     Task<BikeDetailDto?> GetBikeDetailAsync(string slug, CancellationToken ct = default);
-    Task<CompareResultDto> CompareBikesAsync(List<Guid> bikeIds, CancellationToken ct = default);
+    Task<CompareResultDto> CompareBikesAsync(List<int> bikeIds, CancellationToken ct = default);
 }
 
 public class BikeService : IBikeService
@@ -78,7 +78,7 @@ public class BikeService : IBikeService
         return ToDetailDto(bike, specGroups);
     }
 
-    public async Task<CompareResultDto> CompareBikesAsync(List<Guid> bikeIds, CancellationToken ct = default)
+    public async Task<CompareResultDto> CompareBikesAsync(List<int> bikeIds, CancellationToken ct = default)
     {
         var bikes = await _bikeRepository.GetByIdsAsync(bikeIds, ct);
         var specGroups = await _specGroupRepository.GetAllWithDefinitionsAsync(ct);

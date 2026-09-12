@@ -7,8 +7,8 @@ public class BikeQueryParameters
     public string? SortBy { get; set; } // "price", "year", "model_name"
     public bool SortDescending { get; set; } = false;
 
-    public Guid? BrandId { get; set; }
-    public Guid? CategoryId { get; set; }
+    public int? BrandId { get; set; }
+    public int? CategoryId { get; set; }
     public int? YearMin { get; set; }
     public int? YearMax { get; set; }
     public decimal? PriceMin { get; set; }

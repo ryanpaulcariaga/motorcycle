@@ -2,7 +2,7 @@ namespace Motorcycle.Domain;
 
 public class SpecGroup
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public int SortOrder { get; set; } = 0;

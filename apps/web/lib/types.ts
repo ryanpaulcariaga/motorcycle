@@ -1,23 +1,23 @@
 export interface BrandDto {
-  id: string;
+  id: number;
   name: string;
   logoBlobUrl: string | null;
 }
 
 export interface CategoryDto {
-  id: string;
+  id: number;
   name: string;
 }
 
 export interface BikeImageDto {
-  id: string;
+  id: number;
   blobUrl: string;
   sortOrder: number;
   isPrimary: boolean;
 }
 
 export interface BikeListItemDto {
-  id: string;
+  id: number;
   modelName: string;
   year: number;
   msrpPrice: number | null;
@@ -43,7 +43,7 @@ export interface SpecGroupWithValuesDto {
 }
 
 export interface BikeDetailDto {
-  id: string;
+  id: number;
   modelName: string;
   year: number;
   msrpPrice: number | null;
@@ -55,7 +55,7 @@ export interface BikeDetailDto {
 }
 
 export interface SpecDefinitionDto {
-  id: string;
+  id: number;
   code: string;
   label: string;
   dataType: string;
@@ -66,7 +66,7 @@ export interface SpecDefinitionDto {
 }
 
 export interface SpecGroupDto {
-  id: string;
+  id: number;
   code: string;
   name: string;
   sortOrder: number;
@@ -83,7 +83,7 @@ export interface PagedResult<T> {
 }
 
 export interface CompareBikeSummaryDto {
-  id: string;
+  id: number;
   modelName: string;
   brandName: string;
   slug: string;

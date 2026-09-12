@@ -2,8 +2,8 @@ namespace Motorcycle.Domain;
 
 public class BikeImage
 {
-    public Guid Id { get; set; }
-    public Guid BikeId { get; set; }
+    public int Id { get; set; }
+    public int BikeId { get; set; }
     public string BlobUrl { get; set; } = string.Empty;
     public int SortOrder { get; set; }
     public bool IsPrimary { get; set; } = false;

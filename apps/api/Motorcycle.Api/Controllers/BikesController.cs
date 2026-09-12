@@ -26,8 +26,8 @@ public class BikesController : ControllerBase
         [FromQuery] int pageSize = 20,
         [FromQuery] string? sortBy = null,
         [FromQuery] bool sortDescending = false,
-        [FromQuery] Guid? brandId = null,
-        [FromQuery] Guid? categoryId = null,
+        [FromQuery] int? brandId = null,
+        [FromQuery] int? categoryId = null,
         [FromQuery] int? yearMin = null,
         [FromQuery] int? yearMax = null,
         [FromQuery] decimal? priceMin = null,
@@ -82,16 +82,16 @@ public class BikesController : ControllerBase
     public async Task<IActionResult> Compare([FromQuery] string ids, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(ids))
-            return BadRequest("Query parameter 'ids' is required (comma-separated bike GUIDs).");
+            return BadRequest("Query parameter 'ids' is required (comma-separated bike ids).");
 
         var bikeIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(id => Guid.TryParse(id, out var g) ? g : (Guid?)null)
-            .Where(g => g.HasValue)
-            .Select(g => g!.Value)
+            .Select(id => int.TryParse(id, out var n) ? n : (int?)null)
+            .Where(n => n.HasValue)
+            .Select(n => n!.Value)
             .ToList();
 
         if (bikeIds.Count == 0)
-            return BadRequest("No valid bike GUIDs found in 'ids'.");
+            return BadRequest("No valid bike ids found in 'ids'.");
 
         var result = await _bikeService.CompareBikesAsync(bikeIds, ct);
         return Ok(result);

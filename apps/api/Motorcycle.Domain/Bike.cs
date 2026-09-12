@@ -2,9 +2,9 @@ namespace Motorcycle.Domain;
 
 public class Bike
 {
-    public Guid Id { get; set; }
-    public Guid BrandId { get; set; }
-    public Guid CategoryId { get; set; }
+    public int Id { get; set; }
+    public int BrandId { get; set; }
+    public int CategoryId { get; set; }
     public string ModelName { get; set; } = string.Empty;
     public int Year { get; set; }
     public decimal? MsrpPrice { get; set; }

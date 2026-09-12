@@ -126,7 +126,6 @@ public static class ScooterDataSeeder
 
             newBikes.Add(new Bike
             {
-                Id = Guid.NewGuid(),
                 BrandId = brand.Id,
                 CategoryId = scooterCategory.Id,
                 ModelName = model,

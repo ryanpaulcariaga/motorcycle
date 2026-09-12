@@ -36,12 +36,12 @@ export default function CompareClient({ allBikes, selectedIds, compareResult }: 
         <h2 className="font-semibold mb-2">Add bikes to compare</h2>
         <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 border border-zinc-200 rounded-md">
           {allBikes.map((bike) => {
-            const isSelected = pendingIds.includes(bike.id);
+            const isSelected = pendingIds.includes(String(bike.id));
             return (
               <button
                 key={bike.id}
                 type="button"
-                onClick={() => toggleBike(bike.id)}
+                onClick={() => toggleBike(String(bike.id))}
                 className={`text-xs px-2.5 py-1.5 rounded-full border transition-colors ${
                   isSelected
                     ? "bg-brand-button text-white border-brand-button"

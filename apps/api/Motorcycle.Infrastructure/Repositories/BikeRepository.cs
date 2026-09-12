@@ -15,7 +15,7 @@ public class BikeRepository : IBikeRepository
     }
 
     public async Task<List<Bike>> GetPublishedWithStaticFiltersAsync(
-        Guid? brandId, Guid? categoryId, int? yearMin, int? yearMax,
+        int? brandId, int? categoryId, int? yearMin, int? yearMax,
         decimal? priceMin, decimal? priceMax, CancellationToken ct = default)
     {
         var query = _context.Bikes
@@ -43,7 +43,7 @@ public class BikeRepository : IBikeRepository
             .FirstOrDefaultAsync(b => b.Slug == slug && b.IsPublished, ct);
     }
 
-    public async Task<List<Bike>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    public async Task<List<Bike>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default)
     {
         var idList = ids.ToList();
         return await _context.Bikes

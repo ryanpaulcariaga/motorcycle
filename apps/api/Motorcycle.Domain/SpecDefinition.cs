@@ -2,8 +2,8 @@ namespace Motorcycle.Domain;
 
 public class SpecDefinition
 {
-    public Guid Id { get; set; }
-    public Guid GroupId { get; set; }
+    public int Id { get; set; }
+    public int GroupId { get; set; }
     public string Code { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
     public string DataType { get; set; } = string.Empty; // 'number', 'text', 'boolean', 'enum'

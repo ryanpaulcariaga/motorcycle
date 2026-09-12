@@ -155,5 +155,45 @@ public class MotorcycleDbContext : DbContext
                 .HasConversion(dictConverter)
                 .Metadata.SetValueComparer(dictComparer);
         });
+
+        ApplySnakeCaseNames(modelBuilder);
+    }
+
+    // PostgreSQL convention is snake_case; EF Core defaults to the C# PascalCase member names,
+    // so tables/columns/keys/indexes are renamed here after all entity configuration is applied.
+    private static void ApplySnakeCaseNames(ModelBuilder modelBuilder)
+    {
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            entity.SetTableName(ToSnakeCase(entity.GetTableName()!));
+
+            foreach (var property in entity.GetProperties())
+            {
+                property.SetColumnName(ToSnakeCase(property.GetColumnName()));
+            }
+
+            foreach (var key in entity.GetKeys())
+            {
+                key.SetName(ToSnakeCase(key.GetName()!));
+            }
+
+            foreach (var foreignKey in entity.GetForeignKeys())
+            {
+                foreignKey.SetConstraintName(ToSnakeCase(foreignKey.GetConstraintName()!));
+            }
+
+            foreach (var index in entity.GetIndexes())
+            {
+                index.SetDatabaseName(ToSnakeCase(index.GetDatabaseName()!));
+            }
+        }
+    }
+
+    private static string ToSnakeCase(string input)
+    {
+        // Handles acronym runs correctly (e.g. "IX_Categories_Name" -> "ix_categories_name")
+        var withBoundaries = System.Text.RegularExpressions.Regex.Replace(input, "([a-z0-9])([A-Z])", "$1_$2");
+        withBoundaries = System.Text.RegularExpressions.Regex.Replace(withBoundaries, "([A-Z]+)([A-Z][a-z])", "$1_$2");
+        return withBoundaries.ToLowerInvariant();
     }
 }

@@ -2,7 +2,7 @@ namespace Motorcycle.Application.DTOs;
 
 public class BikeDetailDto
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string ModelName { get; set; } = string.Empty;
     public int Year { get; set; }
     public decimal? MsrpPrice { get; set; }

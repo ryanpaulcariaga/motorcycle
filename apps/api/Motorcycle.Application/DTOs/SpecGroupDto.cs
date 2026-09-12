@@ -2,7 +2,7 @@ namespace Motorcycle.Application.DTOs;
 
 public class SpecGroupDto
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public int SortOrder { get; set; }
@@ -12,7 +12,7 @@ public class SpecGroupDto
 
 public class SpecDefinitionDto
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public string Label { get; set; } = string.Empty;
     public string DataType { get; set; } = string.Empty;

@@ -2,6 +2,6 @@ namespace Motorcycle.Application.DTOs;
 
 public class CategoryDto
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 }
