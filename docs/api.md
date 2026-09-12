@@ -138,6 +138,18 @@ List all brands.
 
 List all categories.
 
+### Future Advertising API
+
+Advertising is not part of the MVP API. A future version may expose a read-only delivery endpoint such as `GET /api/advertising/placements` that accepts the page context, placement key, and optional category/brand context, then returns only approved and currently active creatives. The response should include disclosure text and a stable impression token rather than exposing internal campaign or budget data.
+
+Separate event endpoints or an internal event pipeline may record impressions and clicks. These events must be privacy-conscious, rate-limited, and independent from the organic bike search and comparison endpoints. Delivery should return an empty result when no eligible ad exists, so clients do not need an error state for normal ad inventory gaps.
+
+### Future Dealer Links API
+
+Dealer links are not part of the MVP API. A future read-only endpoint such as `GET /api/bikes/{slug}/dealers` may return approved, currently valid dealer listings for a motorcycle, including dealer name, service area, destination URL, availability/price when verified, and the last-verified timestamp. Unapproved, expired, or removed links must not be returned.
+
+Dealer links should be clearly identified as external destinations. The endpoint should return an empty list when no verified dealer is available and should not change the bike's organic search or comparison response.
+
 ---
 
 **Authentication**: None (MVP). Future: JWT bearer tokens.

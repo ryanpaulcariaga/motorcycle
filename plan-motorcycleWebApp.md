@@ -10,12 +10,13 @@
 
 **Resume here:** Phase 4, step 19 (provision Azure resources). Local dev stack (Postgres + `dotnet run` API on :5050 + `pnpm run dev` web on :3000) is fully working — no rework needed on Phases 0-3 unless requirements change.
 
-Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering) + PostgreSQL (JSONB specs, schema versioned via EF Core Migrations) + Azure Blob Storage for images, all hosted on Azure App Service. MVP = browse/search/filter/compare bikes with grouped specs; no auth, no votes/comments, no admin UI yet (manual SQL seeding). Future-proofing baked into schema for: AI pros/cons, annual surveys, analytics (views/searches), and upvote/downvote + comments.
+Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering) + PostgreSQL (JSONB specs, schema versioned via EF Core Migrations) + Azure Blob Storage for images, all hosted on Azure App Service. MVP = browse/search/filter/compare bikes with grouped specs; no auth, no votes/comments, no advertising, no dealer links, no admin UI yet (manual SQL seeding). Future-proofing baked into schema for: AI pros/cons, annual surveys, analytics (views/searches), upvote/downvote + comments, dealer listings/links, and a clearly disclosed advertising platform.
 
 **Decisions**
 - Repo structure: **monorepo** — single `motorcycle-app` repo with `apps/web` (Next.js frontend) and `apps/api` (ASP.NET Core backend); `specs/` for cross-app feature definitions; `docs/` for shared architecture/database/API docs; `.github/workflows` for CI/CD pipelines targeting both apps.
 - Auth: none in MVP (fully anonymous). Add identity provider later when votes/comments/surveys are built.
 - Data entry for MVP: manual SQL seed scripts for bikes, spec groups/specs, and image URLs — no admin UI yet.
+- Dealer links: future dealer records are separate from manufacturer brands; a motorcycle may expose one or more approved dealer listings or contact links with clear source and availability information.
 - Hosting: Azure App Service (Linux, one plan, two Web Apps: `api` and `web`). Azure Database for PostgreSQL – Flexible Server. Azure Storage Account (Blob) for images, served via **public read-only blob container** (simpler than SAS token rotation; images are non-sensitive marketing content) — Azure CDN/Front Door deferred until traffic warrants it.
 - Secrets (DB connection string, storage account key) go in **Azure Key Vault**, referenced by App Service via Key Vault references / managed identity.
 - **Backend architecture: Clean Architecture** — `Domain` (entities, enums, no dependencies), `Application` (use cases/services, interfaces, strategy contracts), `Infrastructure` (EF Core `DbContext`/repositories, Npgsql provider, blob storage client), `Api` (controllers/presentation, DI composition root). Dependencies point inward only.
@@ -28,7 +29,7 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
 - **CSS: Tailwind CSS** (chosen over Bootstrap) — utility-first, purges unused classes at build time for a much smaller final CSS bundle, integrates natively with Next.js, and makes a fully custom color palette straightforward without fighting component overrides.
 - **Responsive approach: mobile-first** — base Tailwind styles target mobile, with `sm:`/`md:`/`lg:` breakpoints layering up for tablet/desktop; layout collapses sidebar into a mobile nav (e.g., hamburger/drawer) below `md`.
 - **Color palette** (Tailwind theme tokens): header — black background, white text; main page background — gold/orange; central content area (bike list, detail, compare tables) — white background; sidebar (secondary nav) — dark brown; buttons — default brown, switching to black on `:active`/pressed state (other approved button colors: gold/orange, black, dark grey for varied emphasis e.g. primary/secondary/destructive actions).
-- Future items (design for, do not build now): AI-generated pros/cons for compared bikes; annual user surveys (preferred bike / owned bike + feedback); most-viewed bikes & most-searched specs/categories analytics; per-bike upvote/downvote + comments. Add lightweight schema stubs now where low-cost, but no endpoints/UI.
+- Future items (design for, do not build now): AI-generated pros/cons for compared bikes; annual user surveys (preferred bike / owned bike + feedback); most-viewed bikes & most-searched specs/categories analytics; per-bike upvote/downvote + comments; dealer listings and links; and advertising for clearly labeled sponsored placements and relevant motorcycle campaigns. Add lightweight schema stubs now where low-cost, but no endpoints/UI.
 
 **Steps**
 
@@ -95,6 +96,12 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
 25. Analytics: most-viewed bikes, most-searched specs/categories, backed by `bike_views`/`spec_search_log` stub tables + a lightweight aggregation job/dashboard.
 26. Upvote/downvote + comments per bike using `bike_votes`/`bike_comments` stub tables — will require introducing auth/session identity first.
 27. Maintenance/admin site for managing bikes, images, spec groups/specs and their order (replaces manual SQL seeding).
+28. Advertising foundation: define advertiser/campaign/creative/placement concepts, approval and expiration states, and a reporting model for impressions and clicks. Keep sponsored content separate from organic bike ranking and comparison calculations.
+29. Advertising API and delivery: expose approved active placements through a cacheable, context-aware endpoint; support placement limits, category/brand targeting, frequency controls, and graceful no-ad responses.
+30. Advertising UI: add responsive ad slots to agreed pages with visible `Sponsored` labeling, accessible fallbacks, privacy/consent handling where required, and no layout-breaking behavior when ads are blocked or unavailable.
+31. Advertising operations and governance: build admin workflows for campaign review, creative moderation, budget/end-date controls, reporting, fraud monitoring, and advertiser disclosure. Evaluate direct sponsorships first; add an external ad network only after privacy, performance, and brand-safety review.
+32. Dealer links: define dealer records and motorcycle-specific listings, including dealer name, location or service area, destination URL, listing status, last-verified timestamp, and optional pricing/availability. Keep dealer links moderated and separate from manufacturer brand data and organic bike ranking.
+33. Dealer API and UI: expose approved links on bike detail pages through a cacheable endpoint or detail response, with clear external-link labeling, stale-link handling, and a no-listings state. Add admin workflows for verification, expiration, removal, and click reporting.
 
 **Relevant files**
 - **Root**: `package.json` (pnpm workspaces), `.gitignore`, `README.md`, `CLAUDE.md` (AI guidelines)

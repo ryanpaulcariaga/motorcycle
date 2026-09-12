@@ -93,6 +93,10 @@ For app-specific configuration, see [apps/web/README.md](apps/web/README.md).
 
 Features are spec-driven. See [specs/](specs/) for active features.
 
+### Future Roadmap
+
+Planned post-MVP capabilities include user reviews, AI-assisted comparison insights, analytics, dealer links, and a privacy-conscious advertising platform. Advertising is intended to support clearly labeled sponsored placements and relevant motorcycle-related campaigns without changing organic search or comparison results. See [specs/003-advertising/spec.md](specs/003-advertising/spec.md) and [specs/004-dealer-links/spec.md](specs/004-dealer-links/spec.md) for the initial future scopes.
+
 When implementing a feature:
 1. Review the feature spec in `specs/NNN-feature-name/spec.md`
 2. Follow the plan in `specs/NNN-feature-name/plan.md`

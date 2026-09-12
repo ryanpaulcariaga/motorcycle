@@ -135,11 +135,33 @@ CREATE TABLE survey_responses (
 );
 ```
 
+### Future Advertising Tables (Design Only)
+
+Advertising is deferred and should not be added to the MVP schema until its commercial and privacy requirements are approved. The expected model is:
+
+- `advertisers`: organization, billing/contact reference, status, and audit timestamps.
+- `ad_campaigns`: advertiser, name, start/end dates, budget or delivery limits, status, and targeting rules.
+- `ad_creatives`: campaign, asset/text destination, disclosure label, moderation status, and accessibility metadata.
+- `ad_placements`: stable placement key, page/context rules, device constraints, and display limits.
+- `ad_delivery_events`: campaign/creative/placement reference, event type (`impression` or `click`), timestamp, and a privacy-preserving session or request reference.
+
+Campaign and creative records should be soft-disabled rather than deleted while they are referenced by delivery events. Delivery events should be retained only as long as needed for reporting and fraud review, with aggregation preferred over storing identifiable browsing histories.
+
+### Future Dealer Tables (Design Only)
+
+Dealer links are deferred and should not be added to the MVP schema until verification and ownership rules are approved. The expected model is:
+
+- `dealers`: dealer name, website, contact details, location/service area, status, and audit timestamps.
+- `bike_dealer_listings`: bike/dealer relationship, destination URL, optional price and availability, verification status, last-verified timestamp, expiration timestamp, and click/reporting references.
+
+The relationship should support multiple dealers per motorcycle and multiple motorcycle listings per dealer. URLs require validation and moderation; expired or unverified listings are excluded from public responses. Dealer rows must remain distinct from `brands`, even when a dealer sells only one manufacturer.
+
 ## Notes
 
 - **JSONB specs**: Bikes store specs as a flat key-value map. Schema flexibility allows per-bike omissions without schema migration.
 - **Expression Indexes**: Per-spec indexes added via EF Core migrations for filterable numeric specs → fast range queries.
 - **GIN Index**: General JSONB filtering via `specs @> ...` or `specs ? 'key'` syntax.
 - **No category-spec scoping**: All specs available for all bikes; admin manages per-bike spec values. Future: add optional `category_id` to `spec_definitions` if needed.
+- **Advertising is isolated from catalog data**: sponsored placements must not be stored as bike ranking signals or mixed into organic comparison responses. Future advertising tables should reference context and placement keys, not mutate bike specs or search ordering.
 
 See [api.md](api.md) and [architecture.md](architecture.md) for design rationale.
