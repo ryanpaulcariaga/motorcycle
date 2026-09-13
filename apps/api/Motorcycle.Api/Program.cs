@@ -61,7 +61,7 @@ using (var scope = app.Services.CreateScope())
     if (app.Environment.IsDevelopment())
     {
         await DatabaseSeeder.SeedAsync(db);
-        await ScooterDataSeeder.SeedAsync(db);
+        await MotorcycleDataSeeder.SeedAsync(db);
     }
 }
 

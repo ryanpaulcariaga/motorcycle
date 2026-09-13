@@ -7,34 +7,34 @@ public static class DatabaseSeeder
 {
     public static async Task SeedAsync(MotorcycleDbContext context)
     {
-        // Seed brands
-        if (!context.Brands.Any())
+        // Seed brands (additive: only inserts names that don't already exist)
         {
-            var brands = new[]
+            var brandNames = new[] { "Kawasaki", "Honda", "Yamaha", "Harley-Davidson", "Ducati", "Suzuki", "KTM", "KYMCO" };
+            var existingBrandNames = context.Brands.Select(b => b.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var missingBrands = brandNames
+                .Where(n => !existingBrandNames.Contains(n))
+                .Select(n => new Brand { Name = n, CreatedAt = DateTime.UtcNow })
+                .ToList();
+            if (missingBrands.Count > 0)
             {
-                new Brand { Name = "Kawasaki", CreatedAt = DateTime.UtcNow },
-                new Brand { Name = "Honda", CreatedAt = DateTime.UtcNow },
-                new Brand { Name = "Yamaha", CreatedAt = DateTime.UtcNow },
-                new Brand { Name = "Harley-Davidson", CreatedAt = DateTime.UtcNow },
-                new Brand { Name = "Ducati", CreatedAt = DateTime.UtcNow },
-            };
-            context.Brands.AddRange(brands);
-            await context.SaveChangesAsync();
+                context.Brands.AddRange(missingBrands);
+                await context.SaveChangesAsync();
+            }
         }
 
-        // Seed categories
-        if (!context.Categories.Any())
+        // Seed categories (additive: only inserts names that don't already exist)
         {
-            var categories = new[]
+            var categoryNames = new[] { "Sport", "Cruiser", "Adventure", "Scooter", "Touring", "Naked", "Underbone", "Off-Road" };
+            var existingCategoryNames = context.Categories.Select(c => c.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var missingCategories = categoryNames
+                .Where(n => !existingCategoryNames.Contains(n))
+                .Select(n => new Category { Name = n })
+                .ToList();
+            if (missingCategories.Count > 0)
             {
-                new Category { Name = "Sport" },
-                new Category { Name = "Cruiser" },
-                new Category { Name = "Adventure" },
-                new Category { Name = "Scooter" },
-                new Category { Name = "Touring" },
-            };
-            context.Categories.AddRange(categories);
-            await context.SaveChangesAsync();
+                context.Categories.AddRange(missingCategories);
+                await context.SaveChangesAsync();
+            }
         }
 
         // Seed spec groups
@@ -109,6 +109,9 @@ public static class DatabaseSeeder
                 new SpecDefinition { GroupId = featuresGroup.Id, Code = "headlight", Label = "Headlight", DataType = "text", SortOrder = 2, IsFilterable = false, FilterType = null },
                 new SpecDefinition { GroupId = featuresGroup.Id, Code = "taillight", Label = "Taillight", DataType = "text", SortOrder = 3, IsFilterable = false, FilterType = null },
                 new SpecDefinition { GroupId = featuresGroup.Id, Code = "reduction_ratio", Label = "Primary/Secondary Reduction Ratio", DataType = "text", SortOrder = 4, IsFilterable = false, FilterType = null },
+                new SpecDefinition { GroupId = featuresGroup.Id, Code = "gear_shift_pattern", Label = "Gear Shift Pattern", DataType = "text", SortOrder = 5, IsFilterable = false, FilterType = null },
+                new SpecDefinition { GroupId = featuresGroup.Id, Code = "turning_radius", Label = "Turning Radius", DataType = "text", SortOrder = 6, IsFilterable = false, FilterType = null },
+                new SpecDefinition { GroupId = featuresGroup.Id, Code = "security_system", Label = "Security System", DataType = "text", SortOrder = 7, IsFilterable = false, FilterType = null },
             };
 
             var existingCodes = context.SpecDefinitions.Select(d => d.GroupId + "|" + d.Code).ToHashSet();

@@ -5,8 +5,8 @@ using Motorcycle.Infrastructure.Persistence;
 
 namespace Motorcycle.Infrastructure.Seeding;
 
-/// <summary>Seeds real-world scooter listings scraped into Seeding/Data/scooters.jsonl (one JSON object per line).</summary>
-public static class ScooterDataSeeder
+/// <summary>Seeds real-world motorcycle listings scraped into Seeding/Data/motorcycles.jsonl (one JSON object per line).</summary>
+public static class MotorcycleDataSeeder
 {
     // Raw JSON key -> our spec_definitions code. Numeric codes get their leading number extracted.
     private static readonly Dictionary<string, string> FieldMap = new()
@@ -49,31 +49,30 @@ public static class ScooterDataSeeder
         ["Primary/Secondary Reduction Ratio"] = "reduction_ratio",
         ["Fuel Capacity (L)"] = "fuel_capacity",
         ["Fuel Capacity"] = "fuel_capacity",
+        ["Gear Shift Pattern"] = "gear_shift_pattern",
+        ["Turning Radius"] = "turning_radius",
+        ["Security System"] = "security_system",
+        ["Top Speed"] = "top_speed",
     };
 
     private static readonly HashSet<string> NumericCodes = new()
     {
-        "cc", "seat_height", "wheelbase", "dry_weight", "wet_weight", "ground_clearance", "engine_oil_capacity", "fuel_capacity",
+        "cc", "seat_height", "wheelbase", "dry_weight", "wet_weight", "ground_clearance", "engine_oil_capacity", "fuel_capacity", "top_speed",
     };
 
     // Keys handled separately, not through FieldMap.
-    private static readonly HashSet<string> IgnoredKeys = new() { "Make", "Model", "Category", "Fuel" };
+    private static readonly HashSet<string> IgnoredKeys = new() { "Make", "Model", "Category", "Fuel", "Mileage" };
 
     public static async Task SeedAsync(MotorcycleDbContext context)
     {
-        var dataPath = Path.Combine(AppContext.BaseDirectory, "Seeding", "Data", "scooters.jsonl");
+        var dataPath = Path.Combine(AppContext.BaseDirectory, "Seeding", "Data", "motorcycles.jsonl");
         if (!File.Exists(dataPath))
         {
             return;
         }
 
-        var scooterCategory = context.Categories.FirstOrDefault(c => c.Name == "Scooter");
-        if (scooterCategory is null)
-        {
-            return;
-        }
-
         var brandsByName = context.Brands.ToDictionary(b => b.Name, StringComparer.OrdinalIgnoreCase);
+        var categoriesByName = context.Categories.ToDictionary(c => c.Name, StringComparer.OrdinalIgnoreCase);
         var existingSlugs = context.Bikes.Select(b => b.Slug).ToHashSet();
 
         var newBikes = new List<Bike>();
@@ -99,6 +98,14 @@ public static class ScooterDataSeeder
             if (!existingSlugs.Add(slug))
             {
                 continue; // already seeded (or a duplicate row in the source file) - skip so reruns stay idempotent
+            }
+
+            var categoryRaw = root.TryGetProperty("Category", out var catEl) ? catEl.GetString() : null;
+            var engineType = root.TryGetProperty("Engine Type", out var engEl) ? engEl.GetString() : null;
+            var categoryName = ClassifyCategory(categoryRaw, model, engineType);
+            if (!categoriesByName.TryGetValue(categoryName, out var category))
+            {
+                continue; // shouldn't happen once categories are seeded, but skip rather than crash
             }
 
             var specs = new Dictionary<string, object>();
@@ -131,7 +138,7 @@ public static class ScooterDataSeeder
             newBikes.Add(new Bike
             {
                 BrandId = brand.Id,
-                CategoryId = scooterCategory.Id,
+                CategoryId = category.Id,
                 ModelName = model,
                 Year = 2024, // not present in source data; placeholder until confirmed per model
                 MsrpPrice = null,
@@ -147,6 +154,63 @@ public static class ScooterDataSeeder
             await context.SaveChangesAsync();
         }
     }
+
+    // The source data's own "Category" field is an inconsistent Philippine-market label
+    // (e.g. "Pang Sports", "Pang Negosyo", "Automatic", "1"), so classification falls back
+    // to keyword matching against the model name / engine description.
+    private static string ClassifyCategory(string? categoryRaw, string model, string? engineType)
+    {
+        var haystack = $"{categoryRaw} {model} {engineType}".ToLowerInvariant();
+
+        if (categoryRaw is "Scooter" or "Automatic" or "AT Bike")
+        {
+            return "Scooter";
+        }
+
+        if (ContainsAny(haystack, "crf", "klx", "kx250", "rm-z", "wr155", "xr150"))
+        {
+            return "Off-Road";
+        }
+
+        if (ContainsAny(haystack, "adv ", "adv160", "adv 160", "adventure", "africa twin", "transalp", "tenere", "tracer", "v-strom", "vstrom", "versys", "x-adv"))
+        {
+            return "Adventure";
+        }
+
+        if (ContainsAny(haystack, "vulcan", "w800"))
+        {
+            return "Cruiser";
+        }
+
+        if (categoryRaw is "Pang Negosyo" or "Pang Araw-Araw" || ContainsAny(haystack, "wave", "xrm", "tmx", "raider", "smash", "barako", "ytx", "dr160"))
+        {
+            return "Underbone";
+        }
+
+        if (ContainsAny(haystack, "click", "beat", "pcx", "nmax", "aerox", "mio", "giorno", "navi", "dio ", " dio", "vision", "address", "skydrive", "burgman", "xmax", "tmax", "agility", "like ", "dink", "xciting", "ak550", "lexi", "fazzio", "gear", "krv", "brusky", "access", "avenis", "ride connect", "pg-1"))
+        {
+            return "Scooter";
+        }
+
+        if (categoryRaw is "Pang Sports" || ContainsAny(haystack, "ninja", "cbr", "gsx", "yzf", "winner", "duke", "rc 200", "rc 390", "rouser", "dominar", "pulsar", "gixxer", "sniper"))
+        {
+            return "Sport";
+        }
+
+        if (ContainsAny(haystack, "mt-", "z650", "z h2", "z1100", "cb650r", "cb500f", "xsr", "sv650", "gsx-8", "gsx-s"))
+        {
+            return "Naked";
+        }
+
+        if (ContainsAny(haystack, "goldwing", "touring"))
+        {
+            return "Touring";
+        }
+
+        return "Sport"; // reasonable default for remaining big-displacement road bikes
+    }
+
+    private static bool ContainsAny(string haystack, params string[] needles) => needles.Any(haystack.Contains);
 
     private static string ToSlug(string source)
     {
