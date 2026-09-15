@@ -5,17 +5,17 @@
 - ✅ Phase 1 — Database Design — DONE (schema, migrations, GIN index, seed data all applied to local Postgres)
 - ✅ Phase 2 — Backend API — DONE (repositories, Strategy-pattern spec filters, services, controllers; smoke-tested against live DB)
 - ✅ Phase 3 — Frontend — DONE (Tailwind theme, layout components, typed API client, `/`, `/bikes`, `/bikes/[slug]`, `/compare`; smoke-tested end-to-end against live API)
-- ⏳ Phase 4 — Admin Catalog Management — NOT STARTED
+- ⏳ Phase 4 — Admin Catalog Management — STAGED; Stage 1 MVP next
 - ⏳ Phase 5 — Azure Infrastructure & Deployment — NOT STARTED
 - ⏳ Phase 6 — Future Backlog — NOT STARTED (intentionally deferred, schema stubs only)
 
-**Resume here:** Phase 4, step 19 (admin catalog management). Local development currently runs PostgreSQL, the API on `:5050`, and the public web app on `:3000`. The admin site will be added as a separate Next.js workspace and local process.
+**Resume here:** Phase 4, Stage 1 (admin shell, shared styling, Facebook OAuth2, and BikeModel CRUD). Local development currently runs PostgreSQL, the API on `:5050`, and the public web app on `:3000`. The admin site will be added as a separate Next.js workspace and local process.
 
 Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicable, Tailwind CSS) frontends + a shared ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering) + PostgreSQL (JSONB specs, schema versioned via EF Core Migrations) + Azure Blob Storage for images, all hosted on Azure App Service. The public experience supports browse/search/filter/compare bikes with grouped specs. The admin experience manages the catalog, motorcycle specifications, image assignments, and specification metadata through the same API. Future-proofing remains for AI pros/cons, annual surveys, analytics, voting/comments, dealer listings, and advertising.
 
 **Decisions**
 - Repo structure: **monorepo** — single `motorcycle-app` repo with `apps/web` (public Next.js frontend), `apps/admin` (admin Next.js frontend), and `apps/api` (shared ASP.NET Core backend); `specs/` for cross-app feature definitions; `docs/` for shared architecture/database/API docs; `.github/workflows` for CI/CD pipelines targeting each deployable app.
-- Auth: public catalog remains anonymous. Microsoft Entra ID authenticates administrators, and a configured administrator role or group authorizes catalog mutations.
+- Auth: public catalog remains anonymous. Stage 1 uses Facebook OAuth2 for admin sign-in; the API authorizes authenticated admin mutations separately from public read-only routes. A stronger organization identity provider may replace Facebook before production deployment.
 - Data entry: the admin site replaces manual SQL as the normal workflow for bikes, specifications, images, and metadata. Seed scripts remain for local bootstrap and repeatable test data.
 - Dealer links: future dealer records are separate from manufacturer brands; a motorcycle may expose one or more approved dealer listings or contact links with clear source and availability information.
 - Hosting: Azure App Service (Linux, one plan, three Web Apps: `api`, `web`, and `admin`). Azure Database for PostgreSQL – Flexible Server. Azure Storage Account (Blob) for images, served via **public read-only blob container**; the admin API uploads and assigns public image URLs while browser clients never receive storage credentials. Azure CDN/Front Door is deferred until traffic warrants it.
@@ -85,30 +85,37 @@ Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicab
 17. Image handling: `next/image` with a remote pattern pointing at the Azure Blob public container hostname.
 18. Basic SEO metadata (per-bike titles/OG tags using bike name + primary image).
 
-### Phase 4 — Admin Catalog Management ⏳ NOT STARTED
-19. Scaffold `apps/admin` as a separate Next.js App Router, TypeScript, and Tailwind CSS workspace. Follow the public app's component and typed-client structure, but provide a task-focused administration layout rather than public SEO pages.
-20. Add administrator authentication and authorization to the shared API before adding write operations. Keep public catalog endpoints anonymous and read-only; expose protected administration routes under an explicit API boundary such as `/api/admin`.
-21. Add API contracts, application services, and protected endpoints to create, edit, publish/unpublish, and delete motorcycles; manage brands and categories; and validate the JSONB specification values against their definitions. Both `apps/web` and `apps/admin` must consume the same shared backend and stable DTO contracts.
-22. Add protected image upload and assignment workflows: upload through the API using server-side Azure Blob credentials, assign images to a motorcycle, select exactly one primary image, order images, and remove assignments. Browser clients must not receive storage keys.
-23. Build admin pages for motorcycle list/search and edit forms, brand/category management, motorcycle image management, and spec-group/spec-definition metadata (group, code, label, type, unit, ordering, and filter settings). Include validation feedback, mutation error states, and responsive layouts.
+### Phase 4 — Admin Catalog Management ⏳ STAGED
+#### Stage 1 — Admin BikeModel MVP
+19. Scaffold `apps/admin` as a separate Next.js App Router, TypeScript, and Tailwind CSS workspace. Copy the established `apps/web` UI tokens, typography, layout conventions, and API-client approach into an administration-focused shell.
+20. Add Facebook OAuth2 sign-in for the admin site and protected API requests. Keep public catalog endpoints anonymous and read-only; expose Stage 1 mutations under `/api/admin`.
+21. Add typed `BikeModel` CRUD contracts, application services, repository operations, and protected endpoints for loading, adding, editing, and deleting rows in `bike_models`.
+22. Prevent deletion of a `BikeModel` referenced by any `Bike` row. Return a clear conflict/error response and show an actionable message in the admin UI.
+23. Build the Stage 1 admin UI: authenticated shell, BikeModel list, add/edit form, delete confirmation, loading/empty/error states, and responsive styling matching `apps/web`.
+
+#### Later Admin Stages — Deferred
+24. Add CRUD for `bikes`, including year/variant data and publication workflow.
+25. Add Azure Blob Storage upload, bike image assignment, ordering, and primary-image management through the API.
+26. Add CRUD for `spec_groups` and `spec_definitions`, including ordering, labels, data types, units, and filter settings.
+27. Expand admin authorization, tests, deployment configuration, and CI/CD as the later stages are implemented.
 
 ### Phase 5 — Azure Infrastructure & Deployment ⏳ NOT STARTED
-24. Provision: Resource Group → Azure Database for PostgreSQL Flexible Server → Azure Storage Account (Blob container, public read access for images) → Azure Key Vault (DB connection string, storage keys) → App Service Plan (Linux) with three Web Apps (`api`, `web`, and `admin`), each with managed identity + Key Vault references.
-25. CI/CD: GitHub Actions workflows in `.github/workflows/` — build/test `apps/web`, `apps/admin`, and `apps/api` on each push; deploy to the corresponding App Service only if that app changes. The API pipeline also runs `dotnet ef database update` against the target environment as a deploy step.
-26. Configure `web` and `admin` App Services for Next.js standalone output/Node runtime (sources: `apps/web/` and `apps/admin/`); configure `api` for ASP.NET Core (source: `apps/api/`). Wire each app's API base URL and the API's DB connection and storage configuration through managed configuration.
-27. Point DNS/custom domains (if any), require HTTPS, and restrict the admin site's access according to the selected administrator identity model.
+28. Provision: Resource Group → Azure Database for PostgreSQL Flexible Server → Azure Storage Account (Blob container, public read access for images) → Azure Key Vault (DB connection string, storage keys) → App Service Plan (Linux) with three Web Apps (`api`, `web`, and `admin`), each with managed identity + Key Vault references.
+29. CI/CD: GitHub Actions workflows in `.github/workflows/` — build/test `apps/web`, `apps/admin`, and `apps/api` on each push; deploy to the corresponding App Service only if that app changes. The API pipeline also runs `dotnet ef database update` against the target environment as a deploy step.
+30. Configure `web` and `admin` App Services for Next.js standalone output/Node runtime (sources: `apps/web/` and `apps/admin/`); configure `api` for ASP.NET Core (source: `apps/api/`). Wire each app's API base URL and the API's DB connection and storage configuration through managed configuration.
+31. Point DNS/custom domains (if any), require HTTPS, and review the Facebook OAuth2 production configuration before deployment.
 
 ### Phase 6 — Future Backlog (not built now, tracked for later) ⏳ NOT STARTED (intentionally deferred)
-28. AI-generated pros/cons for compared bikes (likely an async job hitting an LLM, cached per bike-set).
-29. Annual survey feature (preferred bike / owned bike + feedback) using `survey_responses` stub table.
-30. Analytics: most-viewed bikes, most-searched specs/categories, backed by `bike_views`/`spec_search_log` stub tables + a lightweight aggregation job/dashboard.
-31. Upvote/downvote + comments per bike using `bike_votes`/`bike_comments` stub tables — will require introducing auth/session identity first.
-32. Advertising foundation: define advertiser/campaign/creative/placement concepts, approval and expiration states, and a reporting model for impressions and clicks. Keep sponsored content separate from organic bike ranking and comparison calculations.
-33. Advertising API and delivery: expose approved active placements through a cacheable, context-aware endpoint; support placement limits, category/brand targeting, frequency controls, and graceful no-ad responses.
-34. Advertising UI: add responsive ad slots to agreed pages with visible `Sponsored` labeling, accessible fallbacks, privacy/consent handling where required, and no layout-breaking behavior when ads are blocked or unavailable.
-35. Advertising operations and governance: build admin workflows for campaign review, creative moderation, budget/end-date controls, reporting, fraud monitoring, and advertiser disclosure. Evaluate direct sponsorships first; add an external ad network only after privacy, performance, and brand-safety review.
-36. Dealer links: define dealer records and motorcycle-specific listings, including dealer name, location or service area, destination URL, listing status, last-verified timestamp, and optional pricing/availability. Keep dealer links moderated and separate from manufacturer brand data and organic bike ranking.
-37. Dealer API and UI: expose approved links on bike detail pages through a cacheable endpoint or detail response, with clear external-link labeling, stale-link handling, and a no-listings state. Add admin workflows for verification, expiration, removal, and click reporting.
+32. AI-generated pros/cons for compared bikes (likely an async job hitting an LLM, cached per bike-set).
+33. Annual survey feature (preferred bike / owned bike + feedback) using `survey_responses` stub table.
+34. Analytics: most-viewed bikes, most-searched specs/categories, backed by `bike_views`/`spec_search_log` stub tables + a lightweight aggregation job/dashboard.
+35. Upvote/downvote + comments per bike using `bike_votes`/`bike_comments` stub tables — will require introducing auth/session identity first.
+36. Advertising foundation: define advertiser/campaign/creative/placement concepts, approval and expiration states, and a reporting model for impressions and clicks. Keep sponsored content separate from organic bike ranking and comparison calculations.
+37. Advertising API and delivery: expose approved active placements through a cacheable, context-aware endpoint; support placement limits, category/brand targeting, frequency controls, and graceful no-ad responses.
+38. Advertising UI: add responsive ad slots to agreed pages with visible `Sponsored` labeling, accessible fallbacks, privacy/consent handling where required, and no layout-breaking behavior when ads are blocked or unavailable.
+39. Advertising operations and governance: build admin workflows for campaign review, creative moderation, budget/end-date controls, reporting, fraud monitoring, and advertiser disclosure. Evaluate direct sponsorships first; add an external ad network only after privacy, performance, and brand-safety review.
+40. Dealer links: define dealer records and motorcycle-specific listings, including dealer name, location or service area, destination URL, listing status, last-verified timestamp, and optional pricing/availability. Keep dealer links moderated and separate from manufacturer brand data and organic bike ranking.
+41. Dealer API and UI: expose approved links on bike detail pages through a cacheable endpoint or detail response, with clear external-link labeling, stale-link handling, and a no-listings state. Add admin workflows for verification, expiration, removal, and click reporting.
 
 **Relevant files**
 - **Root**: `package.json` (pnpm workspaces), `.gitignore`, `README.md`, `.github/copilot-instructions.md` (AI guidelines)
@@ -125,7 +132,7 @@ Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicab
 3. `GET /api/bikes` supports combined static + dynamic spec filters (exercising each `ISpecFilterStrategy` implementation) and returns correct pagination.
 4. `GET /api/bikes/compare?ids=...` returns a correctly grouped/ordered matrix for 2, 5, and 10+ bikes (to validate the UI's side-by-side → scrollable-table switch threshold).
 5. Frontend `/bikes`, `/bikes/[slug]`, and `/compare` pages render against the live API in a local dev environment; image gallery loads from the Azure Blob container; verify layout/colors at mobile, tablet, and desktop breakpoints.
-6. Admin mutations reject unauthenticated and unauthorized requests; valid administrator actions update the shared catalog and are visible through public read endpoints without direct database or storage access from the admin browser.
+6. Stage 1 admin mutations reject unauthenticated and unauthorized requests; valid Facebook-authenticated administrator actions create, edit, and delete unreferenced BikeModels, while referenced BikeModel deletion returns a clear conflict without direct database access from the admin browser.
 7. Deployed App Services reachable over HTTPS; API connects to Azure Database for PostgreSQL and Blob Storage using Key Vault-sourced secrets (no secrets in App Service plain settings or source control).
 
 **Further Considerations**

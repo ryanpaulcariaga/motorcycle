@@ -35,9 +35,9 @@ Azure Blob Storage (images served via public URL)
 
 ### Administration Boundary
 
-`apps/admin/` is a separate private Next.js workspace, not a backend or a direct database client. It uses the same ASP.NET Core API as `apps/web/`, with typed contracts appropriate to administrative mutations. The API must authorize administrative requests before allowing motorcycle, image, lookup, or specification-metadata changes; public catalog routes remain anonymous and read-only.
+`apps/admin/` is a separate private Next.js workspace, not a backend or a direct database client. Stage 1 copies the public `apps/web/` visual language and uses the same ASP.NET Core API through typed contracts. Facebook OAuth2 authenticates administrators, and the API protects `/api/admin` BikeModel mutations; public catalog routes remain anonymous and read-only.
 
-The API owns image uploads and Azure Blob Storage access. The admin browser can submit image files and manage their motorcycle assignments, ordering, and primary-image state, but it must never receive database or storage credentials.
+Bike CRUD, image uploads, Azure Blob Storage access, and specification metadata are deferred admin stages. When implemented, those operations remain API-owned and the admin browser must never receive database or storage credentials.
 
 ### Future Advertising Boundary
 

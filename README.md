@@ -99,7 +99,7 @@ Features are spec-driven. See [specs/](specs/) for active features.
 
 ### Planned Admin Catalog Management
 
-The planned `apps/admin/` Next.js site will maintain motorcycles, specification values and metadata, brands, categories, and motorcycle image assignments. It consumes the shared `apps/api/` backend; only authenticated, authorized administrators can use its write operations. See [specs/005-admin-catalog-management/spec.md](specs/005-admin-catalog-management/spec.md).
+The planned `apps/admin/` Next.js site is staged. Stage 1 provides Facebook OAuth2 sign-in, shared public-web styling, and protected BikeModel CRUD through the shared `apps/api/` backend. Bike CRUD, Azure image storage/assignment, and specification metadata CRUD are deferred follow-on stages. See [specs/005-admin-catalog-management/spec.md](specs/005-admin-catalog-management/spec.md).
 
 ### Future Roadmap
 

@@ -1,31 +1,31 @@
 # Data Model: Admin Catalog Management
 
-The admin feature uses the existing catalog model; no separate administration data store is introduced.
+The admin feature uses the existing catalog model; no separate administration data store is introduced. Stage 1 manages `BikeModel`; the other catalog entities below are documented for later stages.
 
 ## Existing Managed Entities
 
 | Entity | Admin-managed fields | Rules |
 |---|---|---|
 | `BikeModel` | brand, category, model-line name | Brand and category must exist; `(brand, name)` is unique; a model line groups its variants |
-| `Bike` | model, complete source variant name, year, MSRP, slug, `specs`, publication state | Model must exist; variant name preserves the source `Model` label; slug is unique; each supplied spec code must have a definition and its value must match the definition data type; year `0` means unknown for imported records |
-| `BikeImage` | image URL, sort order, primary state | Belongs to one bike; image assignment is removed when deleted; a motorcycle has at most one primary image |
+| `Bike` | Deferred: model, complete source variant name, year, MSRP, slug, `specs`, publication state | Later bike CRUD must enforce model existence, source variant labels, unique slugs, spec validation, and year `0` for unknown imported years |
+| `BikeImage` | Deferred: image URL, sort order, primary state | Later image stage; belongs to one bike and allows at most one primary image |
 | `Brand` | name, logo URL | Name is unique |
 | `Category` | name | Name is unique |
-| `SpecGroup` | code, name, sort order, icon name | Code is unique; groups order specification metadata |
-| `SpecDefinition` | group, code, label, data type, unit, sort order, filterability, filter type | Group must exist; code is unique within its group; data type governs allowed motorcycle spec values |
+| `SpecGroup` | Deferred: code, name, sort order, icon name | Later specification metadata stage |
+| `SpecDefinition` | Deferred: group, code, label, data type, unit, sort order, filterability, filter type | Later specification metadata stage |
 
 ## State Transitions
 
 | Entity | Transition | Authorization and validation |
 |---|---|---|
-| Bike | Draft/unpublished to published | Administrator only; all required catalog data and assigned primary image rules must pass |
-| Bike | Published to unpublished | Administrator only; the bike is removed from public results |
-| BikeImage | Non-primary to primary | Administrator only; atomically clear any existing primary image for that bike |
-| Spec metadata | Create, update, reorder, delete | Administrator only; prevent deletion or require migration of metadata referenced by existing motorcycle values |
+| BikeModel | Create, update, delete | Administrator only; deletion is rejected when any Bike references the model |
+| Bike | Publication and CRUD | Deferred to a later stage |
+| BikeImage | Image assignment and primary state | Deferred to a later stage |
+| Spec metadata | Create, update, reorder, delete | Deferred to a later stage |
 
 ## Data Integrity
 
 - All mutations run through application validation and EF Core persistence.
-- The API, rather than the admin client, enforces unique names/codes/slugs and image-primary invariants.
+- The API, rather than the admin client, enforces unique BikeModel names and the BikeModel deletion conflict rule.
 - Schema changes remain EF Core migration changes in `Motorcycle.Infrastructure/Migrations/`.
 - Audit-log requirements are deferred until the administrator identity and compliance needs are finalized.

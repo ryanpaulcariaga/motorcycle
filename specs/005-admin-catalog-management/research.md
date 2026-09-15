@@ -1,10 +1,14 @@
 # Research: Admin Catalog Management
 
-## Decision: Use Microsoft Entra ID for administrator authentication
+## Decision: Use Facebook OAuth2 for Stage 1 administrator authentication
 
-**Rationale:** The application is planned for Azure App Service and Key Vault, so Microsoft Entra ID provides a managed identity provider for a private internal site without storing administrator passwords in the application. The admin Next.js application authenticates users, and the API validates bearer tokens and authorizes a configured administrator role or group claim.
+**Rationale:** Facebook OAuth2 provides the requested MVP sign-in flow without introducing local password storage. The admin Next.js application authenticates users, and the API accepts only the configured administrator identity or allowlist entry. The provider can be replaced before production if organizational identity requirements change.
 
-**Alternatives considered:** A local username/password implementation would add credential storage, recovery, and security maintenance. API keys do not identify individual operators and are inappropriate for an interactive administration site.
+**Alternatives considered:** Microsoft Entra ID remains a possible production provider for Azure-hosted administration. A local username/password implementation would add credential storage, recovery, and security maintenance. API keys do not identify individual operators and are inappropriate for an interactive administration site.
+
+## Decision: Stage the admin catalog by aggregate
+
+**Rationale:** BikeModel CRUD is a small, independently useful vertical slice for validating the admin shell, authentication, shared API boundary, and referential-integrity errors. Bike variants, images, and spec metadata have wider validation and storage concerns and are deferred to separate stages.
 
 ## Decision: Use one API with explicit public and admin boundaries
 
@@ -12,9 +16,9 @@
 
 **Alternatives considered:** A dedicated admin backend would duplicate catalog logic and create contract drift. Calling PostgreSQL or Blob Storage directly from the admin app would expose credentials and bypass validation.
 
-## Decision: Upload and assign images through the API
+## Deferred Decision: Upload and assign images through the API
 
-**Rationale:** The API can validate file type and size, persist assignment metadata, enforce one primary image per motorcycle, and use Key Vault-backed Blob Storage credentials. The browser submits image data only to an authorized endpoint.
+**Rationale:** The later image stage will have the API validate file type and size, persist assignment metadata, enforce one primary image per bike, and use Key Vault-backed Blob Storage credentials. The browser will submit image data only to an authorized endpoint.
 
 **Alternatives considered:** Browser uploads with shared storage keys expose a secret. Direct browser uploads with short-lived SAS tokens may be evaluated later but require additional issuance, scope, and revocation controls not needed for the first administration release.
 

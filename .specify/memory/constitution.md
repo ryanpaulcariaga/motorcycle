@@ -133,7 +133,7 @@ Frontend UI is designed mobile-first using Tailwind CSS utility classes. Base st
 - **MINOR:** New principles or material expansions to existing guidance (e.g., adding a new required library or architectural layer).
 - **PATCH:** Clarifications, wording, typo fixes, non-semantic refinements (e.g., correcting a breakpoint value).
 
-**Compliance Review:** At the start of each phase (per `plan-motorcycleWebApp.md` phases), architecture decisions MUST be reviewed against this constitution. Non-compliance MUST be flagged and resolved before proceeding.
+**Compliance Review:** At the start of each phase (per `plan-motorcycle-web-app.md` phases), architecture decisions MUST be reviewed against this constitution. Non-compliance MUST be flagged and resolved before proceeding.
 
 **Guidance Files:** Runtime development guidance is kept in `.github/copilot-instructions.md` (AI assistance guidelines) and `docs/` (architecture, API, database docs). This constitution defines governance; `.github/copilot-instructions.md` and `docs/` define practices and how-tos.
 

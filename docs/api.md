@@ -146,16 +146,14 @@ List all categories.
 
 ### Planned Administration API
 
-The same ASP.NET Core API serves the planned `apps/admin` Next.js workspace. Public catalog endpoints stay anonymous and read-only. Catalog writes must use protected administration endpoints under `/api/admin` and require authenticated, authorized administrator access.
+The same ASP.NET Core API serves the planned `apps/admin` Next.js workspace. Public catalog endpoints stay anonymous and read-only. Stage 1 writes use protected `/api/admin` endpoints and require a Facebook OAuth2-authenticated administrator accepted by the API's configured admin allowlist.
 
-The administration API will provide typed contracts for:
+Stage 1 provides typed contracts for:
 
-- motorcycle model and year/trim variant create, edit, publish/unpublish, and delete operations;
-- brand and category management;
-- spec-group and spec-definition management, including labels, data types, units, filter settings, and ordering;
-- server-side image upload, motorcycle image assignment, primary-image selection, ordering, and removal.
+- BikeModel list, create, edit, and delete operations under `/api/admin/bike-models`;
+- a `409 Conflict` response when a BikeModel is referenced by a bike and cannot be deleted.
 
-Motorcycle specification values must be validated against their definitions before persistence. Image uploads are handled by the API using server-side Blob Storage configuration; no storage credentials are returned to the admin client.
+Bike CRUD, Azure Blob image upload/assignment, and spec-group/spec-definition management are deferred follow-on stages.
 
 ### Future Advertising API
 
@@ -171,7 +169,7 @@ Dealer links should be clearly identified as external destinations. The endpoint
 
 ---
 
-**Authentication**: Public catalog endpoints require no authentication. Planned administration mutation endpoints require a Microsoft Entra ID bearer token with the configured administrator role or group claim.
+**Authentication**: Public catalog endpoints require no authentication. Stage 1 administration mutation endpoints require a Facebook OAuth2-backed administrator identity accepted by the API allowlist.
 
 **Caching**: `spec-groups`, `brands`, `categories` cached 1 hour server-side.
 

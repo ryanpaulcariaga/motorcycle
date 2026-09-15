@@ -2,22 +2,21 @@
 
 ## Overview
 
-Provide a private administrative Next.js application for maintaining the motorcycle catalog through the existing ASP.NET Core API. The admin site complements, but does not replace, the public comparison site.
+Provide a private administrative Next.js application for maintaining the motorcycle catalog through the existing ASP.NET Core API. This feature is staged; Stage 1 delivers the admin shell and BikeModel management, while bike records, images, and specification metadata are deferred.
 
 ## Requirements
 
-- **Separate frontend:** Add `apps/admin/` as a Next.js, TypeScript, and Tailwind CSS workspace with a structure consistent with `apps/web/`.
+- **Separate frontend:** Add `apps/admin/` as a Next.js, TypeScript, and Tailwind CSS workspace with a structure and visual style copied from `apps/web/`.
 - **Shared API:** Both public and admin frontends use `apps/api/`. The admin site must use typed API contracts and must not access PostgreSQL or Azure Blob Storage directly.
-- **Protected mutations:** Catalog write endpoints require authenticated, authorized administrator access. Public catalog endpoints remain anonymous and read-only.
-- **Motorcycle management:** Create, edit, publish/unpublish, and delete model lines and year/trim variants, including brand, category, model name, variant name, year, MSRP, slug, and specification values.
-- **Specification values:** Validate each motorcycle's values against the configured specification definitions and preserve the JSONB storage model.
-- **Image management:** Upload images through the API, associate them with a motorcycle, choose one primary image, reorder images, and remove image assignments. Storage credentials remain server-side.
-- **Metadata management:** Create and edit brands, categories, specification groups, and specification definitions, including their ordering, labels, types, units, and filter configuration.
-- **Usability:** Provide searchable management lists, clear validation and mutation errors, and responsive layouts for administration tasks.
+- **Stage 1 authentication:** Use Facebook OAuth2 for admin sign-in. The API must reject unauthenticated admin mutations and authorize only the configured admin identity or allowlist.
+- **Stage 1 BikeModel management:** Load, add, edit, and delete `bike_models` records, including brand, category, and model-line name.
+- **Stage 1 delete protection:** A BikeModel referenced by any `bikes.model_id` cannot be deleted. The API returns a conflict response and the UI displays a clear error.
+- **Usability:** Provide a responsive admin shell, BikeModel list/form workflows, loading/empty states, validation feedback, and mutation errors.
 
 ## Out of Scope
 
 - Public self-service registration or public catalog editing
 - Direct browser access to database or Blob Storage credentials
+- Bike CRUD, bike publication management, image upload/assignment, and spec-group/spec-definition CRUD in Stage 1
 - User-review, advertising, survey, analytics, or dealer-management administration
 - Public self-service management of administrator identities or roles

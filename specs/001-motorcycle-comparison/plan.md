@@ -1,6 +1,6 @@
 # Implementation Plan: Motorcycle Comparison
 
-See [../../plan-motorcycleWebApp.md](../../plan-motorcycleWebApp.md) in the project root for the full plan.
+See [../../plan-motorcycle-web-app.md](../../plan-motorcycle-web-app.md) in the project root for the full plan.
 
 **High-level phases**:
 

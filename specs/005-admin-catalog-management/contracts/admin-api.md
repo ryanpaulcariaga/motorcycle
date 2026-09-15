@@ -1,6 +1,6 @@
 # Admin API Contract
 
-All endpoints in this contract are planned. They use the shared ASP.NET Core API and require a valid Microsoft Entra ID bearer token with the configured administrator role or group claim.
+Stage 1 endpoints in this contract are planned. They use the shared ASP.NET Core API and require a valid Facebook OAuth2-backed admin session or bearer token accepted by the API's configured admin allowlist.
 
 ## Boundary
 
@@ -9,17 +9,21 @@ All endpoints in this contract are planned. They use the shared ASP.NET Core API
 - Public catalog routes remain under their existing paths and remain read-only
 - Requests and responses use Application DTOs mirrored by `apps/admin` TypeScript types
 
-## Catalog Operations
+## BikeModel Operations (Stage 1)
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/api/admin/bikes` | Search and page all bikes, including unpublished entries |
-| `POST` | `/api/admin/bikes` | Create a bike |
-| `GET` | `/api/admin/bikes/{id}` | Read a bike for editing |
-| `PUT` | `/api/admin/bikes/{id}` | Update bike details, specs, and publication state |
-| `DELETE` | `/api/admin/bikes/{id}` | Delete a bike subject to referential-integrity rules |
+| `GET` | `/api/admin/bike-models` | List BikeModel records for administration |
+| `POST` | `/api/admin/bike-models` | Create a BikeModel |
+| `GET` | `/api/admin/bike-models/{id}` | Read a BikeModel for editing |
+| `PUT` | `/api/admin/bike-models/{id}` | Update a BikeModel |
+| `DELETE` | `/api/admin/bike-models/{id}` | Delete a BikeModel when no bikes reference it |
 
-`CreateBikeRequest` and `UpdateBikeRequest` include `modelId`, `variantName`, `year`, `msrpPrice`, `slug`, `specs`, and `isPublished`. Year is required; `0` represents an unknown source year. Separate model requests manage `brandId`, `categoryId`, and the stable model-line `name`. The API validates supplied `specs` against current specification definitions.
+`CreateBikeModelRequest` and `UpdateBikeModelRequest` include `brandId`, `categoryId`, and `name`. Deleting a referenced BikeModel returns `409 Conflict` with an actionable error code/message. Bike CRUD is deferred to a later stage.
+
+## Deferred Operations
+
+Bike CRUD, Azure Blob image upload/assignment, and spec-group/spec-definition CRUD are intentionally deferred and must not be added to the Stage 1 contract.
 
 ## Metadata Operations
 
