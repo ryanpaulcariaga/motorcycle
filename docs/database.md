@@ -88,6 +88,22 @@ CREATE INDEX idx_bike_models_category_id ON bike_models(category_id);
 
 `bike_models` is the stable product line inferred from related source records, such as `Honda Click` or `Honda ADV`. Each `bikes` row is one comparable variant whose `variant_name` preserves the complete source `Model` value. Year-specific price, specifications, images, slug, and publication state belong to the variant. A year of `0` means the imported source did not identify a model year.
 
+### admin_roles
+```sql
+CREATE TABLE admin_roles (
+  id SERIAL PRIMARY KEY,
+  facebook_user_id VARCHAR(255) NOT NULL UNIQUE,
+  email_snapshot VARCHAR(320),
+  display_name_snapshot VARCHAR(255),
+  role VARCHAR(50) NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+```
+
+Stage 1 accepts the `Administrator` role value. Deactivation is a retained state change; role records are not deleted. The operator-only bootstrap command creates the first active record after the migration is applied.
+
 ### spec_definitions
 ```sql
 CREATE TABLE spec_definitions (
@@ -179,7 +195,7 @@ The relationship should support multiple dealers per motorcycle and multiple mot
 - **Expression Indexes**: Per-spec indexes added via EF Core migrations for filterable numeric specs → fast range queries.
 - **GIN Index**: General JSONB filtering via `specs @> ...` or `specs ? 'key'` syntax.
 - **No category-spec scoping**: All specs available for all bike variants; admin manages per-variant spec values. Future: add optional `category_id` to `spec_definitions` if needed.
-- **Administration writes**: The planned admin site changes catalog data only through protected API operations. It introduces no separate catalog store; EF Core migrations remain the source of truth for schema changes.
+- **Administration writes**: The admin site changes catalog data only through protected API operations. It introduces no separate catalog store; EF Core migrations remain the source of truth for schema changes. BikeModel deletion is checked for dependent `bikes.model_id` references before persistence to prevent the existing cascade from removing variants.
 - **Image management**: `bike_images` remains the relationship and ordering source for assigned motorcycle images. The API enforces a single primary image per motorcycle and owns Blob Storage upload access.
 - **Advertising is isolated from catalog data**: sponsored placements must not be stored as bike ranking signals or mixed into organic comparison responses. Future advertising tables should reference context and placement keys, not mutate bike specs or search ordering.
 

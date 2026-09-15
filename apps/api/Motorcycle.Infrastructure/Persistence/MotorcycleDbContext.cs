@@ -19,6 +19,7 @@ public class MotorcycleDbContext : DbContext
     public DbSet<BikeImage> BikeImages => Set<BikeImage>();
     public DbSet<SpecGroup> SpecGroups => Set<SpecGroup>();
     public DbSet<SpecDefinition> SpecDefinitions => Set<SpecDefinition>();
+    public DbSet<AdminRole> AdminRoles => Set<AdminRole>();
 
     // Future tables (Phase 5+)
     public DbSet<BikeView> BikeViews => Set<BikeView>();
@@ -126,6 +127,19 @@ public class MotorcycleDbContext : DbContext
             sd.Property(x => x.Unit).HasMaxLength(50);
             sd.Property(x => x.FilterType).HasMaxLength(50);
             sd.HasIndex(x => new { x.GroupId, x.Code }).IsUnique();
+        });
+
+        modelBuilder.Entity<AdminRole>(ar =>
+        {
+            ar.HasKey(x => x.Id);
+            ar.Property(x => x.FacebookUserId).IsRequired().HasMaxLength(255);
+            ar.Property(x => x.EmailSnapshot).HasMaxLength(320);
+            ar.Property(x => x.DisplayNameSnapshot).HasMaxLength(255);
+            ar.Property(x => x.Role).IsRequired().HasMaxLength(50);
+            ar.Property(x => x.IsActive).IsRequired();
+            ar.Property(x => x.CreatedAt).IsRequired();
+            ar.Property(x => x.UpdatedAt).IsRequired();
+            ar.HasIndex(x => x.FacebookUserId).IsUnique();
         });
 
         // Future tables (schema stubs for Phase 5+)

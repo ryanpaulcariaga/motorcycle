@@ -6,7 +6,7 @@
 https://api.motorcycle-app.example.com
 ```
 
-(Local dev: `http://localhost:5050`)
+(Local dev: `https://localhost:7240`, used by both Visual Studio's `https` profile and `dotnet run --launch-profile https`.)
 
 ## Endpoints
 
@@ -144,14 +144,29 @@ List all brands.
 
 List all categories.
 
-### Planned Administration API
+### Administration API
 
-The same ASP.NET Core API serves the planned `apps/admin` Next.js workspace. Public catalog endpoints stay anonymous and read-only. Stage 1 writes use protected `/api/admin` endpoints and require a Facebook OAuth2-authenticated administrator accepted by the API's configured admin allowlist.
+The same ASP.NET Core API serves the private `apps/admin` Next.js workspace. Public catalog endpoints stay anonymous and read-only. Stage 1 writes use protected `/api/admin` endpoints and require a short-lived RS256 first-party JWT minted by the admin server after Facebook Authorization Code + PKCE sign-in. The API validates `iss`, `aud`, `sub`, `exp`, and signature, then requires an active `AdminRole` for the Facebook user ID in `sub`.
+
+The browser keeps an encrypted HttpOnly admin session and does not send Facebook access tokens to the API. Server-side admin proxy requests attach the first-party JWT. The admin browser calls same-origin Next.js routes: `/api/admin/*` for protected mutations and `/api/catalog/*` for public catalog lookups; those routes forward to the shared API.
+
+#### Administrator Roles
+
+- `GET /api/admin/admin-roles` lists administrator role records.
+- `POST /api/admin/admin-roles` provisions an active `Administrator` role.
+- `PATCH /api/admin/admin-roles/{id}` updates snapshots, role, or active status.
+- Role records are never deleted. Duplicate Facebook identities return `409` with `admin_role_exists`.
+
+#### BikeModel Administration
 
 Stage 1 provides typed contracts for:
 
 - BikeModel list, create, edit, and delete operations under `/api/admin/bike-models`;
 - a `409 Conflict` response when a BikeModel is referenced by a bike and cannot be deleted.
+
+BikeModel deletion conflicts return `409` with `bike_model_referenced` and a dependent-bike count. Create/update requests validate brand/category references and the unique `(brandId, name)` pair.
+
+The BikeModel UI loads its dropdown data through the admin proxy routes `/api/catalog/brands` and `/api/catalog/categories`, which forward to the API's public `/api/brands` and `/api/categories` endpoints.
 
 Bike CRUD, Azure Blob image upload/assignment, and spec-group/spec-definition management are deferred follow-on stages.
 
@@ -169,7 +184,7 @@ Dealer links should be clearly identified as external destinations. The endpoint
 
 ---
 
-**Authentication**: Public catalog endpoints require no authentication. Stage 1 administration mutation endpoints require a Facebook OAuth2-backed administrator identity accepted by the API allowlist.
+**Authentication**: Public catalog endpoints require no authentication. Stage 1 administration endpoints require an active administrator role and a valid first-party JWT. The operator-only bootstrap command creates the initial role after migrations are applied.
 
 **Caching**: `spec-groups`, `brands`, `categories` cached 1 hour server-side.
 

@@ -1,21 +1,21 @@
 ## Plan: Motorcycle Specs, Comparison & Administration App
 
-**Progress status (updated 2026-09-15)**
+**Progress status (updated 2026-09-16)**
 - ✅ Phase 0 — Monorepo Initialization — DONE
 - ✅ Phase 1 — Database Design — DONE (schema, migrations, GIN index, seed data all applied to local Postgres)
 - ✅ Phase 2 — Backend API — DONE (repositories, Strategy-pattern spec filters, services, controllers; smoke-tested against live DB)
 - ✅ Phase 3 — Frontend — DONE (Tailwind theme, layout components, typed API client, `/`, `/bikes`, `/bikes/[slug]`, `/compare`; smoke-tested end-to-end against live API)
-- ⏳ Phase 4 — Admin Catalog Management — STAGED; Stage 1 MVP next
+- 🔄 Phase 4 — Admin Catalog Management — Stage 1 local slice implemented; automated acceptance tests and production hardening remain
 - ⏳ Phase 5 — Azure Infrastructure & Deployment — NOT STARTED
 - ⏳ Phase 6 — Future Backlog — NOT STARTED (intentionally deferred, schema stubs only)
 
-**Resume here:** Phase 4, Stage 1 (admin shell, shared styling, Facebook OAuth2, and BikeModel CRUD). Local development currently runs PostgreSQL, the API on `:5050`, and the public web app on `:3000`. The admin site will be added as a separate Next.js workspace and local process.
+**Resume here:** Phase 4, Stage 1 validation and hardening. Local development runs PostgreSQL, the API on `https://localhost:7240` using the single `https` profile, the public web app on `:3000`, and the admin site over HTTPS on `:3001`. The admin callback is `https://localhost:3001/api/auth/callback/facebook`; the first local administrator is bootstrapped through the operator command documented in the feature quickstart.
 
 Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicable, Tailwind CSS) frontends + a shared ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering) + PostgreSQL (JSONB specs, schema versioned via EF Core Migrations) + Azure Blob Storage for images, all hosted on Azure App Service. The public experience supports browse/search/filter/compare bikes with grouped specs. The admin experience manages the catalog, motorcycle specifications, image assignments, and specification metadata through the same API. Future-proofing remains for AI pros/cons, annual surveys, analytics, voting/comments, dealer listings, and advertising.
 
 **Decisions**
 - Repo structure: **monorepo** — single `motorcycle-app` repo with `apps/web` (public Next.js frontend), `apps/admin` (admin Next.js frontend), and `apps/api` (shared ASP.NET Core backend); `specs/` for cross-app feature definitions; `docs/` for shared architecture/database/API docs; `.github/workflows` for CI/CD pipelines targeting each deployable app.
-- Auth: public catalog remains anonymous. Stage 1 uses Facebook OAuth2 for admin sign-in; the API authorizes authenticated admin mutations separately from public read-only routes. A stronger organization identity provider may replace Facebook before production deployment.
+- Auth: public catalog remains anonymous. Stage 1 uses Facebook Authorization Code + PKCE for admin sign-in, an encrypted HttpOnly session, and an RS256 first-party JWT validated by the API against `AdminRole`. A stronger organization identity provider may replace Facebook before production deployment.
 - Data entry: the admin site replaces manual SQL as the normal workflow for bikes, specifications, images, and metadata. Seed scripts remain for local bootstrap and repeatable test data.
 - Dealer links: future dealer records are separate from manufacturer brands; a motorcycle may expose one or more approved dealer listings or contact links with clear source and availability information.
 - Hosting: Azure App Service (Linux, one plan, three Web Apps: `api`, `web`, and `admin`). Azure Database for PostgreSQL – Flexible Server. Azure Storage Account (Blob) for images, served via **public read-only blob container**; the admin API uploads and assigns public image URLs while browser clients never receive storage credentials. Azure CDN/Front Door is deferred until traffic warrants it.
@@ -121,7 +121,7 @@ Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicab
 - **Root**: `package.json` (pnpm workspaces), `.gitignore`, `README.md`, `.github/copilot-instructions.md` (AI guidelines)
 - **`apps/api/`** — ASP.NET Core Web API, Clean Architecture solution: `Motorcycle.Domain/`, `Motorcycle.Application/`, `Motorcycle.Infrastructure/` (contains `Migrations/`, `DbContext`, `Seed/`), `Motorcycle.Api/`; plus `Motorcycle.Api.sln` at the root of `apps/api/`
 - **`apps/web/`** — public Next.js app with Tailwind CSS configured (theme tokens for the header/page/sidebar/content/button color palette)
-- **`apps/admin/`** — planned private Next.js app for catalog, image, and specification metadata management; it consumes the shared API and never connects directly to the database or Blob Storage.
+- **`apps/admin/`** — private Next.js app with Stage 1 role and BikeModel management; it consumes the shared API and never connects directly to the database or Blob Storage. Images and specification metadata remain later stages.
 - **`specs/`** — cross-application feature specifications (e.g., `specs/001-motorcycle-comparison/` with `spec.md`, `plan.md`, `tasks.md`; each spec-driven feature gets a numbered folder)
 - **`docs/`** — shared architecture, API, and database documentation; updated as implementation progresses
 - **`.github/workflows/`** — CI/CD pipelines for all deployable apps (path-triggered on commits to `apps/web/`, `apps/admin/`, and `apps/api/`)

@@ -6,9 +6,9 @@ Full-stack application with a public motorcycle catalog and a private administra
 
 ### Tech Stack
 
-- **Frontend**: Next.js 15 (React, TypeScript, App Router, Tailwind CSS)
-- **Admin frontend**: Planned Next.js application (React, TypeScript, App Router, Tailwind CSS)
-- **Backend**: ASP.NET Core 8 (C#, Clean Architecture, EF Core)
+- **Frontend**: Next.js 16 (React, TypeScript, App Router, Tailwind CSS)
+- **Admin frontend**: Next.js 16 application (React, TypeScript, App Router, Tailwind CSS)
+- **Backend**: ASP.NET Core 10 (C#, Clean Architecture, EF Core)
 - **Database**: PostgreSQL 14+ (JSONB specs, indexed for performance)
 - **Storage**: Azure Blob Storage (public read-only for images)
 - **Infrastructure**: Azure App Service (Linux), Key Vault, managed identity
@@ -35,7 +35,9 @@ Azure Blob Storage (images served via public URL)
 
 ### Administration Boundary
 
-`apps/admin/` is a separate private Next.js workspace, not a backend or a direct database client. Stage 1 copies the public `apps/web/` visual language and uses the same ASP.NET Core API through typed contracts. Facebook OAuth2 authenticates administrators, and the API protects `/api/admin` BikeModel mutations; public catalog routes remain anonymous and read-only.
+`apps/admin/` is a separate private Next.js workspace, not a backend or a direct database client. Stage 1 copies the public `apps/web/` visual language and uses the same ASP.NET Core API through typed contracts. Facebook Authorization Code + PKCE authenticates administrators. The admin server stores an encrypted HttpOnly session and mints a short-lived RS256 first-party JWT; the API validates that JWT and resolves the active `AdminRole` by Facebook user ID before allowing `/api/admin` operations. Public catalog routes remain anonymous and read-only.
+
+The first administrator is created through an operator-only bootstrap command after the `admin_roles` migration is applied. Subsequent administrator provisioning, activation, and deactivation happen through the protected role-management API.
 
 Bike CRUD, image uploads, Azure Blob Storage access, and specification metadata are deferred admin stages. When implemented, those operations remain API-owned and the admin browser must never receive database or storage credentials.
 

@@ -25,6 +25,10 @@ obj/
 .env
 .env.local
 .env.*.local
+apps/admin/keys/
+apps/admin/.session-secret
+apps/admin/certificates/
+apps/admin/certs/
 .DS_Store
 Thumbs.db
 Desktop.ini

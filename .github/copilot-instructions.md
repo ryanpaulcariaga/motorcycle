@@ -6,7 +6,7 @@ These instructions are the single source of truth for GitHub Copilot in VS Code 
 
 - Start feature work with `specs/NNN-feature-name/spec.md`, follow its `plan.md`, and mark completed work in `tasks.md`.
 - Deliver backend and every affected frontend together. Update `docs/architecture.md`, `docs/api.md`, or `docs/database.md` when the corresponding contract, architecture, or schema changes.
-- `apps/admin` is planned but is not currently scaffolded. Do not add an alternate data path: both web applications must use the shared API.
+- `apps/admin` is scaffolded with the Stage 1 local administration slice. Do not add an alternate data path: both web applications must use the shared API.
 
 ## Commands
 
@@ -32,9 +32,9 @@ dotnet ef database update --project apps\api\Motorcycle.Infrastructure --startup
 dotnet ef migrations add <MigrationName> --project apps\api\Motorcycle.Infrastructure --startup-project apps\api\Motorcycle.Api
 ```
 
-Use the shared API for both frontend applications. Do not add a separate data path for `apps/admin`; it is planned but not currently scaffolded.
+Use the shared API for both frontend applications. Do not add a separate data path for `apps/admin`; it is a private frontend and never connects directly to PostgreSQL or Azure Blob Storage.
 
-The API targets .NET 10 and runs at `http://localhost:5050`. The public web app defaults to that address through `NEXT_PUBLIC_API_URL`. There are no test projects or test-runner scripts yet, so there is no supported single-test command; `dotnet test` currently discovers no tests.
+The API targets .NET 10 and runs at `https://localhost:7240` from the single `https` launch profile. Visual Studio and `dotnet run --launch-profile https` use the same address. The public web app defaults to `https://localhost:7240` through `NEXT_PUBLIC_API_URL`. There are no test projects or test-runner scripts yet, so there is no supported single-test command; `dotnet test` currently discovers no tests.
 
 ## Next.js Version Guidance
 
@@ -42,11 +42,11 @@ The public app uses Next.js 16, whose APIs and conventions differ from earlier r
 
 ## Architecture
 
-- This pnpm monorepo contains the public Next.js app in `apps/web`, a shared ASP.NET Core API in `apps/api`, and a planned private Next.js admin app in `apps/admin`. Both frontend applications use the shared API; neither may access PostgreSQL or Azure Blob Storage directly.
+- This pnpm monorepo contains the public Next.js app in `apps/web`, a shared ASP.NET Core API in `apps/api`, and the private Next.js admin app in `apps/admin`. Both frontend applications use the shared API; neither may access PostgreSQL or Azure Blob Storage directly.
 - The API follows Clean Architecture: `Motorcycle.Domain` holds entities, `Motorcycle.Application` owns DTOs, service contracts, repository contracts, and filtering contracts, `Motorcycle.Infrastructure` implements EF Core persistence, repositories, seeding, and filtering, and `Motorcycle.Api` contains controllers and dependency-injection composition.
 - PostgreSQL stores flexible motorcycle specifications in the `bikes.specs` JSONB column. `spec_groups` and `spec_definitions` define display order, labels, units, and filter behavior; their `sortOrder` values must drive detail and comparison output. `MotorcycleDbContext` centrally maps EF Core database names to PostgreSQL snake_case.
 - Controllers bind HTTP requests and delegate to Application services. Repositories load published catalog data with its related brand, category, and images; public catalog routes expose only published bikes.
-- Public catalog endpoints are anonymous and read-only. The planned administration feature uses protected `/api/admin` endpoints with Microsoft Entra ID authorization for catalog changes, image upload/assignment, and metadata management.
+- Public catalog endpoints are anonymous and read-only. Stage 1 administration uses protected `/api/admin` endpoints with Facebook PKCE sign-in, an admin-managed HttpOnly session, an RS256 first-party JWT, and active `AdminRole` authorization. BikeModel and role mutations are implemented; image upload and metadata management remain deferred.
 
 ## Repository Conventions
 

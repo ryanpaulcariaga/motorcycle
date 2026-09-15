@@ -9,7 +9,7 @@ import type {
   SpecGroupDto,
 } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5050";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7240";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
