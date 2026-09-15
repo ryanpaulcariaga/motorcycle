@@ -134,13 +134,19 @@ public static class DatabaseSeeder
             var cruiserCategory = context.Categories.First(c => c.Name == "Cruiser");
             var advCategory = context.Categories.First(c => c.Name == "Adventure");
 
+            var ninja400Model = new BikeModel { BrandId = kawasakiBrand.Id, CategoryId = sportCategory.Id, Name = "Ninja 400" };
+            var cb500fModel = new BikeModel { BrandId = hondaBrand.Id, CategoryId = sportCategory.Id, Name = "CB500F" };
+            var vStar250Model = new BikeModel { BrandId = yamahabrand.Id, CategoryId = cruiserCategory.Id, Name = "V-Star 250" };
+            var versys1000Model = new BikeModel { BrandId = kawasakiBrand.Id, CategoryId = advCategory.Id, Name = "Versys 1000" };
+            context.BikeModels.AddRange(ninja400Model, cb500fModel, vStar250Model, versys1000Model);
+            await context.SaveChangesAsync();
+
             var bikes = new[]
             {
                 new Bike
                 {
-                    BrandId = kawasakiBrand.Id,
-                    CategoryId = sportCategory.Id,
-                    ModelName = "Ninja 400",
+                    ModelId = ninja400Model.Id,
+                    VariantName = "Standard",
                     Year = 2024,
                     MsrpPrice = 4699,
                     Slug = "kawasaki-ninja-400-2024",
@@ -160,9 +166,8 @@ public static class DatabaseSeeder
                 },
                 new Bike
                 {
-                    BrandId = hondaBrand.Id,
-                    CategoryId = sportCategory.Id,
-                    ModelName = "CB500F",
+                    ModelId = cb500fModel.Id,
+                    VariantName = "Standard",
                     Year = 2024,
                     MsrpPrice = 6699,
                     Slug = "honda-cb500f-2024",
@@ -182,9 +187,8 @@ public static class DatabaseSeeder
                 },
                 new Bike
                 {
-                    BrandId = yamahabrand.Id,
-                    CategoryId = cruiserCategory.Id,
-                    ModelName = "V-Star 250",
+                    ModelId = vStar250Model.Id,
+                    VariantName = "Standard",
                     Year = 2024,
                     MsrpPrice = 4299,
                     Slug = "yamaha-v-star-250-2024",
@@ -204,9 +208,8 @@ public static class DatabaseSeeder
                 },
                 new Bike
                 {
-                    BrandId = kawasakiBrand.Id,
-                    CategoryId = advCategory.Id,
-                    ModelName = "Versys 1000",
+                    ModelId = versys1000Model.Id,
+                    VariantName = "Standard",
                     Year = 2024,
                     MsrpPrice = 12699,
                     Slug = "kawasaki-versys-1000-2024",
@@ -234,8 +237,8 @@ public static class DatabaseSeeder
             {
                 var bikeImages = new[]
                 {
-                    new BikeImage { BikeId = bike.Id, BlobUrl = $"https://placeholder.com/600x400?text={bike.ModelName}", SortOrder = 1, IsPrimary = true },
-                    new BikeImage { BikeId = bike.Id, BlobUrl = $"https://placeholder.com/600x400?text={bike.ModelName}+Side", SortOrder = 2, IsPrimary = false },
+                    new BikeImage { BikeId = bike.Id, BlobUrl = $"https://placeholder.com/600x400?text={bike.Model.Name}", SortOrder = 1, IsPrimary = true },
+                    new BikeImage { BikeId = bike.Id, BlobUrl = $"https://placeholder.com/600x400?text={bike.Model.Name}+Side", SortOrder = 2, IsPrimary = false },
                 };
                 context.BikeImages.AddRange(bikeImages);
             }

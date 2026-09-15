@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Motorcycle.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Motorcycle.Infrastructure.Migrations
 {
     [DbContext(typeof(MotorcycleDbContext))]
-    partial class MotorcycleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260915092605_NormalizeMotorcycleModels")]
+    partial class NormalizeMotorcycleModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,9 +73,7 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasColumnName("variant_name");
 
                     b.Property<int>("Year")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
                         .HasColumnName("year");
 
                     b.HasKey("Id")
@@ -169,46 +170,6 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasDatabaseName("ix_bike_images_bike_id");
 
                     b.ToTable("bike_images");
-                });
-
-            modelBuilder.Entity("Motorcycle.Domain.BikeModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BrandId")
-                        .HasColumnType("integer")
-                        .HasColumnName("brand_id");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("integer")
-                        .HasColumnName("category_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_bike_models");
-
-                    b.HasIndex("CategoryId")
-                        .HasDatabaseName("ix_bike_models_category_id");
-
-                    b.HasIndex("BrandId", "Name")
-                        .IsUnique()
-                        .HasDatabaseName("ix_bike_models_brand_id_name");
-
-                    b.ToTable("bike_models");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.BikeView", b =>
@@ -330,6 +291,46 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasDatabaseName("ix_categories_name");
 
                     b.ToTable("categories");
+                });
+
+            modelBuilder.Entity("Motorcycle.Domain.MotorcycleModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BrandId")
+                        .HasColumnType("integer")
+                        .HasColumnName("brand_id");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("category_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_motorcycle_models");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_motorcycle_models_category_id");
+
+                    b.HasIndex("BrandId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_motorcycle_models_brand_id_name");
+
+                    b.ToTable("motorcycle_models");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.SpecDefinition", b =>
@@ -503,12 +504,12 @@ namespace Motorcycle.Infrastructure.Migrations
 
             modelBuilder.Entity("Motorcycle.Domain.Bike", b =>
                 {
-                    b.HasOne("Motorcycle.Domain.BikeModel", "Model")
+                    b.HasOne("Motorcycle.Domain.MotorcycleModel", "Model")
                         .WithMany("Variants")
                         .HasForeignKey("ModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_bikes_bike_models_model_id");
+                        .HasConstraintName("fk_bikes_motorcycle_models_model_id");
 
                     b.Navigation("Model");
                 });
@@ -525,21 +526,21 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.Navigation("Bike");
                 });
 
-            modelBuilder.Entity("Motorcycle.Domain.BikeModel", b =>
+            modelBuilder.Entity("Motorcycle.Domain.MotorcycleModel", b =>
                 {
                     b.HasOne("Motorcycle.Domain.Brand", "Brand")
                         .WithMany("Models")
                         .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_bike_models_brands_brand_id");
+                        .HasConstraintName("fk_motorcycle_models_brands_brand_id");
 
                     b.HasOne("Motorcycle.Domain.Category", "Category")
                         .WithMany("Models")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_bike_models_categories_category_id");
+                        .HasConstraintName("fk_motorcycle_models_categories_category_id");
 
                     b.Navigation("Brand");
 
@@ -563,11 +564,6 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.Navigation("Images");
                 });
 
-            modelBuilder.Entity("Motorcycle.Domain.BikeModel", b =>
-                {
-                    b.Navigation("Variants");
-                });
-
             modelBuilder.Entity("Motorcycle.Domain.Brand", b =>
                 {
                     b.Navigation("Models");
@@ -576,6 +572,11 @@ namespace Motorcycle.Infrastructure.Migrations
             modelBuilder.Entity("Motorcycle.Domain.Category", b =>
                 {
                     b.Navigation("Models");
+                });
+
+            modelBuilder.Entity("Motorcycle.Domain.MotorcycleModel", b =>
+                {
+                    b.Navigation("Variants");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.SpecGroup", b =>

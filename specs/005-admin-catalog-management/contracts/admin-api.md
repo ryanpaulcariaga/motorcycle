@@ -19,7 +19,7 @@ All endpoints in this contract are planned. They use the shared ASP.NET Core API
 | `PUT` | `/api/admin/bikes/{id}` | Update bike details, specs, and publication state |
 | `DELETE` | `/api/admin/bikes/{id}` | Delete a bike subject to referential-integrity rules |
 
-`CreateBikeRequest` and `UpdateBikeRequest` include `brandId`, `categoryId`, `modelName`, `year`, `msrpPrice`, `slug`, `specs`, and `isPublished`. The API validates supplied `specs` against current specification definitions.
+`CreateBikeRequest` and `UpdateBikeRequest` include `modelId`, `variantName`, `year`, `msrpPrice`, `slug`, `specs`, and `isPublished`. Year is required; `0` represents an unknown source year. Separate model requests manage `brandId`, `categoryId`, and the stable model-line `name`. The API validates supplied `specs` against current specification definitions.
 
 ## Metadata Operations
 

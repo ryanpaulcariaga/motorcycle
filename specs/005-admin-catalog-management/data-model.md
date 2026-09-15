@@ -6,7 +6,8 @@ The admin feature uses the existing catalog model; no separate administration da
 
 | Entity | Admin-managed fields | Rules |
 |---|---|---|
-| `Bike` | brand, category, model name, year, MSRP, slug, `specs`, publication state | Brand and category must exist; slug is unique; each supplied spec code must have a definition and its value must match the definition data type |
+| `BikeModel` | brand, category, model-line name | Brand and category must exist; `(brand, name)` is unique; a model line groups its variants |
+| `Bike` | model, complete source variant name, year, MSRP, slug, `specs`, publication state | Model must exist; variant name preserves the source `Model` label; slug is unique; each supplied spec code must have a definition and its value must match the definition data type; year `0` means unknown for imported records |
 | `BikeImage` | image URL, sort order, primary state | Belongs to one bike; image assignment is removed when deleted; a motorcycle has at most one primary image |
 | `Brand` | name, logo URL | Name is unique |
 | `Category` | name | Name is unique |

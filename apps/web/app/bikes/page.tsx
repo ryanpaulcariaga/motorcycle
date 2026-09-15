@@ -93,7 +93,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                 </div>
                 <div className="p-3">
                   <p className="text-xs text-zinc-500">{bike.brandName} · {bike.categoryName}</p>
-                  <p className="font-semibold">{bike.modelName}</p>
+                  <p className="font-semibold">{bike.modelName} {bike.variantName}</p>
                   <p className="text-sm text-zinc-600">
                     {bike.year} {bike.msrpPrice ? `· $${bike.msrpPrice.toLocaleString()}` : ""}
                   </p>

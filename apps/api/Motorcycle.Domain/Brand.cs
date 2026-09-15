@@ -8,5 +8,5 @@ public class Brand
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation
-    public ICollection<Bike> Bikes { get; set; } = new List<Bike>();
+    public ICollection<BikeModel> Models { get; set; } = new List<BikeModel>();
 }

@@ -18,7 +18,9 @@ export interface BikeImageDto {
 
 export interface BikeListItemDto {
   id: number;
+  modelId: number;
   modelName: string;
+  variantName: string;
   year: number;
   msrpPrice: number | null;
   slug: string;
@@ -44,7 +46,9 @@ export interface SpecGroupWithValuesDto {
 
 export interface BikeDetailDto {
   id: number;
+  modelId: number;
   modelName: string;
+  variantName: string;
   year: number;
   msrpPrice: number | null;
   slug: string;
@@ -84,7 +88,9 @@ export interface PagedResult<T> {
 
 export interface CompareBikeSummaryDto {
   id: number;
+  modelId: number;
   modelName: string;
+  variantName: string;
   brandName: string;
   slug: string;
   primaryImageUrl: string | null;

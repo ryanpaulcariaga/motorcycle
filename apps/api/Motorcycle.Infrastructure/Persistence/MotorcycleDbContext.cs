@@ -14,6 +14,7 @@ public class MotorcycleDbContext : DbContext
 
     public DbSet<Brand> Brands => Set<Brand>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<BikeModel> BikeModels => Set<BikeModel>();
     public DbSet<Bike> Bikes => Set<Bike>();
     public DbSet<BikeImage> BikeImages => Set<BikeImage>();
     public DbSet<SpecGroup> SpecGroups => Set<SpecGroup>();
@@ -49,7 +50,7 @@ public class MotorcycleDbContext : DbContext
             b.Property(x => x.Name).IsRequired().HasMaxLength(255);
             b.Property(x => x.LogoBlobUrl).HasMaxLength(2048);
             b.HasIndex(x => x.Name).IsUnique();
-            b.HasMany(x => x.Bikes).WithOne(x => x.Brand).HasForeignKey(x => x.BrandId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Models).WithOne(x => x.Brand).HasForeignKey(x => x.BrandId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // Category configuration
@@ -58,14 +59,24 @@ public class MotorcycleDbContext : DbContext
             c.HasKey(x => x.Id);
             c.Property(x => x.Name).IsRequired().HasMaxLength(255);
             c.HasIndex(x => x.Name).IsUnique();
-            c.HasMany(x => x.Bikes).WithOne(x => x.Category).HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Cascade);
+            c.HasMany(x => x.Models).WithOne(x => x.Category).HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Bike model configuration. A model is a stable product line; Bike rows are year/trim variants.
+        modelBuilder.Entity<BikeModel>(m =>
+        {
+            m.HasKey(x => x.Id);
+            m.Property(x => x.Name).IsRequired().HasMaxLength(255);
+            m.HasIndex(x => new { x.BrandId, x.Name }).IsUnique();
+            m.HasMany(x => x.Variants).WithOne(x => x.Model).HasForeignKey(x => x.ModelId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // Bike configuration
         modelBuilder.Entity<Bike>(b =>
         {
             b.HasKey(x => x.Id);
-            b.Property(x => x.ModelName).IsRequired().HasMaxLength(255);
+            b.Property(x => x.VariantName).IsRequired().HasMaxLength(255);
+            b.Property(x => x.Year).IsRequired().HasDefaultValue(0);
             b.Property(x => x.Slug).IsRequired().HasMaxLength(512);
             b.Property(x => x.MsrpPrice).HasPrecision(10, 2);
             
@@ -75,8 +86,7 @@ public class MotorcycleDbContext : DbContext
                 .HasConversion(dictConverter)
                 .Metadata.SetValueComparer(dictComparer);
             
-            b.HasIndex(x => x.BrandId);
-            b.HasIndex(x => x.CategoryId);
+            b.HasIndex(x => x.ModelId);
             b.HasIndex(x => x.Year);
             b.HasIndex(x => x.MsrpPrice);
             b.HasIndex(x => x.Slug).IsUnique();

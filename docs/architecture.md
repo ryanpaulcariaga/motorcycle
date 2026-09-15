@@ -59,3 +59,7 @@ Dealer information should be modeled separately from `brands`: a brand identifie
 6. **SEO-Ready**: Next.js server-rendering, metadata per page, structured data.
 
 See [database.md](database.md) and [api.md](api.md) for detailed design.
+
+### Catalog Model
+
+The catalog separates a stable bike model line from its comparable variants. `BikeModel` owns the brand, category, and product-line name; `Bike` is the year/trim record selected for browsing and comparison. For example, `Ninja 400` is the model line and `2024 Standard` or `2024 SE` are variants. Variant-specific specs, MSRP, images, slug, and publication state stay on `Bike`. A year of `0` represents an unknown source year.

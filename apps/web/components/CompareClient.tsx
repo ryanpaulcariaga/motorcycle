@@ -48,7 +48,7 @@ export default function CompareClient({ allBikes, selectedIds, compareResult }: 
                     : "bg-white text-zinc-700 border-zinc-300 hover:border-brand-button"
                 }`}
               >
-                {bike.brandName} {bike.modelName}
+                {bike.brandName} {bike.modelName} {bike.variantName}
               </button>
             );
           })}
@@ -65,7 +65,7 @@ export default function CompareClient({ allBikes, selectedIds, compareResult }: 
                 <th className="sticky left-0 bg-white text-left p-2 border-b border-zinc-200">Spec</th>
                 {compareResult.bikes.map((bike) => (
                   <th key={bike.id} className="p-2 border-b border-zinc-200 text-left min-w-[140px]">
-                    {bike.brandName} {bike.modelName}
+                    {bike.brandName} {bike.modelName} {bike.variantName}
                   </th>
                 ))}
               </tr>
@@ -104,7 +104,7 @@ export default function CompareClient({ allBikes, selectedIds, compareResult }: 
               </div>
               <div className="p-3">
                 <p className="text-xs text-zinc-500">{bike.brandName}</p>
-                <p className="font-semibold mb-2">{bike.modelName}</p>
+                <p className="font-semibold mb-2">{bike.modelName} {bike.variantName}</p>
                 {compareResult.specGroups.map((group) => (
                   <div key={group.code} className="mb-2">
                     <p className="text-xs font-semibold text-brand-button">{group.name}</p>

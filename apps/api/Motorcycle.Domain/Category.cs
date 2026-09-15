@@ -6,5 +6,5 @@ public class Category
     public string Name { get; set; } = string.Empty;
 
     // Navigation
-    public ICollection<Bike> Bikes { get; set; } = new List<Bike>();
+    public ICollection<BikeModel> Models { get; set; } = new List<BikeModel>();
 }

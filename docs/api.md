@@ -24,6 +24,8 @@ List motorcycles with pagination, sorting, and filtering.
 - `brands` (string: comma-separated brand IDs)
 - `categories` (string: comma-separated category IDs)
 - `year` (string: `2020-2024` range syntax or exact year)
+
+Imported motorcycles use year `0` when the source does not identify one; year filters exclude those records.
 - `price` (string: `10000-50000` range syntax)
 - Dynamic specs: `spec_<code>=<operator>:<value>` (e.g., `spec_horsepower=gt:100`, `spec_type=in:sport,cruiser`)
 
@@ -33,7 +35,9 @@ List motorcycles with pagination, sorting, and filtering.
   "items": [
     {
       "id": 1,
+      "modelId": 1,
       "modelName": "Ninja 400",
+      "variantName": "Standard",
       "brandName": "Kawasaki",
       "categoryName": "Sport",
       "year": 2024,
@@ -56,7 +60,9 @@ Get detailed motorcycle info + all images.
 ```json
 {
   "id": 1,
+  "modelId": 1,
   "modelName": "Ninja 400",
+  "variantName": "Standard",
   "brandName": "Kawasaki",
   "categoryName": "Sport",
   "year": 2024,
@@ -144,7 +150,7 @@ The same ASP.NET Core API serves the planned `apps/admin` Next.js workspace. Pub
 
 The administration API will provide typed contracts for:
 
-- motorcycle create, edit, publish/unpublish, and delete operations;
+- motorcycle model and year/trim variant create, edit, publish/unpublish, and delete operations;
 - brand and category management;
 - spec-group and spec-definition management, including labels, data types, units, filter settings, and ordering;
 - server-side image upload, motorcycle image assignment, primary-image selection, ordering, and removal.

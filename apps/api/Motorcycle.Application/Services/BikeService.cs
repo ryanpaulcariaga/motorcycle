@@ -88,8 +88,10 @@ public class BikeService : IBikeService
             Bikes = bikes.Select(b => new CompareBikeSummaryDto
             {
                 Id = b.Id,
-                ModelName = b.ModelName,
-                BrandName = b.Brand.Name,
+                ModelId = b.ModelId,
+                ModelName = b.Model.Name,
+                VariantName = b.VariantName,
+                BrandName = b.Model.Brand.Name,
                 Slug = b.Slug,
                 PrimaryImageUrl = b.Images.FirstOrDefault(i => i.IsPrimary)?.BlobUrl ?? b.Images.FirstOrDefault()?.BlobUrl
             }).ToList()
@@ -134,8 +136,8 @@ public class BikeService : IBikeService
         {
             "price" => descending ? bikes.OrderByDescending(b => b.MsrpPrice) : bikes.OrderBy(b => b.MsrpPrice),
             "year" => descending ? bikes.OrderByDescending(b => b.Year) : bikes.OrderBy(b => b.Year),
-            "model_name" => descending ? bikes.OrderByDescending(b => b.ModelName) : bikes.OrderBy(b => b.ModelName),
-            _ => bikes.OrderBy(b => b.ModelName)
+            "model_name" => descending ? bikes.OrderByDescending(b => b.Model.Name) : bikes.OrderBy(b => b.Model.Name),
+            _ => bikes.OrderBy(b => b.Model.Name).ThenBy(b => b.VariantName)
         };
         return sorted.ToList();
     }
@@ -143,12 +145,14 @@ public class BikeService : IBikeService
     private static BikeListItemDto ToListItemDto(Bike bike) => new()
     {
         Id = bike.Id,
-        ModelName = bike.ModelName,
+        ModelId = bike.ModelId,
+        ModelName = bike.Model.Name,
+        VariantName = bike.VariantName,
         Year = bike.Year,
         MsrpPrice = bike.MsrpPrice,
         Slug = bike.Slug,
-        BrandName = bike.Brand.Name,
-        CategoryName = bike.Category.Name,
+        BrandName = bike.Model.Brand.Name,
+        CategoryName = bike.Model.Category.Name,
         PrimaryImageUrl = bike.Images.FirstOrDefault(i => i.IsPrimary)?.BlobUrl ?? bike.Images.FirstOrDefault()?.BlobUrl
     };
 
@@ -157,12 +161,14 @@ public class BikeService : IBikeService
         var dto = new BikeDetailDto
         {
             Id = bike.Id,
-            ModelName = bike.ModelName,
+            ModelId = bike.ModelId,
+            ModelName = bike.Model.Name,
+            VariantName = bike.VariantName,
             Year = bike.Year,
             MsrpPrice = bike.MsrpPrice,
             Slug = bike.Slug,
-            BrandName = bike.Brand.Name,
-            CategoryName = bike.Category.Name,
+            BrandName = bike.Model.Brand.Name,
+            CategoryName = bike.Model.Category.Name,
             Images = bike.Images
                 .OrderBy(i => i.SortOrder)
                 .Select(i => new BikeImageDto { Id = i.Id, BlobUrl = i.BlobUrl, SortOrder = i.SortOrder, IsPrimary = i.IsPrimary })

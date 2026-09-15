@@ -19,13 +19,15 @@ public class BikeRepository : IBikeRepository
         decimal? priceMin, decimal? priceMax, CancellationToken ct = default)
     {
         var query = _context.Bikes
-            .Include(b => b.Brand)
-            .Include(b => b.Category)
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Brand)
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Category)
             .Include(b => b.Images)
             .Where(b => b.IsPublished);
 
-        if (brandId.HasValue) query = query.Where(b => b.BrandId == brandId.Value);
-        if (categoryId.HasValue) query = query.Where(b => b.CategoryId == categoryId.Value);
+        if (brandId.HasValue) query = query.Where(b => b.Model.BrandId == brandId.Value);
+        if (categoryId.HasValue) query = query.Where(b => b.Model.CategoryId == categoryId.Value);
         if (yearMin.HasValue) query = query.Where(b => b.Year >= yearMin.Value);
         if (yearMax.HasValue) query = query.Where(b => b.Year <= yearMax.Value);
         if (priceMin.HasValue) query = query.Where(b => b.MsrpPrice >= priceMin.Value);
@@ -37,8 +39,10 @@ public class BikeRepository : IBikeRepository
     public async Task<Bike?> GetBySlugAsync(string slug, CancellationToken ct = default)
     {
         return await _context.Bikes
-            .Include(b => b.Brand)
-            .Include(b => b.Category)
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Brand)
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Category)
             .Include(b => b.Images)
             .FirstOrDefaultAsync(b => b.Slug == slug && b.IsPublished, ct);
     }
@@ -47,8 +51,10 @@ public class BikeRepository : IBikeRepository
     {
         var idList = ids.ToList();
         return await _context.Bikes
-            .Include(b => b.Brand)
-            .Include(b => b.Category)
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Brand)
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Category)
             .Include(b => b.Images)
             .Where(b => idList.Contains(b.Id) && b.IsPublished)
             .ToListAsync(ct);

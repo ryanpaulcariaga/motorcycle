@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 using Motorcycle.Domain;
 using Motorcycle.Infrastructure.Persistence;
 
@@ -62,7 +63,6 @@ public static class MotorcycleDataSeeder
 
     // Keys handled separately, not through FieldMap.
     private static readonly HashSet<string> IgnoredKeys = new() { "Make", "Model", "Category", "Fuel", "Mileage" };
-
     public static async Task SeedAsync(MotorcycleDbContext context)
     {
         var dataPath = Path.Combine(AppContext.BaseDirectory, "Seeding", "Data", "motorcycles.jsonl");
@@ -71,41 +71,110 @@ public static class MotorcycleDataSeeder
             return;
         }
 
+        var sourceRows = File.ReadLines(dataPath)
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .Select(line => JsonDocument.Parse(line).RootElement.Clone())
+            .Select(root => new
+            {
+                Root = root,
+                Make = root.GetProperty("Make").GetString() ?? string.Empty,
+                SourceModel = root.GetProperty("Model").GetString() ?? string.Empty
+            })
+            .ToList();
+
+        var familyCounts = sourceRows
+            .GroupBy(row => $"{row.Make}:{GetFamilyStem(row.Make, row.SourceModel)}", StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.Select(row => row.SourceModel).Distinct(StringComparer.OrdinalIgnoreCase).Count(), StringComparer.OrdinalIgnoreCase);
+
         var brandsByName = context.Brands.ToDictionary(b => b.Name, StringComparer.OrdinalIgnoreCase);
         var categoriesByName = context.Categories.ToDictionary(c => c.Name, StringComparer.OrdinalIgnoreCase);
-        var existingSlugs = context.Bikes.Select(b => b.Slug).ToHashSet();
+        var modelsByKey = context.BikeModels
+            .ToDictionary(m => $"{m.BrandId}:{m.Name}", StringComparer.OrdinalIgnoreCase);
+        var existingBikes = context.Bikes.Include(b => b.Model).ToList();
+        var existingBikesBySlug = existingBikes.ToDictionary(b => b.Slug, StringComparer.OrdinalIgnoreCase);
+        var existingSlugs = existingBikes.Select(b => b.Slug).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var newBikes = new List<Bike>();
 
-        foreach (var line in File.ReadLines(dataPath))
+        foreach (var sourceRow in sourceRows)
         {
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                continue;
-            }
-
-            using var doc = JsonDocument.Parse(line);
-            var root = doc.RootElement;
-
-            var make = root.GetProperty("Make").GetString() ?? string.Empty;
-            var model = root.GetProperty("Model").GetString() ?? string.Empty;
+            var root = sourceRow.Root;
+            var make = sourceRow.Make;
+            var sourceModel = sourceRow.SourceModel;
             if (!brandsByName.TryGetValue(make, out var brand))
             {
                 continue; // unknown brand, skip rather than guess
             }
 
-            var slug = ToSlug($"{make} {model}");
-            if (!existingSlugs.Add(slug))
-            {
-                continue; // already seeded (or a duplicate row in the source file) - skip so reruns stay idempotent
-            }
+            var familyKey = $"{make}:{GetFamilyStem(make, sourceModel)}";
+            var identity = ParseModelIdentity(brand.Name, make, sourceModel, familyCounts[familyKey] > 1);
+            var model = identity.ModelName;
+            var variant = sourceModel.Trim();
+            var year = identity.Year;
+            var slug = ToSlug(sourceModel);
 
             var categoryRaw = root.TryGetProperty("Category", out var catEl) ? catEl.GetString() : null;
             var engineType = root.TryGetProperty("Engine Type", out var engEl) ? engEl.GetString() : null;
-            var categoryName = ClassifyCategory(categoryRaw, model, engineType);
+            var categoryName = ClassifyCategory(categoryRaw, sourceModel, engineType);
             if (!categoriesByName.TryGetValue(categoryName, out var category))
             {
                 continue; // shouldn't happen once categories are seeded, but skip rather than crash
+            }
+
+            // Repair rows imported before model/variant normalization, using the original source slug.
+            var legacySlugs = new[]
+            {
+                ToSlug(sourceModel),
+                ToSlug($"{make} {sourceModel}"),
+                ToSlug($"{make} {model} {variant}"),
+                ToSlug($"{make} {StripMake(make, sourceModel)} standard")
+            }.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            var legacySlug = legacySlugs.FirstOrDefault(existingBikesBySlug.ContainsKey);
+            var existingBike = legacySlug is not null ? existingBikesBySlug[legacySlug] : null;
+
+            var modelKey = $"{brand.Id}:{model}";
+            BikeModel motorcycleModel;
+            if (existingBike is not null)
+            {
+                if (!modelsByKey.TryGetValue(modelKey, out motorcycleModel!))
+                {
+                    motorcycleModel = existingBike.Model;
+                    motorcycleModel.Name = model;
+                    motorcycleModel.BrandId = brand.Id;
+                    motorcycleModel.CategoryId = category.Id;
+                    modelsByKey[modelKey] = motorcycleModel;
+                }
+            }
+            else if (!modelsByKey.TryGetValue(modelKey, out motorcycleModel!))
+            {
+                motorcycleModel = new BikeModel
+                {
+                    BrandId = brand.Id,
+                    CategoryId = category.Id,
+                    Name = model
+                };
+                context.BikeModels.Add(motorcycleModel);
+                modelsByKey[modelKey] = motorcycleModel;
+            }
+
+            if (existingBike is not null)
+            {
+                existingBike.Model = motorcycleModel;
+                existingBike.VariantName = variant;
+                existingBike.Year = year ?? 0;
+                existingBike.Slug = slug;
+                if (legacySlug is not null)
+                {
+                    existingBikesBySlug.Remove(legacySlug);
+                }
+                existingBikesBySlug[slug] = existingBike;
+                existingSlugs.Add(slug);
+                continue;
+            }
+
+            if (!existingSlugs.Add(slug))
+            {
+                continue; // duplicate source row or already normalized row
             }
 
             var specs = new Dictionary<string, object>();
@@ -137,10 +206,9 @@ public static class MotorcycleDataSeeder
 
             newBikes.Add(new Bike
             {
-                BrandId = brand.Id,
-                CategoryId = category.Id,
-                ModelName = model,
-                Year = 2024, // not present in source data; placeholder until confirmed per model
+                Model = motorcycleModel,
+                VariantName = variant,
+                Year = year ?? 0,
                 MsrpPrice = null,
                 Slug = slug,
                 IsPublished = true,
@@ -148,11 +216,47 @@ public static class MotorcycleDataSeeder
             });
         }
 
-        if (newBikes.Count > 0)
+        if (newBikes.Count > 0 || existingBikes.Any(b => b.Model is not null))
         {
-            context.Bikes.AddRange(newBikes);
+            if (newBikes.Count > 0)
+            {
+                context.Bikes.AddRange(newBikes);
+            }
             await context.SaveChangesAsync();
         }
+    }
+
+    private static (string ModelName, int? Year) ParseModelIdentity(string brandName, string make, string sourceModel, bool hasFamilyVariants)
+    {
+        var value = StripMake(make, sourceModel);
+        var sourceYear = ExtractYear(value);
+        var familyStem = GetFamilyStem(make, sourceModel);
+
+        if (hasFamilyVariants && !string.IsNullOrWhiteSpace(familyStem))
+        {
+            return ($"{brandName} {familyStem}", sourceYear);
+        }
+
+        return ($"{brandName} {value}", sourceYear);
+    }
+
+    private static string GetFamilyStem(string make, string sourceModel)
+    {
+        var value = StripMake(make, sourceModel);
+        value = Regex.Replace(value, @"\b(19\d{2}|20\d{2})\b", string.Empty);
+        var match = Regex.Match(value.Trim(), @"^[A-Za-z]+(?:[-'][A-Za-z]+)*");
+        return match.Success ? match.Value : value.Trim();
+    }
+
+    private static string StripMake(string make, string sourceModel)
+    {
+        return Regex.Replace(sourceModel.Trim(), $"^{Regex.Escape(make)}\\s+", string.Empty, RegexOptions.IgnoreCase);
+    }
+
+    private static int? ExtractYear(string value)
+    {
+        var yearMatch = Regex.Match(value, @"\b(19\d{2}|20\d{2})\b");
+        return yearMatch.Success ? int.Parse(yearMatch.Value) : null;
     }
 
     // The source data's own "Category" field is an inconsistent Philippine-market label

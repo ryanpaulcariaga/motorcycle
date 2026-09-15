@@ -9,7 +9,9 @@ public class CompareResultDto
 public class CompareBikeSummaryDto
 {
     public int Id { get; set; }
+    public int ModelId { get; set; }
     public string ModelName { get; set; } = string.Empty;
+    public string VariantName { get; set; } = string.Empty;
     public string BrandName { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public string? PrimaryImageUrl { get; set; }

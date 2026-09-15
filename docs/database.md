@@ -24,10 +24,9 @@ CREATE TABLE categories (
 ```sql
 CREATE TABLE bikes (
   id SERIAL PRIMARY KEY,
-  brand_id INT NOT NULL REFERENCES brands(id),
-  category_id INT NOT NULL REFERENCES categories(id),
-  model_name VARCHAR(255) NOT NULL,
-  year INT NOT NULL,
+  model_id INT NOT NULL REFERENCES bike_models(id),
+  variant_name VARCHAR(255) NOT NULL,
+  year INT NOT NULL DEFAULT 0,
   msrp_price NUMERIC(10, 2),
   slug VARCHAR(512) NOT NULL UNIQUE,
   specs JSONB NOT NULL DEFAULT '{}',  -- { "cc": "399", "horsepower": "45", ... }
@@ -36,8 +35,7 @@ CREATE TABLE bikes (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_bikes_brand_id ON bikes(brand_id);
-CREATE INDEX idx_bikes_category_id ON bikes(category_id);
+CREATE INDEX idx_bikes_model_id ON bikes(model_id);
 CREATE INDEX idx_bikes_year ON bikes(year);
 CREATE INDEX idx_bikes_msrp_price ON bikes(msrp_price);
 CREATE INDEX idx_bikes_specs GIN (specs);  -- For JSONB filtering
@@ -72,6 +70,23 @@ CREATE TABLE spec_groups (
   created_at TIMESTAMP DEFAULT NOW()
 );
 ```
+
+### bike_models
+```sql
+CREATE TABLE bike_models (
+  id SERIAL PRIMARY KEY,
+  brand_id INT NOT NULL REFERENCES brands(id),
+  category_id INT NOT NULL REFERENCES categories(id),
+  name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(brand_id, name)
+);
+
+CREATE INDEX idx_bike_models_brand_id ON bike_models(brand_id);
+CREATE INDEX idx_bike_models_category_id ON bike_models(category_id);
+```
+
+`bike_models` is the stable product line inferred from related source records, such as `Honda Click` or `Honda ADV`. Each `bikes` row is one comparable variant whose `variant_name` preserves the complete source `Model` value. Year-specific price, specifications, images, slug, and publication state belong to the variant. A year of `0` means the imported source did not identify a model year.
 
 ### spec_definitions
 ```sql
@@ -158,12 +173,12 @@ The relationship should support multiple dealers per motorcycle and multiple mot
 
 ## Notes
 
-- **JSONB specs**: Bikes store specs as a flat key-value map. Schema flexibility allows per-bike omissions without schema migration.
+- **JSONB specs**: Bike variants store specs as a flat key-value map. Schema flexibility allows per-variant omissions without schema migration.
 - **Primary keys**: `int`/`SERIAL` identity columns (not UUID) — smaller, sequential, and more b-tree/index-friendly at this scale.
 - **Naming convention**: all tables/columns/keys/indexes are snake_case (PostgreSQL convention), enforced in `MotorcycleDbContext` rather than hand-annotated per property.
 - **Expression Indexes**: Per-spec indexes added via EF Core migrations for filterable numeric specs → fast range queries.
 - **GIN Index**: General JSONB filtering via `specs @> ...` or `specs ? 'key'` syntax.
-- **No category-spec scoping**: All specs available for all bikes; admin manages per-bike spec values. Future: add optional `category_id` to `spec_definitions` if needed.
+- **No category-spec scoping**: All specs available for all bike variants; admin manages per-variant spec values. Future: add optional `category_id` to `spec_definitions` if needed.
 - **Administration writes**: The planned admin site changes catalog data only through protected API operations. It introduces no separate catalog store; EF Core migrations remain the source of truth for schema changes.
 - **Image management**: `bike_images` remains the relationship and ordering source for assigned motorcycle images. The API enforces a single primary image per motorcycle and owns Blob Storage upload access.
 - **Advertising is isolated from catalog data**: sponsored placements must not be stored as bike ranking signals or mixed into organic comparison responses. Future advertising tables should reference context and placement keys, not mutate bike specs or search ordering.

@@ -13,10 +13,10 @@ export async function generateMetadata({ params }: BikeDetailPageProps): Promise
   try {
     const bike = await getBikeBySlug(slug);
     return {
-      title: `${bike.brandName} ${bike.modelName} (${bike.year})`,
-      description: `Specs and details for the ${bike.year} ${bike.brandName} ${bike.modelName}.`,
+      title: `${bike.brandName} ${bike.modelName} ${bike.variantName} (${bike.year})`,
+      description: `Specs and details for the ${bike.year} ${bike.brandName} ${bike.modelName} ${bike.variantName}.`,
       openGraph: {
-        title: `${bike.brandName} ${bike.modelName}`,
+        title: `${bike.brandName} ${bike.modelName} ${bike.variantName}`,
         images: bike.images[0] ? [bike.images[0].blobUrl] : [],
       },
     };
@@ -59,7 +59,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
 
         <div>
           <p className="text-sm text-zinc-500">{bike.brandName} · {bike.categoryName}</p>
-          <h1 className="text-2xl sm:text-3xl font-bold">{bike.modelName}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{bike.modelName} {bike.variantName}</h1>
           <p className="mt-1 text-lg text-zinc-700">
             {bike.year} {bike.msrpPrice ? `· $${bike.msrpPrice.toLocaleString()}` : ""}
           </p>
