@@ -164,6 +164,8 @@ The relationship should support multiple dealers per motorcycle and multiple mot
 - **Expression Indexes**: Per-spec indexes added via EF Core migrations for filterable numeric specs → fast range queries.
 - **GIN Index**: General JSONB filtering via `specs @> ...` or `specs ? 'key'` syntax.
 - **No category-spec scoping**: All specs available for all bikes; admin manages per-bike spec values. Future: add optional `category_id` to `spec_definitions` if needed.
+- **Administration writes**: The planned admin site changes catalog data only through protected API operations. It introduces no separate catalog store; EF Core migrations remain the source of truth for schema changes.
+- **Image management**: `bike_images` remains the relationship and ordering source for assigned motorcycle images. The API enforces a single primary image per motorcycle and owns Blob Storage upload access.
 - **Advertising is isolated from catalog data**: sponsored placements must not be stored as bike ranking signals or mixed into organic comparison responses. Future advertising tables should reference context and placement keys, not mutate bike specs or search ordering.
 
 See [api.md](api.md) and [architecture.md](architecture.md) for design rationale.

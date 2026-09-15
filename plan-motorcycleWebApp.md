@@ -1,23 +1,24 @@
-## Plan: Motorcycle Specs & Comparison Web App (MVP)
+## Plan: Motorcycle Specs, Comparison & Administration App
 
-**Progress status (updated 2026-09-01, paused to conserve credits)**
+**Progress status (updated 2026-09-15)**
 - ✅ Phase 0 — Monorepo Initialization — DONE
 - ✅ Phase 1 — Database Design — DONE (schema, migrations, GIN index, seed data all applied to local Postgres)
 - ✅ Phase 2 — Backend API — DONE (repositories, Strategy-pattern spec filters, services, controllers; smoke-tested against live DB)
 - ✅ Phase 3 — Frontend — DONE (Tailwind theme, layout components, typed API client, `/`, `/bikes`, `/bikes/[slug]`, `/compare`; smoke-tested end-to-end against live API)
-- ⏳ Phase 4 — Azure Infrastructure & Deployment — NOT STARTED (next step when resuming)
-- ⏳ Phase 5 — Future Backlog — NOT STARTED (intentionally deferred, schema stubs only)
+- ⏳ Phase 4 — Admin Catalog Management — NOT STARTED
+- ⏳ Phase 5 — Azure Infrastructure & Deployment — NOT STARTED
+- ⏳ Phase 6 — Future Backlog — NOT STARTED (intentionally deferred, schema stubs only)
 
-**Resume here:** Phase 4, step 19 (provision Azure resources). Local dev stack (Postgres + `dotnet run` API on :5050 + `pnpm run dev` web on :3000) is fully working — no rework needed on Phases 0-3 unless requirements change.
+**Resume here:** Phase 4, step 19 (admin catalog management). Local development currently runs PostgreSQL, the API on `:5050`, and the public web app on `:3000`. The admin site will be added as a separate Next.js workspace and local process.
 
-Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering) + PostgreSQL (JSONB specs, schema versioned via EF Core Migrations) + Azure Blob Storage for images, all hosted on Azure App Service. MVP = browse/search/filter/compare bikes with grouped specs; no auth, no votes/comments, no advertising, no dealer links, no admin UI yet (manual SQL seeding). Future-proofing baked into schema for: AI pros/cons, annual surveys, analytics (views/searches), upvote/downvote + comments, dealer listings/links, and a clearly disclosed advertising platform.
+Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicable, Tailwind CSS) frontends + a shared ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering) + PostgreSQL (JSONB specs, schema versioned via EF Core Migrations) + Azure Blob Storage for images, all hosted on Azure App Service. The public experience supports browse/search/filter/compare bikes with grouped specs. The admin experience manages the catalog, motorcycle specifications, image assignments, and specification metadata through the same API. Future-proofing remains for AI pros/cons, annual surveys, analytics, voting/comments, dealer listings, and advertising.
 
 **Decisions**
-- Repo structure: **monorepo** — single `motorcycle-app` repo with `apps/web` (Next.js frontend) and `apps/api` (ASP.NET Core backend); `specs/` for cross-app feature definitions; `docs/` for shared architecture/database/API docs; `.github/workflows` for CI/CD pipelines targeting both apps.
-- Auth: none in MVP (fully anonymous). Add identity provider later when votes/comments/surveys are built.
-- Data entry for MVP: manual SQL seed scripts for bikes, spec groups/specs, and image URLs — no admin UI yet.
+- Repo structure: **monorepo** — single `motorcycle-app` repo with `apps/web` (public Next.js frontend), `apps/admin` (admin Next.js frontend), and `apps/api` (shared ASP.NET Core backend); `specs/` for cross-app feature definitions; `docs/` for shared architecture/database/API docs; `.github/workflows` for CI/CD pipelines targeting each deployable app.
+- Auth: public catalog remains anonymous. Microsoft Entra ID authenticates administrators, and a configured administrator role or group authorizes catalog mutations.
+- Data entry: the admin site replaces manual SQL as the normal workflow for bikes, specifications, images, and metadata. Seed scripts remain for local bootstrap and repeatable test data.
 - Dealer links: future dealer records are separate from manufacturer brands; a motorcycle may expose one or more approved dealer listings or contact links with clear source and availability information.
-- Hosting: Azure App Service (Linux, one plan, two Web Apps: `api` and `web`). Azure Database for PostgreSQL – Flexible Server. Azure Storage Account (Blob) for images, served via **public read-only blob container** (simpler than SAS token rotation; images are non-sensitive marketing content) — Azure CDN/Front Door deferred until traffic warrants it.
+- Hosting: Azure App Service (Linux, one plan, three Web Apps: `api`, `web`, and `admin`). Azure Database for PostgreSQL – Flexible Server. Azure Storage Account (Blob) for images, served via **public read-only blob container**; the admin API uploads and assigns public image URLs while browser clients never receive storage credentials. Azure CDN/Front Door is deferred until traffic warrants it.
 - Secrets (DB connection string, storage account key) go in **Azure Key Vault**, referenced by App Service via Key Vault references / managed identity.
 - **Backend architecture: Clean Architecture** — `Domain` (entities, enums, no dependencies), `Application` (use cases/services, interfaces, strategy contracts), `Infrastructure` (EF Core `DbContext`/repositories, Npgsql provider, blob storage client), `Api` (controllers/presentation, DI composition root). Dependencies point inward only.
 - **Data access: EF Core** (Npgsql provider), chosen over Dapper so the schema stays defined as C# entity/`DbContext` configuration checked into the repo — fully visible/searchable (by you and by AI assistance) alongside the API and UI code, rather than living only as external `.sql` files. Repository pattern in `Infrastructure` wraps the `DbContext`; `specs` column mapped as `jsonb` via Npgsql's JSON support (`Dictionary<string, object>`/`JsonDocument` with a value comparer).
@@ -39,7 +40,7 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
    - Initialize root `package.json` with pnpm workspaces (targets `apps/*`)
    - Create `.gitignore` (Node, .NET, Python, OS files)
    - Create `README.md` (monorepo overview)
-   - Create `CLAUDE.md` (AI development guidelines for full-stack feature work)
+   - Create `.github/copilot-instructions.md` (AI development guidelines for full-stack feature work)
    - Create placeholder specs: `specs/001-motorcycle-comparison/` with `spec.md`, `plan.md`, `tasks.md`
    - Create placeholder docs: `docs/architecture.md`, `docs/api.md`, `docs/database.md`
    - Create GitHub Actions workflow templates: `.github/workflows/deploy-web.yml`, `deploy-api.yml`
@@ -84,32 +85,39 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
 17. Image handling: `next/image` with a remote pattern pointing at the Azure Blob public container hostname.
 18. Basic SEO metadata (per-bike titles/OG tags using bike name + primary image).
 
-### Phase 4 — Azure Infrastructure & Deployment ⏳ NOT STARTED (resume here) — *can start in parallel with Phases 2–3, finalized once app configs are known*
-19. Provision: Resource Group → Azure Database for PostgreSQL Flexible Server → Azure Storage Account (Blob container, public read access for images) → Azure Key Vault (DB connection string, storage keys) → App Service Plan (Linux) with two Web Apps (`api`, `web`), each with managed identity + Key Vault references.
-20. CI/CD: GitHub Actions workflows in `.github/workflows/` — build/test both `apps/web` and `apps/api` on each push; deploy to corresponding App Services only if changes detected in that app's folder; API pipeline also runs `dotnet ef database update` against the target environment as a deploy step (deployment slots can be deferred to later).
-21. Configure `web` App Service for Next.js standalone output/Node runtime (source: `apps/web/`); configure `api` App Service for the ASP.NET Core runtime (source: `apps/api/`); wire environment variables/app settings for API base URL, DB connection, storage account URL.
-22. Point DNS/custom domain (if any) and confirm HTTPS.
+### Phase 4 — Admin Catalog Management ⏳ NOT STARTED
+19. Scaffold `apps/admin` as a separate Next.js App Router, TypeScript, and Tailwind CSS workspace. Follow the public app's component and typed-client structure, but provide a task-focused administration layout rather than public SEO pages.
+20. Add administrator authentication and authorization to the shared API before adding write operations. Keep public catalog endpoints anonymous and read-only; expose protected administration routes under an explicit API boundary such as `/api/admin`.
+21. Add API contracts, application services, and protected endpoints to create, edit, publish/unpublish, and delete motorcycles; manage brands and categories; and validate the JSONB specification values against their definitions. Both `apps/web` and `apps/admin` must consume the same shared backend and stable DTO contracts.
+22. Add protected image upload and assignment workflows: upload through the API using server-side Azure Blob credentials, assign images to a motorcycle, select exactly one primary image, order images, and remove assignments. Browser clients must not receive storage keys.
+23. Build admin pages for motorcycle list/search and edit forms, brand/category management, motorcycle image management, and spec-group/spec-definition metadata (group, code, label, type, unit, ordering, and filter settings). Include validation feedback, mutation error states, and responsive layouts.
 
-### Phase 5 — Future Backlog (not built now, tracked for later) ⏳ NOT STARTED (intentionally deferred)
-23. AI-generated pros/cons for compared bikes (likely an async job hitting an LLM, cached per bike-set).
-24. Annual survey feature (preferred bike / owned bike + feedback) using `survey_responses` stub table.
-25. Analytics: most-viewed bikes, most-searched specs/categories, backed by `bike_views`/`spec_search_log` stub tables + a lightweight aggregation job/dashboard.
-26. Upvote/downvote + comments per bike using `bike_votes`/`bike_comments` stub tables — will require introducing auth/session identity first.
-27. Maintenance/admin site for managing bikes, images, spec groups/specs and their order (replaces manual SQL seeding).
-28. Advertising foundation: define advertiser/campaign/creative/placement concepts, approval and expiration states, and a reporting model for impressions and clicks. Keep sponsored content separate from organic bike ranking and comparison calculations.
-29. Advertising API and delivery: expose approved active placements through a cacheable, context-aware endpoint; support placement limits, category/brand targeting, frequency controls, and graceful no-ad responses.
-30. Advertising UI: add responsive ad slots to agreed pages with visible `Sponsored` labeling, accessible fallbacks, privacy/consent handling where required, and no layout-breaking behavior when ads are blocked or unavailable.
-31. Advertising operations and governance: build admin workflows for campaign review, creative moderation, budget/end-date controls, reporting, fraud monitoring, and advertiser disclosure. Evaluate direct sponsorships first; add an external ad network only after privacy, performance, and brand-safety review.
-32. Dealer links: define dealer records and motorcycle-specific listings, including dealer name, location or service area, destination URL, listing status, last-verified timestamp, and optional pricing/availability. Keep dealer links moderated and separate from manufacturer brand data and organic bike ranking.
-33. Dealer API and UI: expose approved links on bike detail pages through a cacheable endpoint or detail response, with clear external-link labeling, stale-link handling, and a no-listings state. Add admin workflows for verification, expiration, removal, and click reporting.
+### Phase 5 — Azure Infrastructure & Deployment ⏳ NOT STARTED
+24. Provision: Resource Group → Azure Database for PostgreSQL Flexible Server → Azure Storage Account (Blob container, public read access for images) → Azure Key Vault (DB connection string, storage keys) → App Service Plan (Linux) with three Web Apps (`api`, `web`, and `admin`), each with managed identity + Key Vault references.
+25. CI/CD: GitHub Actions workflows in `.github/workflows/` — build/test `apps/web`, `apps/admin`, and `apps/api` on each push; deploy to the corresponding App Service only if that app changes. The API pipeline also runs `dotnet ef database update` against the target environment as a deploy step.
+26. Configure `web` and `admin` App Services for Next.js standalone output/Node runtime (sources: `apps/web/` and `apps/admin/`); configure `api` for ASP.NET Core (source: `apps/api/`). Wire each app's API base URL and the API's DB connection and storage configuration through managed configuration.
+27. Point DNS/custom domains (if any), require HTTPS, and restrict the admin site's access according to the selected administrator identity model.
+
+### Phase 6 — Future Backlog (not built now, tracked for later) ⏳ NOT STARTED (intentionally deferred)
+28. AI-generated pros/cons for compared bikes (likely an async job hitting an LLM, cached per bike-set).
+29. Annual survey feature (preferred bike / owned bike + feedback) using `survey_responses` stub table.
+30. Analytics: most-viewed bikes, most-searched specs/categories, backed by `bike_views`/`spec_search_log` stub tables + a lightweight aggregation job/dashboard.
+31. Upvote/downvote + comments per bike using `bike_votes`/`bike_comments` stub tables — will require introducing auth/session identity first.
+32. Advertising foundation: define advertiser/campaign/creative/placement concepts, approval and expiration states, and a reporting model for impressions and clicks. Keep sponsored content separate from organic bike ranking and comparison calculations.
+33. Advertising API and delivery: expose approved active placements through a cacheable, context-aware endpoint; support placement limits, category/brand targeting, frequency controls, and graceful no-ad responses.
+34. Advertising UI: add responsive ad slots to agreed pages with visible `Sponsored` labeling, accessible fallbacks, privacy/consent handling where required, and no layout-breaking behavior when ads are blocked or unavailable.
+35. Advertising operations and governance: build admin workflows for campaign review, creative moderation, budget/end-date controls, reporting, fraud monitoring, and advertiser disclosure. Evaluate direct sponsorships first; add an external ad network only after privacy, performance, and brand-safety review.
+36. Dealer links: define dealer records and motorcycle-specific listings, including dealer name, location or service area, destination URL, listing status, last-verified timestamp, and optional pricing/availability. Keep dealer links moderated and separate from manufacturer brand data and organic bike ranking.
+37. Dealer API and UI: expose approved links on bike detail pages through a cacheable endpoint or detail response, with clear external-link labeling, stale-link handling, and a no-listings state. Add admin workflows for verification, expiration, removal, and click reporting.
 
 **Relevant files**
-- **Root**: `package.json` (pnpm workspaces), `.gitignore`, `README.md`, `CLAUDE.md` (AI guidelines)
+- **Root**: `package.json` (pnpm workspaces), `.gitignore`, `README.md`, `.github/copilot-instructions.md` (AI guidelines)
 - **`apps/api/`** — ASP.NET Core Web API, Clean Architecture solution: `Motorcycle.Domain/`, `Motorcycle.Application/`, `Motorcycle.Infrastructure/` (contains `Migrations/`, `DbContext`, `Seed/`), `Motorcycle.Api/`; plus `Motorcycle.Api.sln` at the root of `apps/api/`
-- **`apps/web/`** — Next.js repo with Tailwind CSS configured (theme tokens for the header/page/sidebar/content/button color palette)
+- **`apps/web/`** — public Next.js app with Tailwind CSS configured (theme tokens for the header/page/sidebar/content/button color palette)
+- **`apps/admin/`** — planned private Next.js app for catalog, image, and specification metadata management; it consumes the shared API and never connects directly to the database or Blob Storage.
 - **`specs/`** — cross-application feature specifications (e.g., `specs/001-motorcycle-comparison/` with `spec.md`, `plan.md`, `tasks.md`; each spec-driven feature gets a numbered folder)
 - **`docs/`** — shared architecture, API, and database documentation; updated as implementation progresses
-- **`.github/workflows/`** — CI/CD pipelines for both apps (path-triggered on commits to `apps/web/` and `apps/api/`)
+- **`.github/workflows/`** — CI/CD pipelines for all deployable apps (path-triggered on commits to `apps/web/`, `apps/admin/`, and `apps/api/`)
 
 **Verification**
 1. `dotnet ef database update` applies all migrations cleanly against a fresh local/dev PostgreSQL instance, and re-running it is a no-op (idempotent); `dotnet ef migrations script` reviewed to confirm the raw-SQL index statements are included correctly.
@@ -117,7 +125,8 @@ Monorepo full-stack app: Next.js (React, SSR/SEO, Tailwind CSS) frontend + ASP.N
 3. `GET /api/bikes` supports combined static + dynamic spec filters (exercising each `ISpecFilterStrategy` implementation) and returns correct pagination.
 4. `GET /api/bikes/compare?ids=...` returns a correctly grouped/ordered matrix for 2, 5, and 10+ bikes (to validate the UI's side-by-side → scrollable-table switch threshold).
 5. Frontend `/bikes`, `/bikes/[slug]`, and `/compare` pages render against the live API in a local dev environment; image gallery loads from the Azure Blob container; verify layout/colors at mobile, tablet, and desktop breakpoints.
-6. Deployed App Services reachable over HTTPS; API connects to Azure Database for PostgreSQL and Blob Storage using Key Vault-sourced secrets (no secrets in App Service plain settings or source control).
+6. Admin mutations reject unauthenticated and unauthorized requests; valid administrator actions update the shared catalog and are visible through public read endpoints without direct database or storage access from the admin browser.
+7. Deployed App Services reachable over HTTPS; API connects to Azure Database for PostgreSQL and Blob Storage using Key Vault-sourced secrets (no secrets in App Service plain settings or source control).
 
 **Further Considerations**
 1. Category-specific spec sets (e.g., scooters vs. sportbikes needing different spec lists) aren't explicitly modeled — current design relies purely on per-bike JSONB flexibility (bikes just omit specs that don't apply). If you later want the *settings UI* to scope certain spec groups to certain categories, that's an additive change to `spec_definitions` (add optional `category_id` scoping) — flag if this matters for the admin site later.

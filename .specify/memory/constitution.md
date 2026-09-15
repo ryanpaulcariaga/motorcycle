@@ -1,9 +1,9 @@
 <!-- Sync Impact Report
-Version: 1.0.0 (initial)
+Version: 1.1.0 (added public/admin frontend and protected administration API principles)
 Principles: 7 core principles covering architecture, design patterns, and development practices
 Sections: Technology Stack, Development Workflow, Governance
-Changes: Initial constitution created from plan-motorcycleWebApp.md declarations
-Status: All principles ratified 2026-09-01; no TODOs
+Changes: Added apps/admin, shared API rules, protected catalog mutations, and three-app deployment guidance.
+Status: All principles ratified; admin catalog management is planned but not yet implemented.
 -->
 
 # Motorcycle Web App Constitution
@@ -12,12 +12,12 @@ Status: All principles ratified 2026-09-01; no TODOs
 
 ### I. Monorepo Full-Stack Architecture
 
-The project is structured as a single monorepo (`motorcycle-app`) with separate concerns isolated in subdirectories: `apps/web/` (Next.js frontend), `apps/api/` (ASP.NET Core backend), `specs/` (feature specifications), and `docs/` (shared architecture/API/database documentation).
+The project is structured as a single monorepo (`motorcycle-app`) with separate concerns isolated in subdirectories: `apps/web/` (public Next.js frontend), `apps/admin/` (private Next.js administration frontend), `apps/api/` (shared ASP.NET Core backend), `specs/` (feature specifications), and `docs/` (shared architecture/API/database documentation).
 
 **Non-negotiable rules:**
-- All features are implemented full-stack in a single specification/implementation cycle: backend API + frontend UI + tests together.
+- All features are implemented full-stack in a single specification/implementation cycle: shared backend API, every affected frontend UI, and tests together.
 - Feature work always begins with a spec in `specs/NNN-feature-name/` containing `spec.md` (requirements), `plan.md` (design decisions), and `tasks.md` (actionable steps).
-- Dependencies between apps are enforced via the typed HTTP client (`apps/web/lib/api.ts`) and backend DTOs; API contracts MUST remain stable.
+- Dependencies between frontends and the API are enforced via typed HTTP clients (`apps/web/lib/api.ts` and `apps/admin/lib/api.ts`) and backend DTOs; API contracts MUST remain stable.
 - pnpm workspaces manage Node dependencies; root `package.json` defines workspace targets (`apps/*`).
 
 **Rationale:** Monorepo structure accelerates full-stack iteration, keeps cross-layer changes synchronized, and simplifies feature documentation. Feature-driven specs ensure alignment before implementation and enable AI assistance with clear, complete context.
@@ -36,12 +36,14 @@ The backend (`apps/api/`) is organized into four layers with strict dependency d
 
 ### III. API-First Design with Typed Contracts
 
-The frontend communicates exclusively with the backend via a typed HTTP client. All API responses are defined by backend DTOs (`Motorcycle.Application/DTOs/`), mirrored in the frontend TypeScript types (`apps/web/lib/types.ts`), and kept in sync.
+The public and administration frontends communicate exclusively with the shared backend via typed HTTP clients. All API responses are defined by backend DTOs (`Motorcycle.Application/DTOs/`), mirrored in frontend TypeScript types, and kept in sync.
 
 **Non-negotiable rules:**
 - Every API endpoint MUST define a corresponding DTO in `Motorcycle.Application/DTOs/`.
-- Frontend TypeScript types MUST be derived from backend DTOs; if DTOs change, types MUST be updated in the same PR.
-- All API requests flow through `apps/web/lib/api.ts` (centralized typed client); no direct `fetch()` calls in components.
+- Frontend TypeScript types MUST be derived from backend DTOs; if DTOs change, types in each affected frontend MUST be updated in the same PR.
+- All API requests flow through each application's centralized typed client; no direct `fetch()` calls in components.
+- Public catalog endpoints MUST remain anonymous and read-only. Catalog mutations MUST use a protected administration API boundary and require authenticated, authorized administrator access.
+- Browser clients MUST NOT receive PostgreSQL or Azure Blob Storage credentials. The API owns storage upload and image-assignment operations.
 - API contracts MUST be documented in `docs/api.md` with endpoint paths, methods, request/response DTOs, and pagination/caching policies.
 
 **Rationale:** Typed contracts prevent runtime errors, improve IDE autocomplete support, and enforce a stable API surface. Centralized clients simplify error handling, logging, and future authentication.
@@ -102,7 +104,7 @@ Frontend UI is designed mobile-first using Tailwind CSS utility classes. Base st
 - **Backend:** ASP.NET Core Web API (.NET 8+), C#, EF Core (Npgsql provider), Clean Architecture (Domain/Application/Infrastructure/Api layers).
 - **Database:** PostgreSQL (Azure Database for PostgreSQL – Flexible Server), JSONB for spec storage, GIN and expression indexes for filtering performance.
 - **Infrastructure:** Azure (App Service, Key Vault, Storage Account with public read-only blob container for images, managed identity for auth).
-- **CI/CD:** GitHub Actions workflows in `.github/workflows/` with path-based triggers (`apps/web/` and `apps/api/` separately).
+- **CI/CD:** GitHub Actions workflows in `.github/workflows/` with path-based triggers for `apps/web/`, `apps/admin/`, and `apps/api/` separately.
 
 **No Exceptions:** Technology changes (e.g., swap React for Vue, swap ASP.NET Core for Node.js) require a constitution amendment and explicit approval.
 
@@ -133,8 +135,8 @@ Frontend UI is designed mobile-first using Tailwind CSS utility classes. Base st
 
 **Compliance Review:** At the start of each phase (per `plan-motorcycleWebApp.md` phases), architecture decisions MUST be reviewed against this constitution. Non-compliance MUST be flagged and resolved before proceeding.
 
-**Guidance Files:** Runtime development guidance is kept in `CLAUDE.md` (AI assistance guidelines) and `docs/` (architecture, API, database docs). This constitution defines governance; `CLAUDE.md` and `docs/` define practices and how-tos.
+**Guidance Files:** Runtime development guidance is kept in `.github/copilot-instructions.md` (AI assistance guidelines) and `docs/` (architecture, API, database docs). This constitution defines governance; `.github/copilot-instructions.md` and `docs/` define practices and how-tos.
 
 ---
 
-**Version:** 1.0.0 | **Ratified:** 2026-09-01 | **Last Amended:** 2026-09-01
+**Version:** 1.1.0 | **Ratified:** 2026-09-01 | **Last Amended:** 2026-09-15

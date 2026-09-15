@@ -7,11 +7,15 @@ A monorepo for the Motorcycle Specs & Comparison application.
 ```
 motorcycle-app/
 ├── apps/
-│   ├── web/              # Next.js frontend
-│   └── api/              # ASP.NET Core backend
+│   ├── web/              # Public Next.js frontend
+│   ├── admin/            # Planned private Next.js administration frontend
+│   └── api/              # Shared ASP.NET Core backend
 ├── specs/                # Feature specifications (SpecKit)
 │   ├── 001-motorcycle-comparison/
-│   └── 002-user-reviews/
+│   ├── 002-user-reviews/
+│   ├── 003-advertising/
+│   ├── 004-dealer-links/
+│   └── 005-admin-catalog-management/
 ├── docs/                 # Shared documentation
 ├── .github/workflows/    # CI/CD pipelines
 └── package.json          # pnpm workspaces config
@@ -93,6 +97,10 @@ For app-specific configuration, see [apps/web/README.md](apps/web/README.md).
 
 Features are spec-driven. See [specs/](specs/) for active features.
 
+### Planned Admin Catalog Management
+
+The planned `apps/admin/` Next.js site will maintain motorcycles, specification values and metadata, brands, categories, and motorcycle image assignments. It consumes the shared `apps/api/` backend; only authenticated, authorized administrators can use its write operations. See [specs/005-admin-catalog-management/spec.md](specs/005-admin-catalog-management/spec.md).
+
 ### Future Roadmap
 
 Planned post-MVP capabilities include user reviews, AI-assisted comparison insights, analytics, dealer links, and a privacy-conscious advertising platform. Advertising is intended to support clearly labeled sponsored placements and relevant motorcycle-related campaigns without changing organic search or comparison results. See [specs/003-advertising/spec.md](specs/003-advertising/spec.md) and [specs/004-dealer-links/spec.md](specs/004-dealer-links/spec.md) for the initial future scopes.
@@ -101,7 +109,7 @@ When implementing a feature:
 1. Review the feature spec in `specs/NNN-feature-name/spec.md`
 2. Follow the plan in `specs/NNN-feature-name/plan.md`
 3. Track progress in `specs/NNN-feature-name/tasks.md`
-4. Modify both backend (`apps/api/`) and frontend (`apps/web/`) in the same session
+4. Modify the shared backend (`apps/api/`) and every affected frontend (`apps/web/` and/or `apps/admin/`) in the same session
 5. Update relevant docs as you go
 
-See [CLAUDE.md](CLAUDE.md) for AI-assisted development guidelines.
+See [.github/copilot-instructions.md](.github/copilot-instructions.md) for AI-assisted development guidelines used by VS Code Copilot and Copilot CLI.

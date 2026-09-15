@@ -50,7 +50,7 @@ Provide a privacy-conscious advertising capability through clearly labeled spons
 
 1. Define commercial policy, placement inventory, disclosure language, privacy review, and moderation rules.
 2. Add advertiser, campaign, creative, placement, and delivery-event models through EF Core migrations.
-3. Build operator workflows for approval, scheduling, pausing, and reporting.
+3. Extend the protected administration site defined in [005-admin-catalog-management](../005-admin-catalog-management/spec.md) with operator workflows for approval, scheduling, pausing, and reporting.
 4. Add a cacheable, context-aware delivery API with empty-inventory behavior.
 5. Add accessible responsive ad slots to selected pages and verify blocked, expired, and unavailable states.
 6. Measure performance, privacy impact, fraud signals, and user feedback before expanding inventory or considering an external ad network.

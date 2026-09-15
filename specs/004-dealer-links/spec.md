@@ -47,7 +47,7 @@ Let users discover approved dealers or dealer listings for a specific motorcycle
 
 1. Define dealer verification, ownership, geographic coverage, and link policy.
 2. Add dealer and bike-dealer-listing models through EF Core migrations.
-3. Build operator workflows for creating, approving, verifying, expiring, and disabling listings.
+3. Extend the protected administration site defined in [005-admin-catalog-management](../005-admin-catalog-management/spec.md) with operator workflows for creating, approving, verifying, expiring, and disabling listings.
 4. Add a cacheable read-only dealer endpoint and no-listings response.
 5. Add the dealer section to bike detail pages and test stale, broken, blocked, and unavailable states.
 6. Add privacy-reviewed click reporting only if it provides clear product value.

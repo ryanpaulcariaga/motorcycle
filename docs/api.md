@@ -138,6 +138,19 @@ List all brands.
 
 List all categories.
 
+### Planned Administration API
+
+The same ASP.NET Core API serves the planned `apps/admin` Next.js workspace. Public catalog endpoints stay anonymous and read-only. Catalog writes must use protected administration endpoints under `/api/admin` and require authenticated, authorized administrator access.
+
+The administration API will provide typed contracts for:
+
+- motorcycle create, edit, publish/unpublish, and delete operations;
+- brand and category management;
+- spec-group and spec-definition management, including labels, data types, units, filter settings, and ordering;
+- server-side image upload, motorcycle image assignment, primary-image selection, ordering, and removal.
+
+Motorcycle specification values must be validated against their definitions before persistence. Image uploads are handled by the API using server-side Blob Storage configuration; no storage credentials are returned to the admin client.
+
 ### Future Advertising API
 
 Advertising is not part of the MVP API. A future version may expose a read-only delivery endpoint such as `GET /api/advertising/placements` that accepts the page context, placement key, and optional category/brand context, then returns only approved and currently active creatives. The response should include disclosure text and a stable impression token rather than exposing internal campaign or budget data.
@@ -152,10 +165,10 @@ Dealer links should be clearly identified as external destinations. The endpoint
 
 ---
 
-**Authentication**: None (MVP). Future: JWT bearer tokens.
+**Authentication**: Public catalog endpoints require no authentication. Planned administration mutation endpoints require a Microsoft Entra ID bearer token with the configured administrator role or group claim.
 
 **Caching**: `spec-groups`, `brands`, `categories` cached 1 hour server-side.
 
-**CORS**: Configured for Next.js origin.
+**CORS**: Configured for the public and administration Next.js origins.
 
 See [architecture.md](architecture.md) for design rationale.

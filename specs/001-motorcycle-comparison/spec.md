@@ -17,5 +17,8 @@ Browse, search, filter, and compare motorcycles by specs (engine, body, performa
 
 - Authentication / user accounts
 - Upvotes, comments, reviews
-- Admin UI for managing bikes/specs
 - Analytics dashboard
+
+## Related Planned Feature
+
+Catalog administration is specified separately in [005-admin-catalog-management](../005-admin-catalog-management/spec.md). It adds a private Next.js application and protected shared-API write operations without changing the public comparison experience.

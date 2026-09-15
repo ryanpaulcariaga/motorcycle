@@ -23,10 +23,14 @@
 - [ ] Mobile responsiveness testing
 - [ ] SEO metadata per page
 
-## Infrastructure (Phase 4)
+## Infrastructure (Phase 5)
 - [ ] Provision PostgreSQL Flexible Server
 - [ ] Provision Blob Storage + public container
 - [ ] Provision Key Vault + managed identity
-- [ ] Setup App Service Plan + Web Apps
+- [ ] Setup App Service Plan + public web, admin, and API Apps
 - [ ] Configure CI/CD workflows (.github/workflows)
 - [ ] Deploy and verify endpoints
+
+## Admin Catalog Management (Phase 4)
+
+See [../005-admin-catalog-management/tasks.md](../005-admin-catalog-management/tasks.md) for the feature's detailed API, frontend, and infrastructure checklist.
