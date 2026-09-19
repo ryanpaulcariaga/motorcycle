@@ -1,15 +1,15 @@
 ## Plan: Motorcycle Specs, Comparison & Administration App
 
-**Progress status (updated 2026-09-16)**
+**Progress status (updated 2026-09-20)**
 - ✅ Phase 0 — Monorepo Initialization — DONE
 - ✅ Phase 1 — Database Design — DONE (schema, migrations, GIN index, seed data all applied to local Postgres)
 - ✅ Phase 2 — Backend API — DONE (repositories, Strategy-pattern spec filters, services, controllers; smoke-tested against live DB)
 - ✅ Phase 3 — Frontend — DONE (Tailwind theme, layout components, typed API client, `/`, `/bikes`, `/bikes/[slug]`, `/compare`; smoke-tested end-to-end against live API)
-- 🔄 Phase 4 — Admin Catalog Management — Stage 1 local slice implemented; automated acceptance tests and production hardening remain
+- 🔄 Phase 4 — Admin Catalog Management — Stage 1 (roles + BikeModel) and Stage 2 (Bike variant CRUD + publication, `specs/006-bike-catalog-management/`) implemented locally; Stage 1 automated acceptance tests/production hardening and Stage 3 (image upload) remain
 - ⏳ Phase 5 — Azure Infrastructure & Deployment — NOT STARTED
 - ⏳ Phase 6 — Future Backlog — NOT STARTED (intentionally deferred, schema stubs only)
 
-**Resume here:** Phase 4, Stage 1 validation and hardening. Local development runs PostgreSQL, the API on `https://localhost:7240` using the single `https` profile, the public web app on `:3000`, and the admin site over HTTPS on `:3001`. The admin callback is `https://localhost:3001/api/auth/callback/facebook`; the first local administrator is bootstrapped through the operator command documented in the feature quickstart.
+**Resume here:** Phase 4, Stage 3 (image assignment). Provision an Azure Storage Account + public-read "Blob" access-level container before starting Stage 3 work, since administrators can now create/publish `Bike` variants under `/api/admin/bikes` but have no way to attach images yet. Local development runs PostgreSQL, the API on `https://localhost:7240` using the single `https` profile, the public web app on `:3000`, and the admin site over HTTPS on `:3001`. The admin callback is `https://localhost:3001/api/auth/callback/facebook`; the first local administrator is bootstrapped through the operator command documented in the feature quickstart.
 
 Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicable, Tailwind CSS) frontends + a shared ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering) + PostgreSQL (JSONB specs, schema versioned via EF Core Migrations) + Azure Blob Storage for images, all hosted on Azure App Service. The public experience supports browse/search/filter/compare bikes with grouped specs. The admin experience manages the catalog, motorcycle specifications, image assignments, and specification metadata through the same API. Future-proofing remains for AI pros/cons, annual surveys, analytics, voting/comments, dealer listings, and advertising.
 
@@ -86,16 +86,18 @@ Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicab
 18. Basic SEO metadata (per-bike titles/OG tags using bike name + primary image).
 
 ### Phase 4 — Admin Catalog Management ⏳ STAGED
-#### Stage 1 — Admin BikeModel MVP
+#### Stage 1 — Admin BikeModel MVP ✅ DONE (local slice; automated acceptance tests/hardening remain — see `specs/005-admin-catalog-management/implementation-status.md`)
 19. Scaffold `apps/admin` as a separate Next.js App Router, TypeScript, and Tailwind CSS workspace. Copy the established `apps/web` UI tokens, typography, layout conventions, and API-client approach into an administration-focused shell.
 20. Add Facebook OAuth2 sign-in for the admin site and protected API requests. Keep public catalog endpoints anonymous and read-only; expose Stage 1 mutations under `/api/admin`.
 21. Add typed `BikeModel` CRUD contracts, application services, repository operations, and protected endpoints for loading, adding, editing, and deleting rows in `bike_models`.
 22. Prevent deletion of a `BikeModel` referenced by any `Bike` row. Return a clear conflict/error response and show an actionable message in the admin UI.
 23. Build the Stage 1 admin UI: authenticated shell, BikeModel list, add/edit form, delete confirmation, loading/empty/error states, and responsive styling matching `apps/web`.
 
+#### Stage 2 — Bike Variant CRUD & Publication ✅ DONE (`specs/006-bike-catalog-management/`)
+24. Added CRUD for `bikes` (year/variant records) under protected `/api/admin/bikes`, including publish/unpublish toggling; edits to a published variant apply immediately without an unpublish step. Deletion is a hard delete, blocked with a conflict response when the variant has dependent `bike_images`. A new unique index on `(model_id, year, variant_name)` enforces variant identity. The admin UI adds a per-model variant list/form (`BikeManagement.tsx`) reachable from each BikeModel row.
+
 #### Later Admin Stages — Deferred
-24. Add CRUD for `bikes`, including year/variant data and publication workflow.
-25. Add Azure Blob Storage upload, bike image assignment, ordering, and primary-image management through the API.
+25. Add Azure Blob Storage upload, bike image assignment, ordering, and primary-image management through the API. **Next up** — requires provisioning an Azure Storage Account and public-read blob container first (see Phase 5, step 28).
 26. Add CRUD for `spec_groups` and `spec_definitions`, including ordering, labels, data types, units, and filter settings.
 27. Expand admin authorization, tests, deployment configuration, and CI/CD as the later stages are implemented.
 
@@ -121,8 +123,8 @@ Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicab
 - **Root**: `package.json` (pnpm workspaces), `.gitignore`, `README.md`, `.github/copilot-instructions.md` (AI guidelines)
 - **`apps/api/`** — ASP.NET Core Web API, Clean Architecture solution: `Motorcycle.Domain/`, `Motorcycle.Application/`, `Motorcycle.Infrastructure/` (contains `Migrations/`, `DbContext`, `Seed/`), `Motorcycle.Api/`; plus `Motorcycle.Api.sln` at the root of `apps/api/`
 - **`apps/web/`** — public Next.js app with Tailwind CSS configured (theme tokens for the header/page/sidebar/content/button color palette)
-- **`apps/admin/`** — private Next.js app with Stage 1 role and BikeModel management; it consumes the shared API and never connects directly to the database or Blob Storage. Images and specification metadata remain later stages.
-- **`specs/`** — cross-application feature specifications (e.g., `specs/001-motorcycle-comparison/` with `spec.md`, `plan.md`, `tasks.md`; each spec-driven feature gets a numbered folder)
+- **`apps/admin/`** — private Next.js app with Stage 1 role/BikeModel management and Stage 2 Bike variant CRUD/publication management; it consumes the shared API and never connects directly to the database or Blob Storage. Image assignment and specification metadata remain later stages.
+- **`specs/`** — cross-application feature specifications (e.g., `specs/001-motorcycle-comparison/`, `specs/005-admin-catalog-management/`, `specs/006-bike-catalog-management/`, each with `spec.md`, `plan.md`, `tasks.md`; every spec-driven feature gets a numbered folder)
 - **`docs/`** — shared architecture, API, and database documentation; updated as implementation progresses
 - **`.github/workflows/`** — CI/CD pipelines for all deployable apps (path-triggered on commits to `apps/web/`, `apps/admin/`, and `apps/api/`)
 
@@ -133,7 +135,8 @@ Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicab
 4. `GET /api/bikes/compare?ids=...` returns a correctly grouped/ordered matrix for 2, 5, and 10+ bikes (to validate the UI's side-by-side → scrollable-table switch threshold).
 5. Frontend `/bikes`, `/bikes/[slug]`, and `/compare` pages render against the live API in a local dev environment; image gallery loads from the Azure Blob container; verify layout/colors at mobile, tablet, and desktop breakpoints.
 6. Stage 1 admin mutations reject unauthenticated and unauthorized requests; valid Facebook-authenticated administrator actions create, edit, and delete unreferenced BikeModels, while referenced BikeModel deletion returns a clear conflict without direct database access from the admin browser.
-7. Deployed App Services reachable over HTTPS; API connects to Azure Database for PostgreSQL and Blob Storage using Key Vault-sourced secrets (no secrets in App Service plain settings or source control).
+7. Stage 2 admin mutations: an administrator can create/edit a Bike variant under a BikeModel, publish/unpublish it (publishing enforces required year/variant-name, and public catalog/comparison responses immediately reflect the toggle), and delete it — deletion of a variant with dependent images returns `409 bike_referenced` without removing data.
+8. Deployed App Services reachable over HTTPS; API connects to Azure Database for PostgreSQL and Blob Storage using Key Vault-sourced secrets (no secrets in App Service plain settings or source control).
 
 **Further Considerations**
 1. Category-specific spec sets (e.g., scooters vs. sportbikes needing different spec lists) aren't explicitly modeled — current design relies purely on per-bike JSONB flexibility (bikes just omit specs that don't apply). If you later want the *settings UI* to scope certain spec groups to certain categories, that's an additive change to `spec_definitions` (add optional `category_id` scoping) — flag if this matters for the admin site later.

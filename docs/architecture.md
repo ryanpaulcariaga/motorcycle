@@ -39,9 +39,10 @@ Azure Blob Storage (images served via public URL)
 
 The first administrator is created through an operator-only bootstrap command after the `admin_roles` migration is applied. Subsequent administrator provisioning, activation, and deactivation happen through the protected role-management API.
 
-Bike CRUD, image uploads, Azure Blob Storage access, and specification metadata are deferred admin stages. When implemented, those operations remain API-owned and the admin browser must never receive database or storage credentials.
+Stage 2 adds Bike (year/trim variant) CRUD and publication management under `/api/admin/bikes`, so administrators can create, edit, publish/unpublish, and delete variants beneath an existing BikeModel; editing a published variant applies immediately without an unpublish step, and deletion is a hard delete blocked only when the variant has assigned images. Image uploads, Azure Blob Storage access, and specification metadata management remain deferred admin stages. When implemented, those operations remain API-owned and the admin browser must never receive database or storage credentials.
 
 ### Future Advertising Boundary
+
 
 Advertising is a post-MVP capability and must remain separate from the organic motorcycle catalog. A future advertising module should own advertisers, campaigns, creatives, placements, targeting, approval state, and delivery metrics. The application may provide contextual signals such as the current category or brand, but sponsored content must never alter organic search ordering, filters, or comparison results.
 

@@ -168,7 +168,21 @@ BikeModel deletion conflicts return `409` with `bike_model_referenced` and a dep
 
 The BikeModel UI loads its dropdown data through the admin proxy routes `/api/catalog/brands` and `/api/catalog/categories`, which forward to the API's public `/api/brands` and `/api/categories` endpoints.
 
-Bike CRUD, Azure Blob image upload/assignment, and spec-group/spec-definition management are deferred follow-on stages.
+Azure Blob image upload/assignment and spec-group/spec-definition management remain deferred follow-on stages.
+
+#### Bike (Variant) Administration
+
+Stage 2 provides typed contracts for administering `Bike` (year/trim variant) records under `/api/admin/bikes`:
+
+- `GET /api/admin/bikes?modelId={id}` lists variants, optionally scoped to one BikeModel.
+- `GET /api/admin/bikes/{id}` returns one variant's full detail, including current spec values.
+- `POST /api/admin/bikes` creates a variant under an existing BikeModel; defaults to unpublished.
+- `PUT /api/admin/bikes/{id}` edits a variant's core fields and specs, whether or not it is currently published; changes to a published variant are visible on the public catalog immediately.
+- `PATCH /api/admin/bikes/{id}/publish` and `PATCH /api/admin/bikes/{id}/unpublish` toggle public visibility. Publishing a variant missing required core details (year, variant name) returns `400` with `bike_not_publishable`.
+- `DELETE /api/admin/bikes/{id}` permanently deletes a variant. Returns `409` with `bike_referenced` and a dependent image count when the variant has assigned images.
+- Create/update requests validate the referenced BikeModel's existence, require year and variant name, enforce a unique `(modelId, year, variantName)` combination (`409` with `bike_exists` on conflict), and validate submitted spec values against the full existing spec-definition set (not filtered by category); unrecognized codes or mismatched types return `400`.
+
+See [contracts/admin-bikes-api.md](../specs/006-bike-catalog-management/contracts/admin-bikes-api.md) for the full request/response contract. Image upload/assignment and spec-group/spec-definition management remain deferred follow-on stages.
 
 ### Future Advertising API
 

@@ -91,6 +91,7 @@ public class MotorcycleDbContext : DbContext
             b.HasIndex(x => x.Year);
             b.HasIndex(x => x.MsrpPrice);
             b.HasIndex(x => x.Slug).IsUnique();
+            b.HasIndex(x => new { x.ModelId, x.Year, x.VariantName }).IsUnique();
             
             // GIN index for JSONB specs (raw SQL in migration)
             // CREATE INDEX idx_bikes_specs GIN (specs);

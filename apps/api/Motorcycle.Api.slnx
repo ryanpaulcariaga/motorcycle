@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="Motorcycle.Api.Tests/Motorcycle.Api.Tests.csproj" />
   <Project Path="Motorcycle.Api/Motorcycle.Api.csproj" />
   <Project Path="Motorcycle.Application/Motorcycle.Application.csproj" />
   <Project Path="Motorcycle.Domain/Motorcycle.Domain.csproj" />

@@ -29,6 +29,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ISpecGroupRepository, SpecGroupRepository>();
 builder.Services.AddScoped<IAdminRoleRepository, AdminRoleRepository>();
 builder.Services.AddScoped<IBikeModelRepository, BikeModelRepository>();
+builder.Services.AddScoped<IBikeAdminRepository, BikeAdminRepository>();
 
 // Spec filter strategies (Strategy pattern)
 builder.Services.AddSingleton<ISpecFilterStrategy, NumberRangeFilterStrategy>();
@@ -42,6 +43,7 @@ builder.Services.AddScoped<IBikeService, BikeService>();
 builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<IAdminRoleService, AdminRoleService>();
 builder.Services.AddScoped<IBikeModelService, BikeModelService>();
+builder.Services.AddScoped<IBikeAdminService, BikeAdminService>();
 
 var adminAuth = builder.Configuration.GetSection(AdminAuthOptions.SectionName).Get<AdminAuthOptions>() ?? new();
 builder.Services.Configure<AdminAuthOptions>(builder.Configuration.GetSection(AdminAuthOptions.SectionName));

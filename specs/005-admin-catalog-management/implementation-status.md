@@ -92,11 +92,11 @@ Unchecked tasks are intentionally not treated as complete:
 
 ## Next Admin Stage
 
-Do not start the next data stage until the remaining Stage 1 validation tasks are reviewed. The recommended order is:
+Stage 2 (bike CRUD/publication management) is implemented; see `specs/006-bike-catalog-management/`. Do not start the next data stage until its remaining validation is reviewed. The recommended order is:
 
 1. Finish Stage 1 test/error/responsive hardening.
-2. Add bike CRUD and publication management with a new data model and API contract.
-3. Add image assignment/upload through API-owned storage operations.
+2. ~~Add bike CRUD and publication management with a new data model and API contract.~~ Done — `/api/admin/bikes` and the admin variant UI.
+3. Add image assignment/upload through API-owned storage operations (requires provisioning Azure Blob Storage).
 4. Add specification metadata management and validation.
 
 Each follow-on stage needs its own contract, migration review, frontend types/client functions, and focused acceptance tests. Do not add direct browser access to PostgreSQL or Blob Storage.

@@ -39,6 +39,7 @@ CREATE INDEX idx_bikes_model_id ON bikes(model_id);
 CREATE INDEX idx_bikes_year ON bikes(year);
 CREATE INDEX idx_bikes_msrp_price ON bikes(msrp_price);
 CREATE INDEX idx_bikes_specs GIN (specs);  -- For JSONB filtering
+CREATE UNIQUE INDEX ix_bikes_model_id_year_variant_name ON bikes(model_id, year, variant_name);  -- Added for Stage 2 admin variant CRUD
 
 -- Expression indexes for common filterable specs (added via EF Core migrations)
 CREATE INDEX idx_bikes_cc ON bikes (((specs->>'cc')::NUMERIC)) WHERE specs ? 'cc';
@@ -195,8 +196,8 @@ The relationship should support multiple dealers per motorcycle and multiple mot
 - **Expression Indexes**: Per-spec indexes added via EF Core migrations for filterable numeric specs → fast range queries.
 - **GIN Index**: General JSONB filtering via `specs @> ...` or `specs ? 'key'` syntax.
 - **No category-spec scoping**: All specs available for all bike variants; admin manages per-variant spec values. Future: add optional `category_id` to `spec_definitions` if needed.
-- **Administration writes**: The admin site changes catalog data only through protected API operations. It introduces no separate catalog store; EF Core migrations remain the source of truth for schema changes. BikeModel deletion is checked for dependent `bikes.model_id` references before persistence to prevent the existing cascade from removing variants.
-- **Image management**: `bike_images` remains the relationship and ordering source for assigned motorcycle images. The API enforces a single primary image per motorcycle and owns Blob Storage upload access.
+- **Administration writes**: The admin site changes catalog data only through protected API operations. It introduces no separate catalog store; EF Core migrations remain the source of truth for schema changes. BikeModel deletion is checked for dependent `bikes.model_id` references before persistence to prevent the existing cascade from removing variants. Bike variant CRUD (`/api/admin/bikes`) is implemented the same way: `(model_id, year, variant_name)` is enforced unique at the database and application layers, and variant deletion is checked for dependent `bike_images.bike_id` references (hard delete, blocked with `409 bike_referenced` when images exist).
+- **Image management**: `bike_images` remains the relationship and ordering source for assigned motorcycle images. The API enforces a single primary image per motorcycle and owns Blob Storage upload access. Image upload/assignment itself remains a deferred admin stage (Stage 3); Blob Storage has not yet been provisioned.
 - **Advertising is isolated from catalog data**: sponsored placements must not be stored as bike ranking signals or mixed into organic comparison responses. Future advertising tables should reference context and placement keys, not mutate bike specs or search ordering.
 
 See [api.md](api.md) and [architecture.md](architecture.md) for design rationale.

@@ -1,4 +1,4 @@
-import type { AdminRole, ApiError, BikeModel, BikeModelRequest, CreateAdminRoleRequest, LookupOption, UpdateAdminRoleRequest } from "./types";
+import type { AdminRole, ApiError, BikeAdminDetail, BikeAdminListItem, BikeModel, BikeModelRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, UpdateAdminRoleRequest, UpdateBikeRequest } from "./types";
 
 const API_BASE_URL = typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7240" : "";
 
@@ -60,3 +60,20 @@ async function publicApiFetch<T>(path: string): Promise<T> {
 
 export function getBrands(): Promise<LookupOption[]> { return publicApiFetch("/brands"); }
 export function getCategories(): Promise<LookupOption[]> { return publicApiFetch("/categories"); }
+export function getSpecGroups(): Promise<{ code: string; name: string; sortOrder: number; definitions: { id: number; code: string; label: string; dataType: string; unit: string | null; sortOrder: number }[] }[]> {
+  return publicApiFetch("/spec-groups");
+}
+
+export function getAdminBikes(modelId?: number): Promise<BikeAdminListItem[]> {
+  return apiFetch(modelId ? `/api/admin/bikes?modelId=${modelId}` : "/api/admin/bikes");
+}
+export function getAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}`); }
+export function createAdminBike(request: CreateBikeRequest): Promise<BikeAdminDetail> {
+  return apiFetch("/api/admin/bikes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+}
+export function updateAdminBike(id: number, request: UpdateBikeRequest): Promise<BikeAdminDetail> {
+  return apiFetch(`/api/admin/bikes/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+}
+export function publishAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}/publish`, { method: "PATCH" }); }
+export function unpublishAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}/unpublish`, { method: "PATCH" }); }
+export function deleteAdminBike(id: number): Promise<void> { return apiFetch(`/api/admin/bikes/${id}`, { method: "DELETE" }); }
