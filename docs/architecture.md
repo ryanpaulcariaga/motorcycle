@@ -12,6 +12,19 @@ Full-stack application with a public motorcycle catalog and a private administra
 - **Database**: PostgreSQL 14+ (JSONB specs, indexed for performance)
 - **Storage**: Azure Blob Storage (public read-only for images)
 - **Infrastructure**: Azure App Service (Linux), Key Vault, managed identity
+
+### Provisioned Azure Resources
+
+Resource group `motorcycle-prod-rg` (Southeast Asia) currently contains:
+
+- Storage Account `motorcycleimagesprod` with public `images` Blob container (anonymous read access for blobs only)
+- Key Vault `motorcycle-prod-kv` (secrets: `StorageConnectionString`, `PostgresConnectionString`)
+- PostgreSQL Flexible Server `motorcycle-prod-pg`, database `motorcycle_db`
+- App Service Plan `motorcycle-prod-plan` (Linux, Basic B1)
+- Web Apps `motorcycle-api-prod`, `motorcycle-web-prod`, `motorcycle-admin-prod`, each on the plan above
+
+The API Web App's system-assigned managed identity holds the **Key Vault Secrets User** role on `motorcycle-prod-kv` and reads both connection strings via Key Vault references in its app settings. Application code has not yet been deployed to any of the three Web Apps, and the API's Blob Storage upload code (Stage 3) is not yet implemented.
+
 - **Package Manager**: pnpm workspaces
 - **CI/CD**: GitHub Actions
 

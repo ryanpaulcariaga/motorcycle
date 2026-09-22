@@ -100,14 +100,23 @@ if (AdminBootstrapCommand.IsRequested(args))
     return;
 }
 
+if (DbSeedCommand.IsRequested(args))
+{
+    using var commandScope = app.Services.CreateScope();
+    await DbSeedCommand.RunAsync(commandScope.ServiceProvider, args);
+    return;
+}
+
 // Apply migrations on startup (safe in all environments - EF tracks applied migrations).
-// Demo/scraped sample data is dev-only; real content in staging/prod is seeded via manual SQL, not app code.
+// Dev-only auto-seed runs once against an empty bikes table (e.g. a fresh local or Azure DB) so it
+// never silently re-mutates a database that already has real/seeded data on every restart.
+// Run `dotnet run -- db seed [--force]` to seed on demand in any environment.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<MotorcycleDbContext>();
     await db.Database.MigrateAsync();
 
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() && !await db.Bikes.AnyAsync())
     {
         await DatabaseSeeder.SeedAsync(db);
         await MotorcycleDataSeeder.SeedAsync(db);
