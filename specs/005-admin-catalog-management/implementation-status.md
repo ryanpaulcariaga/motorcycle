@@ -92,11 +92,12 @@ Unchecked tasks are intentionally not treated as complete:
 
 ## Next Admin Stage
 
-Stage 2 (bike CRUD/publication management) is implemented; see `specs/006-bike-catalog-management/`. Do not start the next data stage until its remaining validation is reviewed. The recommended order is:
+Stage 2 (bike CRUD/publication management) and Stage 3 (Azure Blob image management) are implemented; see `specs/006-bike-catalog-management/` and `specs/007-bike-image-management/`. The recommended order is:
 
 1. Finish Stage 1 test/error/responsive hardening.
 2. ~~Add bike CRUD and publication management with a new data model and API contract.~~ Done — `/api/admin/bikes` and the admin variant UI.
-3. Add image assignment/upload through API-owned storage operations (requires provisioning Azure Blob Storage).
-4. Add specification metadata management and validation.
+3. ~~Add image assignment/upload through API-owned storage operations using the provisioned Azure Blob Storage development resource.~~ Done — protected upload, list, primary, reorder, delete, and admin UI are implemented.
+4. Add focused image service/controller tests and validate an authenticated upload against the provisioned Azure Blob container.
+5. Add specification metadata management and validation.
 
-Each follow-on stage needs its own contract, migration review, frontend types/client functions, and focused acceptance tests. Do not add direct browser access to PostgreSQL or Blob Storage.
+Each follow-on stage needs its own contract, migration review, frontend types/client functions, and focused acceptance tests. Do not add direct browser access to PostgreSQL or Blob Storage. Production App Service deployment is intentionally deferred until the remaining feature stages are complete.

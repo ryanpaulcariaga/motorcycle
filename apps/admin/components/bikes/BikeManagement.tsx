@@ -14,6 +14,7 @@ import {
   updateAdminBike,
 } from '@/lib/api';
 import type { BikeAdminListItem } from '@/lib/types';
+import BikeImageManagement from './BikeImageManagement';
 
 type SpecGroup = Awaited<ReturnType<typeof getSpecGroups>>[number];
 
@@ -374,6 +375,7 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
             </button>
           )}
         </div>
+        {editingId !== null && <BikeImageManagement bikeId={editingId} />}
       </form>
     </div>
   );

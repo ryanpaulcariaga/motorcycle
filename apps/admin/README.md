@@ -20,6 +20,12 @@ The Meta callback URL must exactly match:
 https://localhost:3001/api/auth/callback/facebook
 ```
 
+If local sign-in reports that the identity is not an active administrator, copy the development-only Facebook user ID shown in the error and run this once against the configured development database:
+
+```powershell
+dotnet run --project apps/api/Motorcycle.Api -- admin bootstrap --facebook-user-id <id> --display-name <name>
+```
+
 Stage 1 requests only the `public_profile` Facebook permission. Email is an optional profile value and is not required for sign-in.
 
 ## API and Bootstrap
@@ -40,8 +46,8 @@ The bootstrap command is operator-only and idempotent for an existing active adm
 
 ## Stage 1 Scope
 
-Implemented locally: Facebook PKCE sign-in, encrypted HttpOnly sessions, RS256 first-party API requests, administrator-role lifecycle, and BikeModel CRUD with referenced-model delete protection. Bike CRUD, publication management, image operations, and specification metadata CRUD remain deferred.
+Implemented locally: Facebook PKCE sign-in, encrypted HttpOnly sessions, RS256 first-party API requests, administrator-role lifecycle, BikeModel CRUD, Bike variant CRUD/publication, and Azure Blob-backed image operations. Specification metadata CRUD remains deferred. The API uses the provisioned Azure PostgreSQL and Blob Storage resources through local user secrets; production App Service deployment remains deferred until feature completion.
 
 ## Continuing Work
 
-Use [../../specs/005-admin-catalog-management/implementation-status.md](../../specs/005-admin-catalog-management/implementation-status.md) as the handoff document for the next session. It records the local HTTPS callback, API/bootstrap prerequisites, verified validation commands, remaining Stage 1 tasks, and the recommended order for the next admin stage.
+Use [../../specs/005-admin-catalog-management/implementation-status.md](../../specs/005-admin-catalog-management/implementation-status.md) and [../../specs/007-bike-image-management/tasks.md](../../specs/007-bike-image-management/tasks.md) as handoff documents. The remaining work is focused image acceptance testing, specification metadata management, and final release validation.

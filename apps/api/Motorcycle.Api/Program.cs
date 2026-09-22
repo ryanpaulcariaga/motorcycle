@@ -2,6 +2,7 @@ using Motorcycle.Infrastructure.Persistence;
 using Motorcycle.Infrastructure.Seeding;
 using Motorcycle.Infrastructure.Repositories;
 using Motorcycle.Infrastructure.Filtering;
+using Motorcycle.Infrastructure.Storage;
 using Motorcycle.Application.Interfaces;
 using Motorcycle.Application.Services;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +15,9 @@ using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add DbContext
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Host=localhost;Database=motorcycle_db;Username=postgres;Password=Marione831";
+// Add DbContext. Supply ConnectionStrings:DefaultConnection through user secrets or managed configuration.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is required.");
 
 builder.Services.AddDbContext<MotorcycleDbContext>(options =>
     options.UseNpgsql(connectionString)
@@ -30,6 +31,8 @@ builder.Services.AddScoped<ISpecGroupRepository, SpecGroupRepository>();
 builder.Services.AddScoped<IAdminRoleRepository, AdminRoleRepository>();
 builder.Services.AddScoped<IBikeModelRepository, BikeModelRepository>();
 builder.Services.AddScoped<IBikeAdminRepository, BikeAdminRepository>();
+builder.Services.AddScoped<IBikeImageAdminRepository, BikeImageAdminRepository>();
+builder.Services.AddScoped<IImageStorage, AzureBlobImageStorage>();
 
 // Spec filter strategies (Strategy pattern)
 builder.Services.AddSingleton<ISpecFilterStrategy, NumberRangeFilterStrategy>();
@@ -44,6 +47,7 @@ builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<IAdminRoleService, AdminRoleService>();
 builder.Services.AddScoped<IBikeModelService, BikeModelService>();
 builder.Services.AddScoped<IBikeAdminService, BikeAdminService>();
+builder.Services.AddScoped<IBikeImageAdminService, BikeImageAdminService>();
 
 var adminAuth = builder.Configuration.GetSection(AdminAuthOptions.SectionName).Get<AdminAuthOptions>() ?? new();
 builder.Services.Configure<AdminAuthOptions>(builder.Configuration.GetSection(AdminAuthOptions.SectionName));

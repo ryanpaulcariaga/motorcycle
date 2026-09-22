@@ -5,11 +5,11 @@
 - ✅ Phase 1 — Database Design — DONE (schema, migrations, GIN index, seed data all applied to local Postgres)
 - ✅ Phase 2 — Backend API — DONE (repositories, Strategy-pattern spec filters, services, controllers; smoke-tested against live DB)
 - ✅ Phase 3 — Frontend — DONE (Tailwind theme, layout components, typed API client, `/`, `/bikes`, `/bikes/[slug]`, `/compare`; smoke-tested end-to-end against live API)
-- 🔄 Phase 4 — Admin Catalog Management — Stage 1 (roles + BikeModel) and Stage 2 (Bike variant CRUD + publication, `specs/006-bike-catalog-management/`) implemented locally; Stage 1 automated acceptance tests/production hardening and Stage 3 (image upload) remain
-- 🔄 Phase 5 — Azure Infrastructure & Deployment — IN PROGRESS (resource group, Storage Account + public `images` container, Key Vault, PostgreSQL Flexible Server, App Service Plan, and all three Web Apps are provisioned; see **Provisioned Azure Resources** below; application code has not been deployed yet and Stage 3 Blob upload code is not written)
+- 🔄 Phase 4 — Admin Catalog Management — Stage 1 (roles + BikeModel), Stage 2 (Bike variant CRUD + publication), and Stage 3 (Azure Blob image management, `specs/007-bike-image-management/`) implemented locally; focused image acceptance tests and specification-metadata management remain
+- 🔄 Phase 5 — Azure Development Services & Final Deployment — IN PROGRESS (resource group, Storage Account + public `images` container, Key Vault, PostgreSQL Flexible Server, App Service Plan, and all three Web Apps are provisioned; local development uses Azure PostgreSQL and Storage; production deployment is deferred until feature development is complete)
 - ⏳ Phase 6 — Future Backlog — NOT STARTED (intentionally deferred, schema stubs only)
 
-**Resume here:** Deploy application code to the three provisioned App Services (API, web, admin), then implement Phase 4 Stage 3 (image assignment) against the now-provisioned Storage Account. Local development runs PostgreSQL, the API on `https://localhost:7240` using the single `https` profile, the public web app on `:3000`, and the admin site over HTTPS on `:3001`. The admin callback is `https://localhost:3001/api/auth/callback/facebook`; the first local administrator is bootstrapped through the operator command documented in the feature quickstart. Local development can point at the Azure PostgreSQL and Storage resources via `dotnet user-secrets` on `apps/api/Motorcycle.Api` (`UserSecretsId: motorcycle-api-local`) rather than the local Postgres default.
+**Resume here:** Continue feature development against the provisioned Azure PostgreSQL and Storage resources. Stage 3 image management is implemented; next complete focused image tests/Azure upload validation, then specification metadata management. Deploy application code to the three App Services only after the remaining product features and validation are complete. Local development runs the API on `https://localhost:7240` using the single `https` profile, the public web app on `:3000`, and the admin site over HTTPS on `:3001`. The admin callback is `https://localhost:3001/api/auth/callback/facebook`; the first local administrator is bootstrapped through the operator command documented in the feature quickstart. Local API secrets use `dotnet user-secrets` on `apps/api/Motorcycle.Api` (`UserSecretsId: motorcycle-api-local`).
 
 ### Provisioned Azure Resources (as of 2026-09-22)
 
@@ -34,7 +34,7 @@ Storage__ConnectionString = @Microsoft.KeyVault(SecretUri=https://motorcycle-pro
 ConnectionStrings__DefaultConnection = @Microsoft.KeyVault(SecretUri=https://motorcycle-prod-kv.vault.azure.net/secrets/PostgresConnectionString/)
 ```
 
-`NEXT_PUBLIC_API_URL` on both `motorcycle-web-prod` and `motorcycle-admin-prod` points at the API's default domain above. Application code has not been deployed to any of the three Web Apps yet; deployment (GitHub Actions) is the next task, followed by the Stage 3 Blob upload implementation.
+`NEXT_PUBLIC_API_URL` on both `motorcycle-web-prod` and `motorcycle-admin-prod` points at the API's default domain above. Application code has not been deployed to any of the three Web Apps; deployment is intentionally reserved for the final release after remaining feature development and validation.
 
 Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicable, Tailwind CSS) frontends + a shared ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering) + PostgreSQL (JSONB specs, schema versioned via EF Core Migrations) + Azure Blob Storage for images, all hosted on Azure App Service. The public experience supports browse/search/filter/compare bikes with grouped specs. The admin experience manages the catalog, motorcycle specifications, image assignments, and specification metadata through the same API. Future-proofing remains for AI pros/cons, annual surveys, analytics, voting/comments, dealer listings, and advertising.
 
@@ -121,14 +121,16 @@ Monorepo full-stack app: public and admin Next.js (React, SSR/SEO where applicab
 #### Stage 2 — Bike Variant CRUD & Publication ✅ DONE (`specs/006-bike-catalog-management/`)
 24. Added CRUD for `bikes` (year/variant records) under protected `/api/admin/bikes`, including publish/unpublish toggling; edits to a published variant apply immediately without an unpublish step. Deletion is a hard delete, blocked with a conflict response when the variant has dependent `bike_images`. A new unique index on `(model_id, year, variant_name)` enforces variant identity. The admin UI adds a per-model variant list/form (`BikeManagement.tsx`) reachable from each BikeModel row.
 
-#### Later Admin Stages — Deferred
-25. Add Azure Blob Storage upload, bike image assignment, ordering, and primary-image management through the API. **Next up** — the Azure Storage Account (`motorcycleimagesprod`) and public-read `images` container are now provisioned (see **Provisioned Azure Resources** above); the API-side SDK wiring and upload endpoints are not yet implemented.
-26. Add CRUD for `spec_groups` and `spec_definitions`, including ordering, labels, data types, units, and filter settings.
-27. Expand admin authorization, tests, deployment configuration, and CI/CD as the later stages are implemented.
+#### Stage 3 — Bike Image Management ✅ IMPLEMENTED (`specs/007-bike-image-management/`)
+25. Added API-owned Azure Blob upload/delete, protected image listing, ordering, primary-image selection, and admin UI management. Focused service/controller tests and authenticated Azure Blob acceptance validation remain.
 
-### Phase 5 — Azure Infrastructure & Deployment 🔄 IN PROGRESS
+#### Remaining Admin Work
+26. Add CRUD for `spec_groups` and `spec_definitions`, including ordering, labels, data types, units, and filter settings.
+27. Finish admin authorization, frontend/security hardening, focused acceptance tests, and final release validation.
+
+### Phase 5 — Azure Development Services & Final Deployment 🔄 IN PROGRESS
 28. ✅ Provisioned: Resource Group (`motorcycle-prod-rg`) → Azure Database for PostgreSQL Flexible Server (`motorcycle-prod-pg`, database `motorcycle_db`) → Azure Storage Account (`motorcycleimagesprod`, `images` Blob container, public read access for images) → Azure Key Vault (`motorcycle-prod-kv`, `StorageConnectionString` + `PostgresConnectionString` secrets) → App Service Plan (`motorcycle-prod-plan`, Linux) with three Web Apps (`motorcycle-api-prod`, `motorcycle-web-prod`, `motorcycle-admin-prod`); the API app has a system-assigned managed identity with **Key Vault Secrets User** and Key Vault references configured for both connection strings. See **Provisioned Azure Resources** above for exact names/URLs.
-29. CI/CD: GitHub Actions workflows in `.github/workflows/` — build/test `apps/web`, `apps/admin`, and `apps/api` on each push; deploy to the corresponding App Service only if that app changes. The API pipeline also runs `dotnet ef database update` against the target environment as a deploy step.
+29. Deferred until final release: CI/CD GitHub Actions workflows in `.github/workflows/` — build/test `apps/web`, `apps/admin`, and `apps/api` on each push; deploy to the corresponding App Service only if that app changes. The API pipeline also runs `dotnet ef database update` against the target environment as a deploy step.
 30. Configure `web` and `admin` App Services for Next.js standalone output/Node runtime (sources: `apps/web/` and `apps/admin/`); configure `api` for ASP.NET Core (source: `apps/api/`). Wire each app's API base URL and the API's DB connection and storage configuration through managed configuration.
 31. Point DNS/custom domains (if any), require HTTPS, and review the Facebook OAuth2 production configuration before deployment.
 

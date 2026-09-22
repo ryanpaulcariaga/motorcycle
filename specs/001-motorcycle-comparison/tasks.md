@@ -24,10 +24,10 @@
 - [ ] SEO metadata per page
 
 ## Infrastructure (Phase 5)
-- [ ] Provision PostgreSQL Flexible Server
-- [ ] Provision Blob Storage + public container
-- [ ] Provision Key Vault + managed identity
-- [ ] Setup App Service Plan + public web, admin, and API Apps
+- [X] Provision PostgreSQL Flexible Server
+- [X] Provision Blob Storage + public container
+- [X] Provision Key Vault + managed identity
+- [X] Setup App Service Plan + public web, admin, and API Apps
 - [ ] Configure CI/CD workflows (.github/workflows)
 - [ ] Deploy and verify endpoints
 

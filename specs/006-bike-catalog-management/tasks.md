@@ -113,12 +113,12 @@ description: "Task list template for feature implementation"
 **Purpose**: Documentation, regression tests, and final validation across all stories
 
 - [X] T027 [P] Update `docs/api.md` with the `/api/admin/bikes` endpoint contract
-- [X] T028 [P] Update `docs/architecture.md` to note that Stage 2 (bike CRUD/publication) is implemented and image assignment remains deferred
+- [X] T028 [P] Update `docs/architecture.md` to note that Stage 2 (bike CRUD/publication) is implemented and image assignment is tracked as Stage 3
 - [X] T029 [P] Create an xUnit test project `apps/api/Motorcycle.Api.Tests` referencing `Motorcycle.Api`, `Motorcycle.Application`, `Motorcycle.Infrastructure`, and `Motorcycle.Domain`, and register it in `apps/api/Motorcycle.Api.slnx`
 - [X] T030 Add `BikeAdminService` tests (using hand-written fake repositories in `apps/api/Motorcycle.Api.Tests/Fakes/`) covering create/update validation, uniqueness conflict, publish-readiness rejection, and delete-blocked-by-image behavior in `apps/api/Motorcycle.Api.Tests/BikeAdminServiceTests.cs` (depends on T029, T011, T018, T023) — 14 tests, all passing
 - [X] T031 Add `AdminBikesController` authorization tests in `apps/api/Motorcycle.Api.Tests/AdminBikesControllerAuthorizationTests.cs`, asserting the `ActiveAdministrator` policy and route via reflection (a lighter-weight check than a full HTTP integration test, since no test-auth harness exists yet for Stage 1 either) (depends on T029, T012)
 - [X] T032 Ran automated validation in place of a full manual quickstart pass: `dotnet build`/`dotnet test` on the API solution (all green) and `eslint`/`tsc --noEmit`/`next build` on the admin app (all green); manual browser click-through per [quickstart.md](quickstart.md) is still recommended before release
-- [X] T033 Updated `specs/005-admin-catalog-management/implementation-status.md`'s "Next Admin Stage" note to record that bike CRUD/publication (Stage 2) is implemented and image assignment (Stage 3, requiring Azure Blob Storage provisioning) is next
+- [X] T033 Updated `specs/005-admin-catalog-management/implementation-status.md`'s "Next Admin Stage" note to record that bike CRUD/publication (Stage 2) and Azure-backed image management (Stage 3) are implemented
 
 ---
 

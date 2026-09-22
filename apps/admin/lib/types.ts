@@ -75,3 +75,10 @@ export type UpdateBikeRequest = {
   specs: Record<string, unknown>;
 };
 
+export type BikeImage = {
+  id: number;
+  blobUrl: string;
+  sortOrder: number;
+  isPrimary: boolean;
+};
+

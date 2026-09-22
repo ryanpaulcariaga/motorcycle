@@ -6,10 +6,19 @@ public static class AdminBootstrapCommand
 {
     public static bool IsRequested(string[] args) =>
         args.Length > 1 && string.Equals(args[0], "admin", StringComparison.OrdinalIgnoreCase)
-        && string.Equals(args[1], "bootstrap", StringComparison.OrdinalIgnoreCase);
+        && (string.Equals(args[1], "bootstrap", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(args[1], "list", StringComparison.OrdinalIgnoreCase));
 
     public static async Task<int> RunAsync(IServiceProvider services, string[] args, CancellationToken ct = default)
     {
+        if (string.Equals(args[1], "list", StringComparison.OrdinalIgnoreCase))
+        {
+            var listService = services.GetRequiredService<IAdminRoleService>();
+            foreach (var listedRole in await listService.GetAllAsync(ct))
+                Console.WriteLine($"Facebook user {listedRole.FacebookUserId}; active={listedRole.IsActive}; role={listedRole.Role}; record={listedRole.Id}");
+            return 0;
+        }
+
         var values = Parse(args);
         if (!values.TryGetValue("facebook-user-id", out var facebookUserId) || string.IsNullOrWhiteSpace(facebookUserId))
             throw new ArgumentException("--facebook-user-id is required.");

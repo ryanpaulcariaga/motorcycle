@@ -69,7 +69,13 @@ export async function completeFacebookSignIn(code: string, state: string): Promi
   const authorization = await fetch(`${API_BASE_URL}/api/admin/admin-roles`, {
     headers: { Accept: "application/json", Authorization: `Bearer ${firstPartyToken}` },
   });
-  if (authorization.status === 401 || authorization.status === 403) throw new Error("This Facebook identity is not an active administrator.");
+  if (authorization.status === 401 || authorization.status === 403) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(`Facebook identity ${candidate.facebookUserId} is not an active administrator. Bootstrap this exact ID in the API database.`);
+    }
+    const detail = process.env.NODE_ENV !== "production" ? ` Facebook user ID: ${candidate.facebookUserId}.` : "";
+    throw new Error(`This Facebook identity is not an active administrator.${detail} Run the API admin bootstrap command for this Facebook user, then try again.`);
+  }
   if (!authorization.ok) throw new Error("Administrator authorization could not be verified.");
 
   await setAdminSession(candidate);

@@ -1,4 +1,4 @@
-import type { AdminRole, ApiError, BikeAdminDetail, BikeAdminListItem, BikeModel, BikeModelRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, UpdateAdminRoleRequest, UpdateBikeRequest } from "./types";
+import type { AdminRole, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, UpdateAdminRoleRequest, UpdateBikeRequest } from "./types";
 
 const API_BASE_URL = typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7240" : "";
 
@@ -77,3 +77,21 @@ export function updateAdminBike(id: number, request: UpdateBikeRequest): Promise
 export function publishAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}/publish`, { method: "PATCH" }); }
 export function unpublishAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}/unpublish`, { method: "PATCH" }); }
 export function deleteAdminBike(id: number): Promise<void> { return apiFetch(`/api/admin/bikes/${id}`, { method: "DELETE" }); }
+
+export function getAdminBikeImages(bikeId: number): Promise<BikeImage[]> {
+  return apiFetch(`/api/admin/bikes/${bikeId}/images`);
+}
+export function uploadAdminBikeImage(bikeId: number, file: File): Promise<BikeImage> {
+  const body = new FormData();
+  body.append("file", file);
+  return apiFetch(`/api/admin/bikes/${bikeId}/images`, { method: "POST", body });
+}
+export function setAdminBikeImagePrimary(bikeId: number, imageId: number): Promise<BikeImage> {
+  return apiFetch(`/api/admin/bikes/${bikeId}/images/${imageId}/primary`, { method: "PATCH" });
+}
+export function reorderAdminBikeImages(bikeId: number, imageIds: number[]): Promise<BikeImage[]> {
+  return apiFetch(`/api/admin/bikes/${bikeId}/images/order`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageIds }) });
+}
+export function deleteAdminBikeImage(bikeId: number, imageId: number): Promise<void> {
+  return apiFetch(`/api/admin/bikes/${bikeId}/images/${imageId}`, { method: "DELETE" });
+}

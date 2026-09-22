@@ -13,7 +13,7 @@ async function proxy(request: Request, context: RouteContext) {
   const token = await mintFirstPartyToken(session);
   const { path } = await context.params;
   const target = `${API_BASE_URL}/api/admin/${path.join("/")}${new URL(request.url).search}`;
-  const body = request.method === "GET" || request.method === "HEAD" ? undefined : await request.text();
+  const body = request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer();
   const response = await fetch(target, {
     method: request.method,
     body,

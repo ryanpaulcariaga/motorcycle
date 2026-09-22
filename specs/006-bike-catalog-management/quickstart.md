@@ -46,6 +46,6 @@
 - Run the admin workspace lint/build checks (`eslint`, `tsc --noEmit`, `next build`).
 - Exercise the scenarios above against the local API and database.
 
-Image upload/assignment and specification-metadata CRUD remain deferred to later features.
+Image upload/assignment is implemented in Stage 3 at `specs/007-bike-image-management/`. Specification-metadata CRUD remains deferred to a later feature.
 
 See [contracts/admin-bikes-api.md](contracts/admin-bikes-api.md) for endpoint details and [data-model.md](data-model.md) for fields, relationships, and validation rules.

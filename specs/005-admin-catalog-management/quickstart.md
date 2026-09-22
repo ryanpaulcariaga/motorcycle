@@ -50,6 +50,6 @@ The command is operator-only and idempotent. Verify the active role record befor
 - Run the admin workspace lint/build checks.
 - Exercise the scenarios above against the local API and database.
 
-Bike CRUD, publication management, image upload/assignment, and specification metadata CRUD remain deferred.
+Bike CRUD, publication management, and image upload/assignment are implemented in Stages 2 and 3. Specification metadata CRUD remains deferred; see `specs/007-bike-image-management/` for the current image-management tasks.
 
 See [admin-api.md](contracts/admin-api.md) for endpoint details and [data-model.md](data-model.md) for fields, relationships, and validation rules.

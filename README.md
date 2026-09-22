@@ -44,7 +44,7 @@ motorcycle-app/
    ```
    This installs dependencies for `apps/web/` and `apps/admin/` (managed by pnpm workspaces). Restore the API separately with `dotnet restore`.
 
-2. **Ensure PostgreSQL is running locally** (or update connection string in `apps/api/appsettings.Development.json`).
+2. **Configure the API database and storage secrets**. Local development can use the provisioned Azure PostgreSQL and Blob Storage through `dotnet user-secrets` on `apps/api/Motorcycle.Api` (`UserSecretsId: motorcycle-api-local`), or a local PostgreSQL instance.
 
 ### Running Locally
 
@@ -99,7 +99,7 @@ Features are spec-driven. See [specs/](specs/) for active features.
 
 ### Admin Catalog Management
 
-The `apps/admin/` Next.js site has a working Stage 1 local slice: Facebook Authorization Code + PKCE sign-in, an encrypted HttpOnly session, RS256 first-party API credentials, administrator-role management, and protected BikeModel CRUD through the shared `apps/api/` backend. Local development uses `https://localhost:3001`; the Facebook callback is `https://localhost:3001/api/auth/callback/facebook`. Bike CRUD, Azure image storage/assignment, and specification metadata CRUD remain deferred. See [specs/005-admin-catalog-management/spec.md](specs/005-admin-catalog-management/spec.md) and [apps/admin/README.md](apps/admin/README.md).
+The `apps/admin/` Next.js site has implemented administrator authentication, BikeModel CRUD, Bike variant CRUD/publication, and Azure Blob-backed image management through the shared `apps/api/` backend. Local development uses `https://localhost:3001`; the Facebook callback is `https://localhost:3001/api/auth/callback/facebook`. Specification metadata CRUD and focused image acceptance tests remain. Production deployment is intentionally deferred until feature development is complete. See [specs/007-bike-image-management/spec.md](specs/007-bike-image-management/spec.md) and [apps/admin/README.md](apps/admin/README.md).
 
 ### Future Roadmap
 

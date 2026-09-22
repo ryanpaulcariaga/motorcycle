@@ -168,7 +168,7 @@ BikeModel deletion conflicts return `409` with `bike_model_referenced` and a dep
 
 The BikeModel UI loads its dropdown data through the admin proxy routes `/api/catalog/brands` and `/api/catalog/categories`, which forward to the API's public `/api/brands` and `/api/categories` endpoints.
 
-Azure Blob image upload/assignment and spec-group/spec-definition management remain deferred follow-on stages.
+Azure Blob image upload/assignment is implemented in Stage 3; spec-group/spec-definition management remains a deferred follow-on stage.
 
 #### Bike (Variant) Administration
 
@@ -182,7 +182,19 @@ Stage 2 provides typed contracts for administering `Bike` (year/trim variant) re
 - `DELETE /api/admin/bikes/{id}` permanently deletes a variant. Returns `409` with `bike_referenced` and a dependent image count when the variant has assigned images.
 - Create/update requests validate the referenced BikeModel's existence, require year and variant name, enforce a unique `(modelId, year, variantName)` combination (`409` with `bike_exists` on conflict), and validate submitted spec values against the full existing spec-definition set (not filtered by category); unrecognized codes or mismatched types return `400`.
 
-See [contracts/admin-bikes-api.md](../specs/006-bike-catalog-management/contracts/admin-bikes-api.md) for the full request/response contract. Image upload/assignment and spec-group/spec-definition management remain deferred follow-on stages.
+See [contracts/admin-bikes-api.md](../specs/006-bike-catalog-management/contracts/admin-bikes-api.md) for the full request/response contract. Spec-group/spec-definition management remains a deferred follow-on stage.
+
+#### Bike Image Administration
+
+Stage 3 provides protected image management under `/api/admin/bikes/{bikeId}/images`:
+
+- `GET` lists assigned images in `sortOrder` order.
+- `POST` accepts a multipart `file` upload (JPEG, PNG, WebP, or GIF; maximum 10 MiB). The API uploads it to the configured Azure Blob `images` container and stores the public URL in `bike_images`.
+- `PATCH /{imageId}/primary` makes one image primary and clears the primary flag from its siblings.
+- `PUT /order` accepts `{ "imageIds": [3, 1, 2] }` and persists the complete image order.
+- `DELETE /{imageId}` removes the database assignment and the corresponding Blob object.
+
+All image endpoints require the `ActiveAdministrator` policy. Storage credentials remain server-side in `Storage:ConnectionString`; the admin browser only receives public image URLs.
 
 ### Future Advertising API
 

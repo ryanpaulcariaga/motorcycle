@@ -23,7 +23,7 @@ Resource group `motorcycle-prod-rg` (Southeast Asia) currently contains:
 - App Service Plan `motorcycle-prod-plan` (Linux, Basic B1)
 - Web Apps `motorcycle-api-prod`, `motorcycle-web-prod`, `motorcycle-admin-prod`, each on the plan above
 
-The API Web App's system-assigned managed identity holds the **Key Vault Secrets User** role on `motorcycle-prod-kv` and reads both connection strings via Key Vault references in its app settings. Application code has not yet been deployed to any of the three Web Apps, and the API's Blob Storage upload code (Stage 3) is not yet implemented.
+The API Web App's system-assigned managed identity holds the **Key Vault Secrets User** role on `motorcycle-prod-kv` and reads both connection strings via Key Vault references in its app settings. Application code has not yet been deployed to any of the three Web Apps. During development, the API uses `dotnet user-secrets` to connect to the provisioned Azure PostgreSQL and Blob Storage resources.
 
 - **Package Manager**: pnpm workspaces
 - **CI/CD**: GitHub Actions
@@ -52,7 +52,7 @@ Azure Blob Storage (images served via public URL)
 
 The first administrator is created through an operator-only bootstrap command after the `admin_roles` migration is applied. Subsequent administrator provisioning, activation, and deactivation happen through the protected role-management API.
 
-Stage 2 adds Bike (year/trim variant) CRUD and publication management under `/api/admin/bikes`, so administrators can create, edit, publish/unpublish, and delete variants beneath an existing BikeModel; editing a published variant applies immediately without an unpublish step, and deletion is a hard delete blocked only when the variant has assigned images. Image uploads, Azure Blob Storage access, and specification metadata management remain deferred admin stages. When implemented, those operations remain API-owned and the admin browser must never receive database or storage credentials.
+Stage 2 adds Bike (year/trim variant) CRUD and publication management under `/api/admin/bikes`, so administrators can create, edit, publish/unpublish, and delete variants beneath an existing BikeModel; editing a published variant applies immediately without an unpublish step, and deletion is a hard delete blocked only when the variant has assigned images. Stage 3 adds API-owned Azure Blob upload, image assignment, ordering, primary-image selection, and deletion under `/api/admin/bikes/{bikeId}/images`; the admin browser never receives database or storage credentials.
 
 ### Future Advertising Boundary
 

@@ -33,7 +33,7 @@ Stage 2 adds no new tables or columns. It adds administrator-facing mutation and
 | Entity | Fields used | Relationship |
 |---|---|---|
 | `BikeModel` | `id`, `brandId`, `categoryId`, `name` | Parent of `Bike`. Must exist for create/update. Unchanged by this feature. |
-| `BikeImage` | `id`, `bikeId` | Existing dependent entity; any reference blocks `Bike` deletion. Image upload/assignment remains a separate, deferred feature. |
+| `BikeImage` | `id`, `bikeId` | Existing dependent entity; any reference blocks `Bike` deletion. Image assignment and management are implemented separately in Stage 3 (`specs/007-bike-image-management/`). |
 | `SpecGroup` / `SpecDefinition` | `code`, `dataType`, `groupId`, `sortOrder` | Read-only lookup used to validate and label submitted `specs` values. Not category-scoped. |
 
 ## Data Integrity and Persistence
