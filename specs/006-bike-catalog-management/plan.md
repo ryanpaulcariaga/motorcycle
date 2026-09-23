@@ -12,9 +12,9 @@ Add Stage 2 of admin catalog management: protected `/api/admin/bikes` endpoints 
 
 | Area | Decision |
 |---|---|
-| Admin frontend | Extend `apps/admin` with a Bike (variant) list/detail/form under each BikeModel, reusing the existing Next.js 16, TypeScript, Tailwind conventions and centralized typed client (`apps/admin/lib/api.ts`). |
+| Admin frontend | Extend `apps/admin` with a Bike (variant) list/detail/form under each BikeModel, reusing the Vite React, TypeScript, Tailwind conventions and centralized typed client (`apps/admin/lib/api.ts`). |
 | Backend | Extend the existing ASP.NET Core API: `Motorcycle.Application` gets `IBikeAdminService`/DTOs, `Motorcycle.Infrastructure` gets repository methods, `Motorcycle.Api` gets a new `AdminBikesController`. |
-| Authentication/Authorization | Reuse Stage 1 unchanged: first-party RS256 JWT + `ActiveAdministrator` policy on every new endpoint. No new auth mechanism. |
+| Authentication/Authorization | Reuse Stage 1 unchanged: API-managed HttpOnly cookie session + `ActiveAdministrator` policy on every new endpoint. No new auth mechanism. |
 | Stage 2 data | No schema changes. `Bike` and `BikeImage` entities and columns already exist (from the original catalog migration); this feature only adds a mutation/authorization surface over them. |
 | Persistence | Use the existing PostgreSQL EF Core model. Enforce `(ModelId, Year, VariantName)` uniqueness and require the referenced `BikeModel` to exist, mirroring the `BikeModelService` validation pattern. |
 | API boundary | Add protected `/api/admin/bikes` endpoints (list/detail/create/update/publish/unpublish/delete) scoped optionally by `modelId`. Existing public `/api/bikes` endpoints remain anonymous, read-only, and already filter to `IsPublished == true`. |

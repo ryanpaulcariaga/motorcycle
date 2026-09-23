@@ -2,15 +2,15 @@
 
 ## Decision: Use Facebook Authorization Code + PKCE with an application-managed session
 
-**Rationale:** PKCE protects the authorization-code exchange for the separate admin frontend without introducing local passwords. The admin app owns provider callbacks and stores only an application session in an HttpOnly, secure cookie. Server-side API calls use a short-lived first-party credential containing the Facebook user ID; the API never accepts Facebook access tokens.
+**Rationale:** PKCE protects the authorization-code exchange for the separate admin frontend without introducing local passwords. The shared API owns the provider callback and stores only an application session in an HttpOnly, secure cookie. The API never exposes Facebook access tokens to the browser.
 
 **Alternatives considered:** Sending Facebook access tokens directly to the API violates the approved trust boundary. A local password flow adds credential storage and recovery. Microsoft Entra ID may be evaluated later for organizational deployment but does not satisfy the requested Stage 1 provider.
 
-## Decision: Mint a short-lived RS256 first-party JWT in the admin server
+## Decision: Use an API-managed cookie session
 
-**Rationale:** The admin server can exchange its already-authenticated application session for a 5-10 minute JWT without exposing Facebook credentials to the API or browser. The API validates the asymmetric signature with a public key and checks `iss`, `aud`, `sub`, `exp`, and `jti` before loading the active role record by Facebook user ID. The private signing key remains an admin-application secret; the API needs only the public key and expected claim configuration.
+**Rationale:** A browser-only React SPA cannot safely hold OAuth client secrets or sign first-party tokens. The API completes the code exchange, verifies the active role, and issues a one-hour secure HttpOnly cookie containing the authenticated subject. The SPA makes credentialed CORS requests directly to the API; the browser never receives a Facebook token or signing secret.
 
-**Alternatives considered:** Sending Facebook access tokens to the API is explicitly disallowed. A shared symmetric signing secret would require duplicating a high-value secret in both applications. A public token-exchange endpoint would add another externally reachable authentication surface without improving the server-side flow.
+**Alternatives considered:** Browser-side code exchange exposes the client secret. A separate admin backend duplicates the API boundary. A first-party JWT requires a server to hold a signing key and is unnecessary once the shared API owns the callback.
 
 ## Decision: Authorize through a durable AdminRole table
 
@@ -44,4 +44,4 @@
 
 ## Implementation Note: Local development identity and HTTPS
 
-The local Stage 1 flow uses Next.js experimental HTTPS on `https://localhost:3001`, Meta Facebook Login with the `public_profile` permission, and an operator-bootstrapped app-scoped Facebook user ID. The API runs on `https://localhost:7240` from both Visual Studio's `https` profile and `dotnet run --launch-profile https`. The admin server proxies protected requests so Facebook tokens remain server-side.
+The local Stage 1 flow uses Vite HTTPS on `https://localhost:3001`, Meta Facebook Login with the `public_profile` permission, and an operator-bootstrapped app-scoped Facebook user ID. The API runs on `https://localhost:7240` from both Visual Studio's `https` profile and `dotnet run --launch-profile https`. The API owns the callback at `/api/admin/auth/facebook/callback` and accepts credentialed SPA requests directly.

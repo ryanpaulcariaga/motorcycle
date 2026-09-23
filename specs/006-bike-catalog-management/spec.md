@@ -111,6 +111,6 @@ An authorized administrator deletes a bike variant that was created in error or 
 
 - This feature covers only the `Bike` (year/trim variant) entity's CRUD and publication lifecycle; image upload/assignment (`BikeImage`) is explicitly deferred to a follow-on feature, matching the Stage 2 → Stage 3 sequencing already recorded in `specs/005-admin-catalog-management/implementation-status.md`.
 - Specification-group and specification-definition CRUD (metadata management) remains deferred to a later stage; this feature only validates variant specification values against existing metadata.
-- The existing Facebook PKCE sign-in, first-party JWT, and `ActiveAdministrator` authorization policy from Stage 1 are reused unchanged; no new authentication mechanism is introduced.
+- The existing API-owned Facebook PKCE sign-in, HttpOnly cookie session, and `ActiveAdministrator` authorization policy from Stage 1 are reused unchanged; no new authentication mechanism is introduced.
 - No optimistic concurrency/conflict-resolution UI is required for simultaneous edits in this stage.
 - Slug generation/uniqueness for published variants follows the existing convention already used by public catalog routes; this feature does not change slug format.

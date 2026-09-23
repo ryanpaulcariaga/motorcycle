@@ -1,6 +1,6 @@
 # Admin Bikes API Contract
 
-All endpoints require the `ActiveAdministrator` authorization policy (first-party RS256 JWT with an active `AdminRole`), identical to the existing `/api/admin/bike-models` and `/api/admin/admin-roles` endpoints. Unauthenticated requests receive `401`; authenticated requests without an active administrator role receive `403`.
+All endpoints require the `ActiveAdministrator` authorization policy (an API-managed HttpOnly session with an active `AdminRole`), identical to the existing `/api/admin/bike-models` and `/api/admin/admin-roles` endpoints. Unauthenticated requests receive `401`; authenticated requests without an active administrator role receive `403`.
 
 Base path: `/api/admin/bikes`
 

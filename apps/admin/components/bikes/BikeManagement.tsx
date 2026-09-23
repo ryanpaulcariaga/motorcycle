@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import Link from 'next/link';
 import {
   AdminApiError,
   createAdminBike,
@@ -160,12 +159,12 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <Link
+            <a
               className="text-sm font-semibold text-brand-button underline"
               href="/admin/bike-models"
             >
               ← BikeModels
-            </Link>
+            </a>
             <h1 className="mt-2 text-2xl font-bold">Bike Variants</h1>
           </div>
           <button

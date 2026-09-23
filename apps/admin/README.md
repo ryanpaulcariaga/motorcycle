@@ -1,23 +1,25 @@
 # Motorcycle Admin
 
-Private Stage 1 administration frontend for the motorcycle catalog.
+Private React single-page administration frontend for the motorcycle catalog. It intentionally has no SEO or server-rendering requirement.
 
 ## Local Development
 
-The local development server uses Next.js HTTPS. Because the local API also uses a development certificate, the Windows dev script disables Node TLS verification for this local-only process; production deployments must not use that setting.
+The Vite development server runs on `https://localhost:3001` with a locally generated development certificate. The API remains on `https://localhost:7240` and owns the Facebook callback, OAuth secrets, PKCE state/verifier, and HttpOnly administrator session.
 
 ```powershell
 pnpm.cmd --dir apps/admin dev
 ```
 
-Open `https://localhost:3001`. The browser may ask you to trust the generated local certificate.
+Open `https://localhost:3001` and trust the local development certificate when prompted.
 
-Create `apps/admin/.env.local` from `.env.example` with the Meta App ID/secret, the HTTPS callback URL, the admin session secret, and the RS256 private-key file path. Never commit `.env.local`, RSA keys, or certificate files.
+Create `apps/admin/.env.local` from `.env.example` only when the API URL differs from its local default. Keep Meta credentials in API user secrets or managed configuration, never in the browser app.
+
+Configure the API's `AdminAuth:FacebookClientId` and `AdminAuth:FacebookClientSecret` user secrets before testing sign-in; see [../api/Motorcycle.Api/README.md](../api/Motorcycle.Api/README.md).
 
 The Meta callback URL must exactly match:
 
 ```text
-https://localhost:3001/api/auth/callback/facebook
+https://localhost:7240/api/admin/auth/facebook/callback
 ```
 
 If local sign-in reports that the identity is not an active administrator, copy the development-only Facebook user ID shown in the error and run this once against the configured development database:
@@ -42,11 +44,11 @@ Create the first administrator only after the migration and API implementation a
 dotnet run --project apps/api/Motorcycle.Api --launch-profile https -- admin bootstrap --facebook-user-id <id> --email <email> --display-name <name>
 ```
 
-The bootstrap command is operator-only and idempotent for an existing active administrator. Role and BikeModel data then flow through the shared API; the browser never connects directly to PostgreSQL or Blob Storage. The browser uses the admin app's same-origin `/api/admin/*` proxy for protected operations and `/api/catalog/*` for public catalog lookups such as brands and categories.
+The bootstrap command is operator-only and idempotent for an existing active administrator. Role and BikeModel data then flow through the shared API; the browser never connects directly to PostgreSQL or Blob Storage. The SPA calls protected `/api/admin/*` and anonymous lookup endpoints directly with its centralized typed client; browser requests include the API-managed admin session cookie.
 
 ## Stage 1 Scope
 
-Implemented locally: Facebook PKCE sign-in, encrypted HttpOnly sessions, RS256 first-party API requests, administrator-role lifecycle, BikeModel CRUD, Bike variant CRUD/publication, and Azure Blob-backed image operations. Specification metadata CRUD remains deferred. The API uses the provisioned Azure PostgreSQL and Blob Storage resources through local user secrets; production App Service deployment remains deferred until feature completion.
+Implemented locally: API-owned Facebook PKCE sign-in, encrypted HttpOnly sessions, administrator-role lifecycle, BikeModel CRUD, Bike variant CRUD/publication, and Azure Blob-backed image operations. Specification metadata CRUD remains deferred. The API uses the provisioned Azure PostgreSQL and Blob Storage resources through local user secrets; production App Service deployment remains deferred until feature completion.
 
 ## Continuing Work
 

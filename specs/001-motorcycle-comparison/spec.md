@@ -21,4 +21,4 @@ Browse, search, filter, and compare motorcycles by specs (engine, body, performa
 
 ## Related Planned Feature
 
-Catalog administration is specified separately in [005-admin-catalog-management](../005-admin-catalog-management/spec.md). It adds a private Next.js application and protected shared-API write operations without changing the public comparison experience.
+Catalog administration is specified separately in [005-admin-catalog-management](../005-admin-catalog-management/spec.md). It adds a private Vite React SPA and protected shared-API write operations without changing the public comparison experience.

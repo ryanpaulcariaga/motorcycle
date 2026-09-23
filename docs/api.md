@@ -146,9 +146,16 @@ List all categories.
 
 ### Administration API
 
-The same ASP.NET Core API serves the private `apps/admin` Next.js workspace. Public catalog endpoints stay anonymous and read-only. Stage 1 writes use protected `/api/admin` endpoints and require a short-lived RS256 first-party JWT minted by the admin server after Facebook Authorization Code + PKCE sign-in. The API validates `iss`, `aud`, `sub`, `exp`, and signature, then requires an active `AdminRole` for the Facebook user ID in `sub`.
+The same ASP.NET Core API serves the private `apps/admin` Vite React SPA. Public catalog endpoints stay anonymous and read-only. The API completes Facebook Authorization Code + PKCE, verifies the active `AdminRole`, and creates a one-hour secure HttpOnly session cookie. The React client calls the API directly with credentialed CORS requests; Facebook access tokens are never exposed to the browser or accepted by protected catalog endpoints.
 
-The browser keeps an encrypted HttpOnly admin session and does not send Facebook access tokens to the API. Server-side admin proxy requests attach the first-party JWT. The admin browser calls same-origin Next.js routes: `/api/admin/*` for protected mutations and `/api/catalog/*` for public catalog lookups; those routes forward to the shared API.
+#### Administrator Authentication
+
+- `GET /api/admin/auth/facebook` starts Facebook Authorization Code + PKCE and stores the state and verifier in short-lived secure HttpOnly cookies.
+- `GET /api/admin/auth/facebook/callback` validates the callback, exchanges the authorization code server-side, verifies an active `AdminRole`, creates the admin session, and redirects to the configured admin SPA URL.
+- `GET /api/admin/auth/session` returns the signed-in identity when the session has an active administrator role.
+- `POST /api/admin/auth/signout` removes the admin session.
+
+Protected `/api/admin` requests require the API session cookie. `401 Unauthorized` means the session is missing or expired; `403 Forbidden` means the identity no longer has an active administrator role. CORS must allow the configured admin SPA origin with credentials.
 
 #### Administrator Roles
 
@@ -166,7 +173,7 @@ Stage 1 provides typed contracts for:
 
 BikeModel deletion conflicts return `409` with `bike_model_referenced` and a dependent-bike count. Create/update requests validate brand/category references and the unique `(brandId, name)` pair.
 
-The BikeModel UI loads its dropdown data through the admin proxy routes `/api/catalog/brands` and `/api/catalog/categories`, which forward to the API's public `/api/brands` and `/api/categories` endpoints.
+The BikeModel UI loads its dropdown data directly from the API's public `/api/brands` and `/api/categories` endpoints.
 
 Azure Blob image upload/assignment is implemented in Stage 3; spec-group/spec-definition management remains a deferred follow-on stage.
 
@@ -210,10 +217,10 @@ Dealer links should be clearly identified as external destinations. The endpoint
 
 ---
 
-**Authentication**: Public catalog endpoints require no authentication. Stage 1 administration endpoints require an active administrator role and a valid first-party JWT. The operator-only bootstrap command creates the initial role after migrations are applied.
+**Authentication**: Public catalog endpoints require no authentication. Administration endpoints require the API-managed HttpOnly session for an active administrator role. The operator-only bootstrap command creates the initial role after migrations are applied.
 
 **Caching**: `spec-groups`, `brands`, `categories` cached 1 hour server-side.
 
-**CORS**: Configured for the public and administration Next.js origins.
+**CORS**: Configured for the public Next.js origin and the Vite administration SPA origin; administration requests permit credentials.
 
 See [architecture.md](architecture.md) for design rationale.

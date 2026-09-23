@@ -13,33 +13,27 @@
 
 ## Implemented Boundary
 
-- `apps/admin` is a Next.js 16 workspace using TypeScript and Tailwind CSS.
-- Local admin development runs over `https://localhost:3001` using Next.js experimental HTTPS.
-- The Windows admin dev script sets `NODE_TLS_REJECT_UNAUTHORIZED=0` only for local development so server-side calls can reach the API's self-signed HTTPS profile on `https://localhost:7240`; production must keep TLS verification enabled.
+- `apps/admin` is a Vite React SPA using TypeScript and Tailwind CSS.
+- Local admin development runs on `https://localhost:3001` with a locally generated certificate; the API remains on `https://localhost:7240`.
 - Facebook Login uses Authorization Code + PKCE and requests only `public_profile`; the `email` permission is intentionally not requested because Meta rejected it for this development app.
-- The admin server stores an encrypted HttpOnly session and mints a 5-10 minute RS256 first-party JWT with `iss`, `aud`, `sub`, `exp`, and `jti` claims.
-- The API preserves the JWT `sub` claim, validates the RSA signature/issuer/audience/lifetime, and authorizes active `AdminRole` records.
-- The shared API owns role and BikeModel data. The browser uses the admin same-origin proxy and never connects directly to PostgreSQL or Blob Storage. The local API HTTPS profile is `https://localhost:7240`.
+- The API stores the encrypted HttpOnly session after completing Facebook PKCE and authorizes active `AdminRole` records using the cookie's `sub` claim.
+- The shared API owns role and BikeModel data. The browser calls the API directly with credentialed CORS requests and never connects directly to PostgreSQL or Blob Storage. The local API HTTPS profile is `https://localhost:7240`.
 - `AdminRole` migration and operator bootstrap are implemented. The local first administrator has already been bootstrapped; do not rerun the command as part of normal startup.
 - Administrator role list/provision/activate/deactivate UI and protected BikeModel CRUD UI/API are implemented.
 - BikeModel deletion returns `409 bike_model_referenced` when dependent bikes exist.
 
 ## Local Configuration
 
-Ignored local files contain the development-only Meta credentials, session secret, RSA private key, and generated HTTPS certificates:
+Ignored API user secrets contain the development-only `AdminAuth:FacebookClientId` and `AdminAuth:FacebookClientSecret` values; the development configuration contains the non-secret callback and admin SPA URLs. The browser app may contain only the public API URL:
 
 - `apps/admin/.env.local`
-- `apps/admin/keys/first-party-private.pem`
-- `apps/admin/keys/first-party-public.pem`
-- `apps/admin/certificates/`
-- `apps/admin/certs/`
 
-The API development configuration contains only the non-secret issuer/audience and RSA public key. Never copy private keys or Meta secrets into Markdown, tracked configuration, or chat.
+Never copy Meta secrets into Markdown, tracked configuration, or chat.
 
 The Meta callback must match exactly:
 
 ```text
-https://localhost:3001/api/auth/callback/facebook
+https://localhost:7240/api/admin/auth/facebook/callback
 ```
 
 ## Verified Commands
@@ -55,7 +49,7 @@ Run from the repository root:
 Push-Location apps\admin
 & .\node_modules\.bin\eslint.cmd .
 & .\node_modules\.bin\tsc.cmd --noEmit
-& .\node_modules\.bin\next.cmd build
+& .\node_modules\.bin\vite.cmd build
 Pop-Location
 
 # Database migration
@@ -69,7 +63,7 @@ The API solution currently has no test projects, so `dotnet test` validates the 
 1. Start PostgreSQL.
 2. Start the API with Visual Studio's `https` profile, or run `dotnet run --project apps/api/Motorcycle.Api/Motorcycle.Api.csproj --launch-profile https`; both use `https://localhost:7240`.
 3. Start the admin app with `pnpm.cmd --dir apps/admin dev`.
-4. Open `https://localhost:3001` and accept the local certificate warning if prompted.
+4. Open `https://localhost:3001` and trust the local development certificate when prompted.
 5. Sign in with the Meta administrator account already represented by the active `AdminRole` record.
 
 The bootstrap command is only for first setup after migration:

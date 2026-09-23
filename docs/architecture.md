@@ -7,7 +7,7 @@ Full-stack application with a public motorcycle catalog and a private administra
 ### Tech Stack
 
 - **Frontend**: Next.js 16 (React, TypeScript, App Router, Tailwind CSS)
-- **Admin frontend**: Next.js 16 application (React, TypeScript, App Router, Tailwind CSS)
+- **Admin frontend**: Vite React single-page application (TypeScript, Tailwind CSS)
 - **Backend**: ASP.NET Core 10 (C#, Clean Architecture, EF Core)
 - **Database**: PostgreSQL 14+ (JSONB specs, indexed for performance)
 - **Storage**: Azure Blob Storage (public read-only for images)
@@ -33,7 +33,7 @@ The API Web App's system-assigned managed identity holds the **Key Vault Secrets
 ```
 Public browser                 Administrator browser
   ↓                              ↓
-Next.js public app             Next.js admin app
+Next.js public app             Vite React SPA
 (apps/web/)                    (apps/admin/)
   └────────── HTTP API calls ──────────┘
                  ↓
@@ -48,7 +48,7 @@ Azure Blob Storage (images served via public URL)
 
 ### Administration Boundary
 
-`apps/admin/` is a separate private Next.js workspace, not a backend or a direct database client. Stage 1 copies the public `apps/web/` visual language and uses the same ASP.NET Core API through typed contracts. Facebook Authorization Code + PKCE authenticates administrators. The admin server stores an encrypted HttpOnly session and mints a short-lived RS256 first-party JWT; the API validates that JWT and resolves the active `AdminRole` by Facebook user ID before allowing `/api/admin` operations. Public catalog routes remain anonymous and read-only.
+`apps/admin/` is a separate Vite React SPA, not a backend or a direct database client. It copies the public `apps/web/` visual language and uses the same ASP.NET Core API through typed contracts. The API owns Facebook Authorization Code + PKCE, validates the callback, and creates a one-hour secure HttpOnly cookie session for an active `AdminRole`. Credentialed browser requests call `/api/admin` directly; the API reads the session identity and resolves the active role before allowing an operation. Facebook access tokens, PostgreSQL credentials, and Blob Storage credentials never reach the browser. Public catalog routes remain anonymous and read-only.
 
 The first administrator is created through an operator-only bootstrap command after the `admin_roles` migration is applied. Subsequent administrator provisioning, activation, and deactivation happen through the protected role-management API.
 
@@ -72,7 +72,7 @@ Dealer information should be modeled separately from `brands`: a brand identifie
 3. **Database as Code**: EF Core migrations define schema in C#; all SQL visible in version control.
 4. **Monorepo**: Single repo, shared backend with public and admin frontends, and shared specs/docs.
 5. **Mobile-First**: Tailwind CSS utilities, responsive breakpoints from ground up.
-6. **SEO-Ready**: Next.js server-rendering, metadata per page, structured data.
+6. **SEO-Ready Public Catalog**: The public Next.js catalog uses server rendering, metadata, and structured data; the private admin SPA intentionally does not require SEO.
 
 See [database.md](database.md) and [api.md](api.md) for detailed design.
 

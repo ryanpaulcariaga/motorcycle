@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import Link from 'next/link';
 import {
   AdminApiError,
   createBikeModel,
@@ -165,12 +164,12 @@ export default function BikeModelManagement() {
                       >
                         Edit
                       </button>
-                      <Link
+                      <a
                         className="mr-3 font-semibold text-brand-button underline"
                         href={`/admin/bike-models/${model.id}/bikes`}
                       >
                         Variants
-                      </Link>
+                      </a>
                       <button
                         className="font-semibold text-red-700 underline"
                         onClick={() => void remove(model)}

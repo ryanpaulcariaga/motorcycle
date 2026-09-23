@@ -15,6 +15,11 @@ export type ApiError = {
   fieldErrors?: Record<string, string[]>;
 };
 
+export type AdminSession = {
+  facebookUserId: string;
+  displayName: string | null;
+};
+
 export type CreateAdminRoleRequest = {
   facebookUserId: string;
   emailSnapshot: string;

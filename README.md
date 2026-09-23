@@ -8,7 +8,7 @@ A monorepo for the Motorcycle Specs & Comparison application.
 motorcycle-app/
 ├── apps/
 │   ├── web/              # Public Next.js frontend
-│   ├── admin/            # Private Next.js administration frontend
+│   ├── admin/            # Private Vite React administration SPA
 │   └── api/              # Shared ASP.NET Core backend
 ├── specs/                # Feature specifications (SpecKit)
 │   ├── 001-motorcycle-comparison/
@@ -33,7 +33,7 @@ motorcycle-app/
 
 ### Prerequisites
 - **Node.js** 18+ and **pnpm** (frontend dependency manager)
-- **.NET 8 SDK** (backend)
+- **.NET 10 SDK** (backend)
 - **PostgreSQL** 14+ (database)
 
 ### Initial Setup
@@ -99,7 +99,7 @@ Features are spec-driven. See [specs/](specs/) for active features.
 
 ### Admin Catalog Management
 
-The `apps/admin/` Next.js site has implemented administrator authentication, BikeModel CRUD, Bike variant CRUD/publication, and Azure Blob-backed image management through the shared `apps/api/` backend. Local development uses `https://localhost:3001`; the Facebook callback is `https://localhost:3001/api/auth/callback/facebook`. Specification metadata CRUD and focused image acceptance tests remain. Production deployment is intentionally deferred until feature development is complete. See [specs/007-bike-image-management/spec.md](specs/007-bike-image-management/spec.md) and [apps/admin/README.md](apps/admin/README.md).
+The `apps/admin/` Vite React SPA has implemented administrator authentication, BikeModel CRUD, Bike variant CRUD/publication, and Azure Blob-backed image management through the shared `apps/api/` backend. Local development uses `https://localhost:3001`; the API-owned Facebook callback is `https://localhost:7240/api/admin/auth/facebook/callback`. Specification metadata CRUD and focused image acceptance tests remain. Production deployment is intentionally deferred until feature development is complete. See [specs/007-bike-image-management/spec.md](specs/007-bike-image-management/spec.md) and [apps/admin/README.md](apps/admin/README.md).
 
 ### Future Roadmap
 

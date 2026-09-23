@@ -1,6 +1,6 @@
-import type { AdminRole, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, UpdateAdminRoleRequest, UpdateBikeRequest } from "./types";
+import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, UpdateAdminRoleRequest, UpdateBikeRequest } from "./types";
 
-const API_BASE_URL = typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7240" : "";
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
 export class AdminApiError extends Error {
   status: number;
@@ -35,6 +35,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export function getAdminSession(): Promise<AdminSession> { return apiFetch("/api/admin/auth/session"); }
+export function signOutAdmin(): Promise<void> { return apiFetch("/api/admin/auth/signout", { method: "POST" }); }
 export function getAdminRoles(): Promise<AdminRole[]> {
   return apiFetch("/api/admin/admin-roles");
 }
@@ -53,7 +55,7 @@ export function updateBikeModel(id: number, request: BikeModelRequest): Promise<
 export function deleteBikeModel(id: number): Promise<void> { return apiFetch(`/api/admin/bike-models/${id}`, { method: "DELETE" }); }
 
 async function publicApiFetch<T>(path: string): Promise<T> {
-  const response = await fetch(`/api/catalog${path}`, { cache: "no-store" });
+  const response = await fetch(`${API_BASE_URL}/api${path}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Lookup request failed: ${response.status}`);
   return response.json() as Promise<T>;
 }

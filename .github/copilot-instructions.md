@@ -42,11 +42,11 @@ The public app uses Next.js 16, whose APIs and conventions differ from earlier r
 
 ## Architecture
 
-- This pnpm monorepo contains the public Next.js app in `apps/web`, a shared ASP.NET Core API in `apps/api`, and the private Next.js admin app in `apps/admin`. Both frontend applications use the shared API; neither may access PostgreSQL or Azure Blob Storage directly.
+- This pnpm monorepo contains the public Next.js app in `apps/web`, a shared ASP.NET Core API in `apps/api`, and the private Vite React admin SPA in `apps/admin`. Both frontend applications use the shared API; neither may access PostgreSQL or Azure Blob Storage directly.
 - The API follows Clean Architecture: `Motorcycle.Domain` holds entities, `Motorcycle.Application` owns DTOs, service contracts, repository contracts, and filtering contracts, `Motorcycle.Infrastructure` implements EF Core persistence, repositories, seeding, and filtering, and `Motorcycle.Api` contains controllers and dependency-injection composition.
 - PostgreSQL stores flexible motorcycle specifications in the `bikes.specs` JSONB column. `spec_groups` and `spec_definitions` define display order, labels, units, and filter behavior; their `sortOrder` values must drive detail and comparison output. `MotorcycleDbContext` centrally maps EF Core database names to PostgreSQL snake_case.
 - Controllers bind HTTP requests and delegate to Application services. Repositories load published catalog data with its related brand, category, and images; public catalog routes expose only published bikes.
-- Public catalog endpoints are anonymous and read-only. Administration uses protected `/api/admin` endpoints with Facebook PKCE sign-in, an admin-managed HttpOnly session, an RS256 first-party JWT, and active `AdminRole` authorization. Role, BikeModel, Bike variant, publication, and Azure Blob image mutations are implemented; specification metadata management remains deferred.
+- Public catalog endpoints are anonymous and read-only. Administration uses protected `/api/admin` endpoints with API-owned Facebook PKCE sign-in, an API-managed HttpOnly session, and active `AdminRole` authorization. Role, BikeModel, Bike variant, publication, and Azure Blob image mutations are implemented; specification metadata management remains deferred.
 
 ## Repository Conventions
 

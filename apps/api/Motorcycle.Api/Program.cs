@@ -6,12 +6,10 @@ using Motorcycle.Infrastructure.Storage;
 using Motorcycle.Application.Interfaces;
 using Motorcycle.Application.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Motorcycle.Api.Authorization;
 using Motorcycle.Api.Common;
 using Motorcycle.Api.Bootstrap;
-using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,28 +49,25 @@ builder.Services.AddScoped<IBikeImageAdminService, BikeImageAdminService>();
 
 var adminAuth = builder.Configuration.GetSection(AdminAuthOptions.SectionName).Get<AdminAuthOptions>() ?? new();
 builder.Services.Configure<AdminAuthOptions>(builder.Configuration.GetSection(AdminAuthOptions.SectionName));
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        options.MapInboundClaims = false;
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.Cookie.Name = "mc_admin_session";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.ExpireTimeSpan = TimeSpan.FromHours(1);
+        options.SlidingExpiration = false;
+        options.Events.OnRedirectToLogin = context =>
         {
-            ValidateIssuerSigningKey = true,
-            RequireSignedTokens = true,
-            ValidateIssuer = !string.IsNullOrWhiteSpace(adminAuth.Issuer),
-            ValidIssuer = adminAuth.Issuer,
-            ValidateAudience = !string.IsNullOrWhiteSpace(adminAuth.Audience),
-            ValidAudience = adminAuth.Audience,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromSeconds(30),
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
         };
-
-        if (!string.IsNullOrWhiteSpace(adminAuth.RsaPublicKeyPem))
+        options.Events.OnRedirectToAccessDenied = context =>
         {
-            var rsa = RSA.Create();
-            rsa.ImportFromPem(adminAuth.RsaPublicKeyPem.Replace("\\n", Environment.NewLine));
-            options.TokenValidationParameters.IssuerSigningKey = new RsaSecurityKey(rsa);
-        }
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
     });
 builder.Services.AddAuthorization(options =>
     options.AddPolicy("ActiveAdministrator", policy =>
@@ -80,18 +75,22 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, ActiveAdminHandler>();
 
 builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 const string CorsPolicy = "WebFrontend";
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:3000", "http://localhost:3001", "https://localhost:3001"];
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(CorsPolicy, policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:3001", "https://localhost:3001")
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 

@@ -18,7 +18,7 @@ description: "Actionable implementation tasks for Admin Catalog Management"
 
 **Purpose**: Establish the admin workspace and test/configuration surfaces required by later stories.
 
-- [X] T001 Create the `apps/admin` Next.js 16 App Router workspace with TypeScript, Tailwind CSS, package scripts, and `apps/admin/tsconfig.json` matching `apps/web` conventions
+- [X] T001 Create the `apps/admin` Vite React SPA workspace with TypeScript, Tailwind CSS, package scripts, and `apps/admin/tsconfig.json` matching local conventions
 - [X] T002 [P] Copy the public app's shared visual tokens and base layout conventions into `apps/admin/app/globals.css`, `apps/admin/app/layout.tsx`, and `apps/admin/next.config.ts`
 - [X] T003 [P] Create the admin workspace typed contract files at `apps/admin/lib/types.ts` and `apps/admin/lib/api.ts` with the shared API base URL configuration
 - [X] T004 [P] Add Stage 1 admin environment examples and secret names to `apps/admin/.env.example` without committing OAuth client secrets, session keys, or API credentials
@@ -37,9 +37,9 @@ description: "Actionable implementation tasks for Admin Catalog Management"
 - [X] T008 [P] Add `AdminRole` EF mapping, unique Facebook user ID index, required lengths, and snake_case naming in `apps/api/Motorcycle.Infrastructure/Persistence/MotorcycleDbContext.cs`
 - [X] T009 Create the EF Core migration for the `admin_roles` table in `apps/api/Motorcycle.Infrastructure/Migrations/` and verify it is idempotent with the existing migration/startup flow
 - [X] T010 Implement `AdminRoleRepository` and first-party identity lookup in `apps/api/Motorcycle.Infrastructure/Repositories/` with active-status filtering
-- [X] T011 Implement RS256 JWT validation and active-administrator authorization composition in `apps/api/Motorcycle.Api/Program.cs` and `apps/api/Motorcycle.Api/Authorization/`, checking signature, issuer, audience, subject, expiry, and active `AdminRole`
+- [X] T011 Implement API cookie authentication and active-administrator authorization composition in `apps/api/Motorcycle.Api/Program.cs` and `apps/api/Motorcycle.Api/Authorization/`, checking the authenticated subject and active `AdminRole`
 - [ ] T012 Add protected `/api/admin` routing and shared problem-details mappings for `401`, `403`, `400`, `404`, and `409` responses in `apps/api/Motorcycle.Api/Controllers/` and `apps/api/Motorcycle.Api/Common/`
-- [X] T013 [P] Add first-party JWT issuer/audience/public-key configuration placeholders and local-development validation rules to `apps/api/Motorcycle.Api/appsettings.json` and `apps/api/Motorcycle.Api/appsettings.Development.json` without storing secrets
+- [X] T013 [P] Add Facebook callback, admin SPA URL, and CORS configuration placeholders to `apps/api/Motorcycle.Api/appsettings.json` and `apps/api/Motorcycle.Api/appsettings.Development.json` without storing secrets
 - [X] T014 [P] Add reusable admin API error parsing and authenticated request handling to `apps/admin/lib/api.ts` for session expiry, field validation, and conflict codes
 
 ---
@@ -52,13 +52,13 @@ description: "Actionable implementation tasks for Admin Catalog Management"
 
 ### Tests for User Story 1
 
-- [ ] T015 [P] [US1] Add API authorization tests for missing, invalid-signature, wrong-issuer/audience, expired, unassigned, inactive, and active first-party JWTs in `apps/api/tests/Authorization/AdminAuthorizationTests.cs`
+- [ ] T015 [P] [US1] Add API authorization tests for missing, expired, unassigned, inactive, and active cookie sessions in `apps/api/tests/Authorization/AdminAuthorizationTests.cs`
 - [ ] T016 [P] [US1] Add authentication callback and session-boundary tests covering PKCE state/verifier handling and Facebook-token non-forwarding in `apps/admin/tests/auth/session.test.ts`
 
 ### Implementation for User Story 1
 
 - [X] T017 [P] [US1] Implement Facebook Authorization Code + PKCE configuration, state/verifier handling, callback exchange, and failure/cancellation paths in `apps/admin/app/api/auth/` and `apps/admin/lib/auth.ts`
-- [X] T018 [US1] Implement encrypted HttpOnly admin session creation, expiry, sign-out, and server-side RS256 first-party JWT minting with `iss`, `aud`, `sub`, `exp`, and `jti` claims in `apps/admin/lib/session.ts`, `apps/admin/lib/first-party-token.ts`, and `apps/admin/app/api/auth/`
+- [X] T018 [US1] Implement API-owned Facebook callback, encrypted HttpOnly session creation, expiry, and sign-out in `apps/api/Motorcycle.Api/Controllers/AdminAuthenticationController.cs`
 - [X] T019 [US1] Implement the admin entry/auth gate and unauthorized/error redirect behavior in `apps/admin/app/page.tsx`, `apps/admin/app/admin/layout.tsx`, and `apps/admin/app/api/auth/`
 - [X] T020 [US1] Implement the responsive authenticated admin shell, navigation, sign-in/sign-out actions, and session-gated role/catalog routes in `apps/admin/app/admin/layout.tsx`, `apps/admin/app/admin/page.tsx`, and `apps/admin/app/admin/roles/page.tsx`
 **Checkpoint**: An existing active administrator can sign in and load the private shell; unassigned and inactive identities are rejected; public routes remain anonymous. First-administrator bootstrap is completed in US2 after the role service exists.
@@ -148,6 +148,7 @@ description: "Actionable implementation tasks for Admin Catalog Management"
 - [ ] T049 [P] Add security review checks for OAuth state/PKCE validation, HttpOnly/Secure/SameSite session cookies, token expiry, secret handling, and absence of Facebook-token forwarding in `apps/admin/tests/security/`
 - [ ] T050 Run the API build/test, admin lint/build, and all scenarios in `specs/005-admin-catalog-management/quickstart.md`; record any environment blockers in `specs/005-admin-catalog-management/quickstart.md`
 - [X] T051 Confirm no Bike CRUD, publication, image, Blob Storage, or specification metadata mutation endpoints were added to `apps/api/Motorcycle.Api/Controllers/` or `specs/005-admin-catalog-management/contracts/admin-api.md`
+- [X] T052 Replace the Next.js admin runtime and server-side proxy with a Vite React SPA, API-owned Facebook PKCE callback, and API-managed HttpOnly cookie session; update documentation and admin deployment configuration.
 
 ---
 

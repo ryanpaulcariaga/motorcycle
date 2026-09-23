@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - PostgreSQL is available and current EF Core migrations are applied.
-- A Facebook OAuth app is configured for local development with Authorization Code + PKCE and this exact redirect URL: `https://localhost:3001/api/auth/callback/facebook`.
+- A Facebook OAuth app is configured for local development with Authorization Code + PKCE and this exact redirect URL: `https://localhost:7240/api/admin/auth/facebook/callback`.
 - The admin app requests `public_profile`; the `email` permission is intentionally not requested because Meta may reject it for this development app.
 - The initial active administrator has been created through the trusted bootstrap procedure after the migration is applied.
 - Dependencies are installed with `pnpm install`; the API and both frontend workspaces are available.
@@ -28,12 +28,12 @@ The command is operator-only and idempotent. Verify the active role record befor
 
 ## Validate Authentication and Role Lifecycle
 
-1. Open `https://localhost:3001`, accept the locally generated certificate if prompted, complete sign-in, and confirm the admin shell loads; inspect requests to confirm no Facebook access token is sent to the API and that server-side API calls use the short-lived first-party JWT.
+1. Open `https://localhost:3001`, trust the local development certificate if prompted, complete sign-in, and confirm the admin shell loads; inspect requests to confirm no Facebook access token reaches the browser and protected API calls use the API-managed HttpOnly session cookie.
 2. Provision a second Facebook identity through role management and confirm it can sign in.
 3. Deactivate that role and confirm the identity receives an authorization failure on the next protected request.
 4. Reactivate the role and confirm protected access returns.
 5. Repeat provisioning for the same Facebook user ID and confirm `409` with `admin_role_exists`.
-6. Attempt a protected request without a first-party credential and with an invalid/inactive identity; confirm `401` and `403` behavior respectively.
+6. Attempt a protected request without a session and with an inactive identity; confirm `401` and `403` behavior respectively.
 
 ## Validate BikeModel Management
 

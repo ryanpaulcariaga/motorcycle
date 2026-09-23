@@ -1,18 +1,15 @@
 # Admin API Contract
 
-Stage 1 endpoints use the shared API. The admin app completes Facebook Authorization Code + PKCE and sends only an application-issued short-lived first-party credential on protected requests. Facebook access tokens are never accepted by these endpoints.
+Stage 1 endpoints use the shared API. The API completes Facebook Authorization Code + PKCE and creates an encrypted HttpOnly session for the Vite React admin SPA. Facebook access tokens never reach the browser or protected endpoints.
 
-Local callback: `https://localhost:3001/api/auth/callback/facebook`. Stage 1 requests `public_profile`; the Facebook email permission is not required and may be unavailable for development apps. The email snapshot supplied during bootstrap/provisioning remains optional.
+Local callback: `https://localhost:7240/api/admin/auth/facebook/callback`. Stage 1 requests `public_profile`; the Facebook email permission is not required and may be unavailable for development apps. The email snapshot supplied during bootstrap/provisioning remains optional.
 
-## First-Party Credential Contract
+## Session Contract
 
-- Credential format: signed JWT, minted only by the admin server after a valid application session.
-- Algorithm: RS256 with the private signing key held by the admin server; the API validates with the configured public key.
-- Lifetime: 5-10 minutes; expired credentials are rejected.
-- Required claims: `iss` (admin application issuer), `aud` (motorcycle API audience), `sub` (Facebook user ID), `exp` (expiry), and `jti` (unique token ID).
-- API validation: verify signature, issuer, audience, subject, and expiry, then load the active `AdminRole` by `sub`.
-- Facebook access tokens are never forwarded to or accepted by the API.
-- The browser uses the admin application's HttpOnly session; only server-side admin API requests attach the first-party JWT.
+- `GET /api/admin/auth/facebook` creates short-lived secure HttpOnly PKCE state and verifier cookies, then redirects to Facebook.
+- `GET /api/admin/auth/facebook/callback` exchanges the authorization code server-side, verifies the active role, and creates a one-hour secure HttpOnly API session cookie with the Facebook user ID in `sub`.
+- The React SPA calls protected routes directly with `credentials: "include"`; the API validates the cookie and then loads the active `AdminRole` by `sub`.
+- Facebook access tokens are never forwarded to or accepted by protected catalog endpoints.
 
 ## Boundary and Errors
 

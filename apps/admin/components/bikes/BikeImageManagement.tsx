@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { ChangeEvent, useEffect, useState } from 'react';
 import {
   AdminApiError,
@@ -107,7 +106,7 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
         <div className="mt-4 space-y-3">
           {images.map((image, index) => (
             <div className="flex items-center gap-3 bg-white/10 p-2" key={image.id}>
-              <Image src={image.blobUrl} alt="Bike" width={80} height={56} className="h-14 w-20 object-cover" />
+              <img src={image.blobUrl} alt="Bike" width={80} height={56} className="h-14 w-20 object-cover" />
               <div className="min-w-0 flex-1 text-xs">
                 {image.isPrimary && <p className="font-bold text-brand-gold">Primary</p>}
                 <a className="block truncate underline" href={image.blobUrl} target="_blank" rel="noreferrer">Open image</a>
