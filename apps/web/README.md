@@ -1,36 +1,23 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Public Next.js frontend for the motorcycle catalog (browse, search, filter, compare).
 
-## Getting Started
+## Local Development
 
-First, run the development server:
+The dev server runs on `https://localhost:3000` using a locally generated development certificate (`apps/web/server.mjs`, cached under `apps/web/certs/`). The API remains on `https://localhost:7240`; a `predev`/`prestart` script exports the trusted ASP.NET Core dev certificate to `apps/web/certs/aspnetcore-dev-cert.pem` and points `NODE_EXTRA_CA_CERTS` at it so server-side fetches trust the API without disabling TLS verification.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```powershell
+pnpm --filter web dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `https://localhost:3000` and trust the local development certificate when prompted.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Set `NEXT_PUBLIC_API_URL` only when the API URL differs from its local default (`https://localhost:7240`); see `apps/web/lib/api.ts`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Other Commands
 
-## Learn More
+```powershell
+pnpm --filter web build
+pnpm --filter web start
+pnpm --filter web lint
+```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`build`/`start` also serve over HTTPS via `apps/web/server.mjs`.

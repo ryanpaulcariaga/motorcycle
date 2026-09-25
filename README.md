@@ -58,13 +58,13 @@ dotnet ef database update  # Apply migrations to local PostgreSQL
 dotnet run --project Motorcycle.Api --launch-profile https
 ```
 
-**Terminal 2 — Frontend Web** (runs on `http://localhost:3000`):
+**Terminal 2 — Frontend Web** (runs on `https://localhost:3000`):
 ```bash
 cd apps/web
 pnpm dev
 ```
 
-Open your browser to `http://localhost:3000`. The frontend sends API requests to `https://localhost:7240` (see `apps/web/lib/api.ts`). Trust the local ASP.NET Core certificate if prompted.
+Open your browser to `https://localhost:3000` and trust the locally generated development certificate when prompted. The frontend sends API requests to `https://localhost:7240` (see `apps/web/lib/api.ts`). Trust the local ASP.NET Core certificate if prompted.
 
 #### Option B: Backend Setup Only (if you need just the API)
 ```bash
