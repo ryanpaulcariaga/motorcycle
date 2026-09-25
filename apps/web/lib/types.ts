@@ -4,6 +4,13 @@ export interface BrandDto {
   logoBlobUrl: string | null;
 }
 
+export interface UserSessionDto {
+  userId: number;
+  email: string | null;
+  displayName: string | null;
+}
+
+
 export interface CategoryDto {
   id: number;
   name: string;

@@ -144,6 +144,19 @@ List all brands.
 
 List all categories.
 
+### Public User Authentication
+
+`apps/web` (and any other first-party public frontend) shares one user-authentication boundary on the same API used for the catalog. Any active identity from a supported external provider can sign in; there is no manual registration or allowlist. The API owns the OAuth exchange and session; provider access tokens are never exposed to the browser.
+
+- `GET /api/auth/{provider}` starts Authorization Code + PKCE for `facebook` (or a future provider such as `google`) and stores the state/verifier in short-lived secure HttpOnly cookies.
+- `GET /api/auth/{provider}/callback` exchanges the authorization code server-side, resolves or creates the `User` record, creates a 30-day secure HttpOnly `mc_user_session` cookie, and redirects to the configured public web app URL (`?authError=...` on failure).
+- `GET /api/auth/session` returns `{ userId, email, displayName }` for the signed-in user, or `401` when there is no active session.
+- `POST /api/auth/signout` clears the session cookie.
+
+**Multi-provider account linking**: each external sign-in is stored as a `user_external_logins` row keyed by `(provider, providerUserId)` and linked to one internal `User`. On sign-in the API looks up that exact provider identity first. If it is new, and the provider supplies a **verified** email (Facebook only returns an email for verified accounts; a future Google integration would check its `email_verified` claim), the API links the new provider identity to an existing `User` with that email instead of creating a duplicate account. An unverified or absent email always creates a new `User`. This lets one person sign in with Facebook today and Google (or another provider) later and reach the same account, without ever trusting an unverified email to merge accounts. Adding a provider only requires a new `IExternalAuthProvider` implementation (a Strategy per provider, mirroring `ISpecFilterStrategy`) registered alongside `FacebookExternalAuthProvider`; the controller, session model, and account-linking rule are unchanged.
+
+The public user session (`UserAuth` cookie scheme, `AuthenticatedUser` policy) is entirely separate from the administrator session (`AdminAuth` scheme, `ActiveAdministrator` policy): different cookie names, different claims (`sub` is the internal `User.Id`, not a provider ID), and different expiry. A future feature that requires a signed-in public user (e.g. reviews, voting) authorizes with `[Authorize(Policy = "AuthenticatedUser")]`.
+
 ### Administration API
 
 The same ASP.NET Core API serves the private `apps/admin` Vite React SPA. Public catalog endpoints stay anonymous and read-only. The API completes Facebook Authorization Code + PKCE, verifies the active `AdminRole`, and creates a one-hour secure HttpOnly session cookie. The React client calls the API directly with credentialed CORS requests; Facebook access tokens are never exposed to the browser or accepted by protected catalog endpoints.

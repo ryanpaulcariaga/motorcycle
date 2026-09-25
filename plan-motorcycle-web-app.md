@@ -5,6 +5,7 @@
 - ✅ Phase 1 — Database Design — DONE (schema, migrations, GIN index, seed data all applied to local Postgres)
 - ✅ Phase 2 — Backend API — DONE (repositories, Strategy-pattern spec filters, services, controllers; smoke-tested against live DB)
 - ✅ Phase 3 — Frontend — DONE (Tailwind theme, layout components, typed API client, `/`, `/bikes`, `/bikes/[slug]`, `/compare`; smoke-tested end-to-end against live API)
+- ✅ Public user authentication (`specs/008-public-user-authentication/`) — DONE (any active Facebook identity can sign in to `apps/web` with no manual registration; a shared API `User`/`UserExternalLogin` model supports linking a future Google/other provider to the same account by verified email)
 - 🔄 Phase 4 — Admin Catalog Management — Stage 1 (roles + BikeModel), Stage 2 (Bike variant CRUD + publication), and Stage 3 (Azure Blob image management, `specs/007-bike-image-management/`) implemented locally; focused image acceptance tests and specification-metadata management remain
 - 🔄 Phase 5 — Azure Development Services & Final Deployment — IN PROGRESS (resource group, Storage Account + public `images` container, Key Vault, PostgreSQL Flexible Server, App Service Plan, and all three Web Apps are provisioned; local development uses Azure PostgreSQL and Storage; production deployment is deferred until feature development is complete)
 - ⏳ Phase 6 — Future Backlog — NOT STARTED (intentionally deferred, schema stubs only)
@@ -109,6 +110,7 @@ Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite Re
    - `/` home — featured/latest bikes, entry points to search & compare.
 17. Image handling: `next/image` with a remote pattern pointing at the Azure Blob public container hostname.
 18. Basic SEO metadata (per-bike titles/OG tags using bike name + primary image).
+18a. Public user authentication (`specs/008-public-user-authentication/`): any active Facebook identity can sign in through the shared API's `/api/auth/*` endpoints (Authorization Code + PKCE, provider tokens never reach the browser), with no manual registration. The API stores a provider-agnostic `User`/`UserExternalLogin` model so a future Google (or other) sign-in method resolves to the same account when the provider reports a verified email matching an existing user; `apps/web`'s header shows a Facebook sign-in link or the signed-in user's name with a sign-out action.
 
 ### Phase 4 — Admin Catalog Management ⏳ STAGED
 #### Stage 1 — Admin BikeModel MVP ✅ DONE (local slice; automated acceptance tests/hardening remain — see `specs/005-admin-catalog-management/implementation-status.md`)

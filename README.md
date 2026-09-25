@@ -46,6 +46,12 @@ motorcycle-app/
 
 2. **Configure the API database and storage secrets**. Local development can use the provisioned Azure PostgreSQL and Blob Storage through `dotnet user-secrets` on `apps/api/Motorcycle.Api` (`UserSecretsId: motorcycle-api-local`), or a local PostgreSQL instance.
 
+### Windows Terminal Notes
+
+If `pnpm` isn't resolvable in a fresh PowerShell terminal (`pnpm : The term 'pnpm' is not recognized...`) and PowerShell's execution policy blocks `npm.ps1`/`pnpm.ps1` (`running scripts is disabled on this system`), work around it without changing machine-wide policy:
+- Run npm/pnpm through `cmd /c "..."` (e.g. `cmd /c "npm install"`), which isn't subject to the PowerShell script execution policy.
+- Or invoke `npx --yes pnpm <command>` — slower (re-verifies the lockfile against supply-chain policies and may re-fetch pnpm), and can fail with `ERR_PNPM_PACKAGE_MANAGER_SYMLINK_FAILED` (Windows blocks symlink creation without Developer Mode/elevation) or `ERR_PNPM_IGNORED_BUILDS` (pnpm's newer build-script allowlist). A plain `npm install` in the affected app avoids both and produces a working `node_modules` for `next dev`/`vite dev`.
+
 ### Running Locally
 
 #### Option A: Run Both Apps in Separate Terminals (Recommended for Development)

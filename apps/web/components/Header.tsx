@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { facebookSignInUrl, getUserSession, signOutUser } from "@/lib/api";
+import type { UserSessionDto } from "@/lib/types";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -11,6 +13,41 @@ const navLinks = [
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [session, setSession] = useState<UserSessionDto | null>(null);
+  const [loadingSession, setLoadingSession] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    getUserSession()
+      .then((result) => { if (!cancelled) setSession(result); })
+      .catch(() => { if (!cancelled) setSession(null); })
+      .finally(() => { if (!cancelled) setLoadingSession(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  async function handleSignOut() {
+    await signOutUser();
+    setSession(null);
+  }
+
+  function AccountControl({ className = "" }: { className?: string }) {
+    if (loadingSession) return null;
+    if (session) {
+      return (
+        <div className={`flex items-center gap-3 text-sm ${className}`}>
+          <span>{session.displayName ?? session.email ?? "Signed in"}</span>
+          <button type="button" onClick={() => void handleSignOut()} className="font-semibold hover:text-brand-gold">
+            Sign out
+          </button>
+        </div>
+      );
+    }
+    return (
+      <a href={facebookSignInUrl()} className={`text-sm font-semibold hover:text-brand-gold ${className}`}>
+        Sign in with Facebook
+      </a>
+    );
+  }
 
   return (
     <header className="bg-brand-header text-white">
@@ -20,12 +57,13 @@ export default function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex md:gap-6">
+        <nav className="hidden md:flex md:items-center md:gap-6">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href} className="text-sm font-medium hover:text-brand-gold">
               {link.label}
             </Link>
           ))}
+          <AccountControl />
         </nav>
 
         {/* Mobile hamburger */}
@@ -55,8 +93,10 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          <AccountControl className="pt-2 border-t border-white/10" />
         </nav>
       )}
     </header>
   );
 }
+

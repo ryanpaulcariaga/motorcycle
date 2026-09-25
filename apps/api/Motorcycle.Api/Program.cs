@@ -3,6 +3,7 @@ using Motorcycle.Infrastructure.Seeding;
 using Motorcycle.Infrastructure.Repositories;
 using Motorcycle.Infrastructure.Filtering;
 using Motorcycle.Infrastructure.Storage;
+using Motorcycle.Infrastructure.Auth;
 using Motorcycle.Application.Interfaces;
 using Motorcycle.Application.Services;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,7 @@ builder.Services.AddScoped<IBikeModelRepository, BikeModelRepository>();
 builder.Services.AddScoped<IBikeAdminRepository, BikeAdminRepository>();
 builder.Services.AddScoped<IBikeImageAdminRepository, BikeImageAdminRepository>();
 builder.Services.AddScoped<IImageStorage, AzureBlobImageStorage>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Spec filter strategies (Strategy pattern)
 builder.Services.AddSingleton<ISpecFilterStrategy, NumberRangeFilterStrategy>();
@@ -46,9 +48,16 @@ builder.Services.AddScoped<IAdminRoleService, AdminRoleService>();
 builder.Services.AddScoped<IBikeModelService, BikeModelService>();
 builder.Services.AddScoped<IBikeAdminService, BikeAdminService>();
 builder.Services.AddScoped<IBikeImageAdminService, BikeImageAdminService>();
+builder.Services.AddScoped<IUserAuthService, UserAuthService>();
+
+// External sign-in providers (Strategy pattern): add another AddHttpClient<>/AddScoped pair here
+// to introduce Google (or any provider) without touching the auth controller or account-linking logic.
+builder.Services.AddHttpClient<IExternalAuthProvider, FacebookExternalAuthProvider>();
+builder.Services.AddScoped<IExternalAuthProviderFactory, ExternalAuthProviderFactory>();
 
 var adminAuth = builder.Configuration.GetSection(AdminAuthOptions.SectionName).Get<AdminAuthOptions>() ?? new();
 builder.Services.Configure<AdminAuthOptions>(builder.Configuration.GetSection(AdminAuthOptions.SectionName));
+builder.Services.Configure<UserAuthOptions>(builder.Configuration.GetSection(UserAuthOptions.SectionName));
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -68,10 +77,33 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return Task.CompletedTask;
         };
+    })
+    .AddCookie(Motorcycle.Api.Controllers.UserAuthenticationController.SchemeName, options =>
+    {
+        options.Cookie.Name = "mc_user_session";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        };
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
     });
 builder.Services.AddAuthorization(options =>
+{
     options.AddPolicy("ActiveAdministrator", policy =>
-        policy.RequireAuthenticatedUser().AddRequirements(new ActiveAdminRequirement())));
+        policy.RequireAuthenticatedUser().AddRequirements(new ActiveAdminRequirement()));
+    options.AddPolicy("AuthenticatedUser", policy =>
+        policy.AddAuthenticationSchemes(Motorcycle.Api.Controllers.UserAuthenticationController.SchemeName).RequireAuthenticatedUser());
+});
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, ActiveAdminHandler>();
 
 builder.Services.AddMemoryCache();

@@ -105,6 +105,39 @@ CREATE TABLE admin_roles (
 
 Stage 1 accepts the `Administrator` role value. Deactivation is a retained state change; role records are not deleted. The operator-only bootstrap command creates the first active record after the migration is applied.
 
+### users
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(320),
+  email_verified BOOLEAN NOT NULL DEFAULT false,
+  display_name VARCHAR(255),
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Only one User may own a given email across providers; NULLs are unconstrained.
+CREATE UNIQUE INDEX ux_users_email_lower ON users (lower(email)) WHERE email IS NOT NULL;
+```
+
+### user_external_logins
+```sql
+CREATE TABLE user_external_logins (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider VARCHAR(50) NOT NULL,        -- 'Facebook', 'Google' (future)
+  provider_user_id VARCHAR(255) NOT NULL,
+  email_at_provider VARCHAR(320),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE(provider, provider_user_id)
+);
+
+CREATE INDEX idx_user_external_logins_user_id ON user_external_logins(user_id);
+```
+
+A `User` is the durable public-catalog identity; `user_external_logins` links it to one or more sign-in providers so the same person can sign in with Facebook, and later Google or another provider, and land on the same account. New sign-ins reuse an existing `User` when the incoming external login is already linked, or when the provider supplies a verified email that matches an existing `User.email`; unverified emails never trigger auto-linking. No public self-registration form exists — any active external identity can sign in and a `User` row is created on first sign-in.
+
 ### spec_definitions
 ```sql
 CREATE TABLE spec_definitions (

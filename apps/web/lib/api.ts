@@ -7,9 +7,10 @@ import type {
   CompareResultDto,
   PagedResult,
   SpecGroupDto,
+  UserSessionDto,
 } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7240";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7240";
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -57,4 +58,32 @@ export function getCategories(): Promise<CategoryDto[]> {
 
 export function getSpecGroups(): Promise<SpecGroupDto[]> {
   return apiFetch("/api/spec-groups");
+}
+
+// Public-user authentication (browser-only; relies on the API's HttpOnly session cookie).
+async function authFetch<T>(path: string, options?: RequestInit): Promise<T | null> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    credentials: "include",
+    headers: { Accept: "application/json", ...options?.headers },
+  });
+
+  if (res.status === 401) return null;
+  if (!res.ok) {
+    throw new Error(`API request failed: ${res.status} ${res.statusText} (${path})`);
+  }
+  if (res.status === 204) return null;
+  return res.json() as Promise<T>;
+}
+
+export function getUserSession(): Promise<UserSessionDto | null> {
+  return authFetch<UserSessionDto>("/api/auth/session");
+}
+
+export async function signOutUser(): Promise<void> {
+  await authFetch<void>("/api/auth/signout", { method: "POST" });
+}
+
+export function facebookSignInUrl(): string {
+  return `${API_BASE_URL}/api/auth/facebook`;
 }

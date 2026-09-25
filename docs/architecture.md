@@ -54,6 +54,20 @@ The first administrator is created through an operator-only bootstrap command af
 
 Stage 2 adds Bike (year/trim variant) CRUD and publication management under `/api/admin/bikes`, so administrators can create, edit, publish/unpublish, and delete variants beneath an existing BikeModel; editing a published variant applies immediately without an unpublish step, and deletion is a hard delete blocked only when the variant has assigned images. Stage 3 adds API-owned Azure Blob upload, image assignment, ordering, primary-image selection, and deletion under `/api/admin/bikes/{bikeId}/images`; the admin browser never receives database or storage credentials.
 
+### Public User Authentication Boundary
+
+`apps/web` users sign in through the same shared API under `/api/auth`, using a session model that is architecturally identical to the admin one (OAuth Authorization Code + PKCE completed by the API, provider tokens never reaching the browser) but functionally separate: any active external identity may sign in — there is no manual allowlist or `AdminRole`-style approval step — and the session uses its own `UserAuth` cookie scheme (`mc_user_session`) and `AuthenticatedUser` authorization policy, distinct from `AdminAuth`/`ActiveAdministrator`.
+
+Identity resolution is provider-agnostic by design so Facebook today and Google (or another provider) later resolve to the same person:
+
+- `Motorcycle.Domain.User` is the durable account (`Id`, optional `Email`/`EmailVerified`, `DisplayName`, `IsActive`).
+- `Motorcycle.Domain.UserExternalLogin` links a `User` to one provider identity, keyed uniquely by `(Provider, ProviderUserId)`.
+- `Motorcycle.Application.Interfaces.IExternalAuthProvider` is a Strategy per provider (mirroring `ISpecFilterStrategy`) that builds the authorization URL and exchanges the code for a normalized `ExternalAuthProfile`; `IExternalAuthProviderFactory` resolves the right one by name. `FacebookExternalAuthProvider` (in `Motorcycle.Infrastructure/Auth/`) is the only implementation today — adding Google means adding one more class and its config, not changing the controller or linking logic.
+- `IUserAuthService.FindOrCreateUserAsync` looks up the exact `(provider, providerUserId)` login first; if none exists, it only links to an existing `User` by email when the provider profile reports the email as verified, otherwise it creates a new `User`. This prevents an unverified email claim on one provider from taking over an account created through another provider.
+
+Session claims carry the internal `User.Id` (not the provider's ID) in `sub`, so the session model never depends on which provider was used. Public catalog routes stay anonymous; authenticated-user routes will be layered on top of the `AuthenticatedUser` policy as future features (reviews, voting) require them.
+
+
 ### Future Advertising Boundary
 
 

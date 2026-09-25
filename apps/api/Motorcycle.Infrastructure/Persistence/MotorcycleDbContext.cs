@@ -20,6 +20,8 @@ public class MotorcycleDbContext : DbContext
     public DbSet<SpecGroup> SpecGroups => Set<SpecGroup>();
     public DbSet<SpecDefinition> SpecDefinitions => Set<SpecDefinition>();
     public DbSet<AdminRole> AdminRoles => Set<AdminRole>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<UserExternalLogin> UserExternalLogins => Set<UserExternalLogin>();
 
     // Future tables (Phase 5+)
     public DbSet<BikeView> BikeViews => Set<BikeView>();
@@ -141,6 +143,29 @@ public class MotorcycleDbContext : DbContext
             ar.Property(x => x.CreatedAt).IsRequired();
             ar.Property(x => x.UpdatedAt).IsRequired();
             ar.HasIndex(x => x.FacebookUserId).IsUnique();
+        });
+
+        modelBuilder.Entity<User>(u =>
+        {
+            u.HasKey(x => x.Id);
+            u.Property(x => x.Email).HasMaxLength(320);
+            u.Property(x => x.DisplayName).HasMaxLength(255);
+            u.Property(x => x.IsActive).IsRequired();
+            u.Property(x => x.CreatedAt).IsRequired();
+            u.Property(x => x.UpdatedAt).IsRequired();
+            u.HasMany(x => x.ExternalLogins).WithOne(x => x.User).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            // Case-insensitive uniqueness on email is added via raw SQL (unique index on lower(email))
+            // in the migration, since only one User may own a given verified email across providers.
+        });
+
+        modelBuilder.Entity<UserExternalLogin>(ul =>
+        {
+            ul.HasKey(x => x.Id);
+            ul.Property(x => x.Provider).IsRequired().HasMaxLength(50);
+            ul.Property(x => x.ProviderUserId).IsRequired().HasMaxLength(255);
+            ul.Property(x => x.EmailAtProvider).HasMaxLength(320);
+            ul.Property(x => x.CreatedAt).IsRequired();
+            ul.HasIndex(x => new { x.Provider, x.ProviderUserId }).IsUnique();
         });
 
         // Future tables (schema stubs for Phase 5+)
