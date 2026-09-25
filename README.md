@@ -15,7 +15,10 @@ motorcycle-app/
 │   ├── 002-user-reviews/
 │   ├── 003-advertising/
 │   ├── 004-dealer-links/
-│   └── 005-admin-catalog-management/
+│   ├── 005-admin-catalog-management/
+│   ├── 006-bike-catalog-management/
+│   ├── 007-bike-image-management/
+│   └── 008-public-user-authentication/
 ├── docs/                 # Shared documentation
 ├── .github/workflows/    # CI/CD pipelines
 └── package.json          # pnpm workspaces config

@@ -1,8 +1,8 @@
 <!-- Sync Impact Report
-Version: 1.1.0 (added public/admin frontend and protected administration API principles)
+Version: 1.1.1 (corrected stale tech-stack facts; no principle changes)
 Principles: 7 core principles covering architecture, design patterns, and development practices
 Sections: Technology Stack, Development Workflow, Governance
-Changes: Added apps/admin, shared API rules, protected catalog mutations, and three-app deployment guidance.
+Changes: Corrected apps/admin description (Vite React SPA, not Next.js) and backend target (.NET 10, not .NET 8+).
 Status: All principles ratified; admin catalog management is planned but not yet implemented.
 -->
 
@@ -12,7 +12,7 @@ Status: All principles ratified; admin catalog management is planned but not yet
 
 ### I. Monorepo Full-Stack Architecture
 
-The project is structured as a single monorepo (`motorcycle-app`) with separate concerns isolated in subdirectories: `apps/web/` (public Next.js frontend), `apps/admin/` (private Next.js administration frontend), `apps/api/` (shared ASP.NET Core backend), `specs/` (feature specifications), and `docs/` (shared architecture/API/database documentation).
+The project is structured as a single monorepo (`motorcycle-app`) with separate concerns isolated in subdirectories: `apps/web/` (public Next.js frontend), `apps/admin/` (private Vite React SPA administration frontend), `apps/api/` (shared ASP.NET Core backend), `specs/` (feature specifications), and `docs/` (shared architecture/API/database documentation).
 
 **Non-negotiable rules:**
 - All features are implemented full-stack in a single specification/implementation cycle: shared backend API, every affected frontend UI, and tests together.
@@ -100,8 +100,9 @@ Frontend UI is designed mobile-first using Tailwind CSS utility classes. Base st
 ## Technology Stack
 
 **Required Stack:**
-- **Frontend:** Next.js (React, App Router, SSR/SEO), TypeScript, Tailwind CSS (mobile-first, custom theme), `next/image` for image optimization.
-- **Backend:** ASP.NET Core Web API (.NET 8+), C#, EF Core (Npgsql provider), Clean Architecture (Domain/Application/Infrastructure/Api layers).
+- **Public frontend:** Next.js (React, App Router, SSR/SEO), TypeScript, Tailwind CSS (mobile-first, custom theme), `next/image` for image optimization.
+- **Admin frontend:** Vite (React, TypeScript, Tailwind CSS), no SSR/SEO requirement.
+- **Backend:** ASP.NET Core Web API (.NET 10), C#, EF Core (Npgsql provider), Clean Architecture (Domain/Application/Infrastructure/Api layers).
 - **Database:** PostgreSQL (Azure Database for PostgreSQL – Flexible Server), JSONB for spec storage, GIN and expression indexes for filtering performance.
 - **Infrastructure:** Azure (App Service, Key Vault, Storage Account with public read-only blob container for images, managed identity for auth).
 - **CI/CD:** GitHub Actions workflows in `.github/workflows/` with path-based triggers for `apps/web/`, `apps/admin/`, and `apps/api/` separately.
@@ -139,4 +140,4 @@ Frontend UI is designed mobile-first using Tailwind CSS utility classes. Base st
 
 ---
 
-**Version:** 1.1.0 | **Ratified:** 2026-09-01 | **Last Amended:** 2026-09-15
+**Version:** 1.1.1 | **Ratified:** 2026-09-01 | **Last Amended:** 2026-09-26
