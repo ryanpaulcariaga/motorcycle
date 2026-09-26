@@ -21,6 +21,7 @@ List motorcycles with pagination, sorting, and filtering.
 - `pageSize` (int, default 20)
 - `sortBy` (string: `model`, `year`, `price`, default `model`)
 - `sortOrder` (string: `asc`, `desc`, default `asc`)
+- `search` (string: free-text match against model name, variant name, or brand name; used by the compare-page bike picker)
 - `brands` (string: comma-separated brand IDs)
 - `categories` (string: comma-separated category IDs)
 - `year` (string: `2020-2024` range syntax or exact year)

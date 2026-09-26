@@ -127,6 +127,7 @@ export interface BikesQuery {
   pageSize?: number;
   sortBy?: "price" | "year" | "model_name";
   sortDescending?: boolean;
+  search?: string;
   brandId?: string;
   categoryId?: string;
   yearMin?: number;

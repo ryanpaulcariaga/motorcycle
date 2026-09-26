@@ -15,7 +15,7 @@ public class BikeRepository : IBikeRepository
     }
 
     public async Task<List<Bike>> GetPublishedWithStaticFiltersAsync(
-        int? brandId, int? categoryId, int? yearMin, int? yearMax,
+        string? search, int? brandId, int? categoryId, int? yearMin, int? yearMax,
         decimal? priceMin, decimal? priceMax, CancellationToken ct = default)
     {
         var query = _context.Bikes
@@ -25,6 +25,15 @@ public class BikeRepository : IBikeRepository
                 .ThenInclude(m => m.Category)
             .Include(b => b.Images)
             .Where(b => b.IsPublished);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var pattern = $"%{search.Trim()}%";
+            query = query.Where(b =>
+                EF.Functions.ILike(b.Model.Name, pattern) ||
+                EF.Functions.ILike(b.VariantName, pattern) ||
+                EF.Functions.ILike(b.Model.Brand.Name, pattern));
+        }
 
         if (brandId.HasValue) query = query.Where(b => b.Model.BrandId == brandId.Value);
         if (categoryId.HasValue) query = query.Where(b => b.Model.CategoryId == categoryId.Value);

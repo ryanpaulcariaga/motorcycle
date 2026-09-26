@@ -40,6 +40,10 @@ export function getBikes(query: BikesQuery = {}): Promise<PagedResult<BikeListIt
   return apiFetch(`/api/bikes${buildQueryString({ ...query })}`);
 }
 
+export function searchBikes(term: string, pageSize = 8): Promise<PagedResult<BikeListItemDto>> {
+  return apiFetch(`/api/bikes${buildQueryString({ search: term, pageSize })}`);
+}
+
 export function getBikeBySlug(slug: string): Promise<BikeDetailDto> {
   return apiFetch(`/api/bikes/${encodeURIComponent(slug)}`);
 }

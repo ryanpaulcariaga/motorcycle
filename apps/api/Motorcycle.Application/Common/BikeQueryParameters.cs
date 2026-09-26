@@ -7,6 +7,7 @@ public class BikeQueryParameters
     public string? SortBy { get; set; } // "price", "year", "model_name"
     public bool SortDescending { get; set; } = false;
 
+    public string? Search { get; set; }
     public int? BrandId { get; set; }
     public int? CategoryId { get; set; }
     public int? YearMin { get; set; }

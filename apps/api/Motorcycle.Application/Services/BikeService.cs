@@ -31,7 +31,7 @@ public class BikeService : IBikeService
     public async Task<PagedResult<BikeListItemDto>> GetBikesAsync(BikeQueryParameters query, CancellationToken ct = default)
     {
         var bikes = await _bikeRepository.GetPublishedWithStaticFiltersAsync(
-            query.BrandId, query.CategoryId, query.YearMin, query.YearMax,
+            query.Search, query.BrandId, query.CategoryId, query.YearMin, query.YearMax,
             query.PriceMin, query.PriceMax, ct);
 
         if (query.SpecFilters.Count > 0)
