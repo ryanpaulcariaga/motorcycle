@@ -157,7 +157,7 @@ export default function BikeModelManagement() {
                     <td className="p-3">{model.brandName}</td>
                     <td className="p-3">{model.categoryName}</td>
                     <td className="p-3 font-semibold">{model.name}</td>
-                    <td className="p-3 text-right">
+                    <td className="whitespace-nowrap p-3 text-right">
                       <button
                         className="mr-3 font-semibold text-brand-button underline"
                         onClick={() => edit(model)}

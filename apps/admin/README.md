@@ -4,13 +4,15 @@ Private React single-page administration frontend for the motorcycle catalog. It
 
 ## Local Development
 
-The Vite development server runs on `https://localhost:3001` with a locally generated development certificate. The API remains on `https://localhost:7240` and owns the Facebook callback, OAuth secrets, PKCE state/verifier, and HttpOnly administrator session.
+The Vite development server runs on `https://localhost:3001` using the trusted ASP.NET Core HTTPS development certificate (see `vite.config.ts`). A `predev`/`prepreview` script exports that certificate (with its private key) via `dotnet dev-certs https --export-path apps/admin/certs/aspnetcore-dev-cert.pem --format Pem --no-password`, so the browser trusts `localhost:3001` the same way it already trusts the API at `https://localhost:7240` — no manual "trust this certificate" step needed. If `dotnet dev-certs` isn't available, Vite falls back to `@vitejs/plugin-basic-ssl`'s untrusted self-signed certificate.
 
 ```powershell
 pnpm.cmd --dir apps/admin dev
 ```
 
-Open `https://localhost:3001` and trust the local development certificate when prompted.
+Open `https://localhost:3001`. If you still see a certificate warning, run `dotnet dev-certs https --trust` once to trust the certificate on this machine, then restart the dev server.
+
+The API remains on `https://localhost:7240` and owns the Facebook callback, OAuth secrets, PKCE state/verifier, and HttpOnly administrator session.
 
 Create `apps/admin/.env.local` from `.env.example` only when the API URL differs from its local default. Keep Meta credentials in API user secrets or managed configuration, never in the browser app.
 

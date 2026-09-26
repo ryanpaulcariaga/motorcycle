@@ -10,8 +10,16 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const certDir = path.join(rootDir, "certs");
 const keyPath = path.join(certDir, "localhost-key.pem");
 const certPath = path.join(certDir, "localhost.pem");
+// Exported by predev/prestart (`dotnet dev-certs https --export-path ... --no-password`) and
+// already trusted by the OS/browser, so reusing it avoids the untrusted self-signed fallback.
+const trustedKeyPath = path.join(certDir, "aspnetcore-dev-cert.key");
+const trustedCertPath = path.join(certDir, "aspnetcore-dev-cert.pem");
 
 async function loadOrCreateCertificate() {
+  if (existsSync(trustedKeyPath) && existsSync(trustedCertPath)) {
+    return { key: readFileSync(trustedKeyPath), cert: readFileSync(trustedCertPath) };
+  }
+
   if (existsSync(keyPath) && existsSync(certPath)) {
     return { key: readFileSync(keyPath), cert: readFileSync(certPath) };
   }

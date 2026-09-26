@@ -30,6 +30,7 @@ apps/admin/keys/
 apps/admin/.session-secret
 apps/admin/certificates/
 apps/admin/certs/
+apps/web/certs/
 .DS_Store
 Thumbs.db
 Desktop.ini

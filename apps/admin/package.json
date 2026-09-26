@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "dotnet dev-certs https --export-path certs\\aspnetcore-dev-cert.pem --format Pem --no-password",
     "dev": "vite --host 0.0.0.0 --port 3001",
     "build": "tsc -b && vite build",
+    "prepreview": "dotnet dev-certs https --export-path certs\\aspnetcore-dev-cert.pem --format Pem --no-password",
     "preview": "vite preview --host 0.0.0.0 --port 3001",
     "lint": "eslint"
   },

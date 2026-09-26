@@ -9,6 +9,8 @@
   --color-brand-sidebar: #4a2c1c;
   --color-brand-button: #7a4a2b;
   --color-brand-button-active: #0a0a0a;
+  --color-brand-link: #075985;
+  --color-brand-link-hover: #0c4a6e;
   --color-brand-gold: #d99a2b;
   --color-brand-black: #0a0a0a;
   --color-brand-grey: #3f3f46;
@@ -24,6 +26,8 @@
   --color-brand-sidebar: var(--color-brand-sidebar);
   --color-brand-button: var(--color-brand-button);
   --color-brand-button-active: var(--color-brand-button-active);
+  --color-brand-link: var(--color-brand-link);
+  --color-brand-link-hover: var(--color-brand-link-hover);
   --color-brand-gold: var(--color-brand-gold);
   --color-brand-black: var(--color-brand-black);
   --color-brand-grey: var(--color-brand-grey);
@@ -34,6 +38,15 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Aptos", "Segoe UI", sans-serif;
+}
+
+a,
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 input:not([type="checkbox"]):not([type="radio"]),
@@ -55,4 +68,23 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--color-brand-gold);
   outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--color-brand-link);
+}
+
+.text-brand-button.underline {
+  color: var(--color-brand-link);
+}
+
+.text-brand-button.underline:hover {
+  color: var(--color-brand-link-hover);
+}
+
+.text-red-700.underline:hover {
+  color: #7f1d1d;
 }
