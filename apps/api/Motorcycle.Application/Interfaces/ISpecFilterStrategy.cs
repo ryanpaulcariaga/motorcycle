@@ -16,4 +16,8 @@ public interface ISpecFilterStrategy
 public interface ISpecFilterStrategyFactory
 {
     ISpecFilterStrategy Resolve(string filterType);
+
+    /// <summary>Every filterType currently registered via DI, used to validate spec_definitions.filterType
+    /// without hardcoding the accepted set.</summary>
+    IReadOnlyCollection<string> SupportedFilterTypes { get; }
 }

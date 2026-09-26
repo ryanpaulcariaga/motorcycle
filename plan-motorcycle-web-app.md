@@ -127,7 +127,7 @@ Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite Re
 25. Added API-owned Azure Blob upload/delete, protected image listing, ordering, primary-image selection, and admin UI management. Focused service/controller tests and authenticated Azure Blob acceptance validation remain.
 
 #### Remaining Admin Work
-26. Add CRUD for `spec_groups` and `spec_definitions`, including ordering, labels, data types, units, and filter settings.
+26. ✅ DONE (`specs/009-spec-metadata-management/`) — CRUD for `spec_groups` and `spec_definitions`, including ordering, labels, data types, units, filter settings, group reassignment, and a transactional rename-cascade so renaming a spec's code updates every bike's stored value under that code in the same operation. Deleting a non-empty group, deleting a definition bikes still hold values for, or an incompatible `dataType` change are hard-blocked with a `409` conflict.
 27. Finish admin authorization, frontend/security hardening, focused acceptance tests, and final release validation.
 
 ### Phase 5 — Azure Development Services & Final Deployment 🔄 IN PROGRESS
@@ -152,7 +152,7 @@ Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite Re
 - **Root**: `package.json` (pnpm workspaces), `.gitignore`, `README.md`, `.github/copilot-instructions.md` (AI guidelines)
 - **`apps/api/`** — ASP.NET Core Web API, Clean Architecture solution: `Motorcycle.Domain/`, `Motorcycle.Application/`, `Motorcycle.Infrastructure/` (contains `Migrations/`, `DbContext`, `Seed/`), `Motorcycle.Api/`; plus `Motorcycle.Api.sln` at the root of `apps/api/`
 - **`apps/web/`** — public Next.js app with Tailwind CSS configured (theme tokens for the header/page/sidebar/content/button color palette)
-- **`apps/admin/`** — private Vite React SPA with Stage 1 role/BikeModel management and Stage 2 Bike variant CRUD/publication management; it consumes the shared API and never connects directly to the database or Blob Storage. Image assignment and specification metadata remain later stages.
+- **`apps/admin/`** — private Vite React SPA with Stage 1 role/BikeModel management, Stage 2 Bike variant CRUD/publication management, Stage 3 image management, and spec-group/spec-definition metadata management (`specs/009-spec-metadata-management/`); it consumes the shared API and never connects directly to the database or Blob Storage.
 - **`specs/`** — cross-application feature specifications (e.g., `specs/001-motorcycle-comparison/`, `specs/005-admin-catalog-management/`, `specs/006-bike-catalog-management/`, each with `spec.md`, `plan.md`, `tasks.md`; every spec-driven feature gets a numbered folder)
 - **`docs/`** — shared architecture, API, and database documentation; updated as implementation progresses
 - **`.github/workflows/`** — CI/CD pipelines for all deployable apps (path-triggered on commits to `apps/web/`, `apps/admin/`, and `apps/api/`)

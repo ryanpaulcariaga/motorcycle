@@ -13,6 +13,8 @@ export type ApiError = {
   code?: string;
   message: string;
   fieldErrors?: Record<string, string[]>;
+  dependentCount?: number;
+  affectedBikeCount?: number;
 };
 
 export type AdminSession = {
@@ -85,5 +87,40 @@ export type BikeImage = {
   blobUrl: string;
   sortOrder: number;
   isPrimary: boolean;
+};
+
+export type SpecGroupAdmin = {
+  id: number;
+  code: string;
+  name: string;
+  iconName: string | null;
+  sortOrder: number;
+  definitionCount: number;
+};
+
+export type SpecGroupRequest = { code: string; name: string; iconName: string | null };
+
+export type SpecDefinitionAdmin = {
+  id: number;
+  groupId: number;
+  groupName: string;
+  code: string;
+  label: string;
+  dataType: "number" | "text" | "boolean" | "enum";
+  unit: string | null;
+  sortOrder: number;
+  isFilterable: boolean;
+  filterType: string | null;
+  bikesWithValueCount: number;
+};
+
+export type SpecDefinitionRequest = {
+  groupId: number;
+  code: string;
+  label: string;
+  dataType: "number" | "text" | "boolean" | "enum";
+  unit: string | null;
+  isFilterable: boolean;
+  filterType: string | null;
 };
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import BikeModelManagement from "@/components/bike-models/BikeModelManagement";
 import BikeManagement from "@/components/bikes/BikeManagement";
 import RoleManagement from "@/components/roles/RoleManagement";
+import SpecGroupManagement from "@/components/specs/SpecGroupManagement";
 import { API_BASE_URL, AdminApiError, getAdminSession, signOutAdmin } from "@/lib/api";
 import type { AdminSession } from "@/lib/types";
 
@@ -23,7 +24,11 @@ function SignIn({ error }: { error: string | null }) {
 
 function AdminShell({ session }: { session: AdminSession }) {
   const match = window.location.pathname.match(/^\/admin\/bike-models\/(\d+)\/bikes$/);
-  const content = match ? <BikeManagement modelId={Number(match[1])} /> : window.location.pathname === "/admin/bike-models" ? <BikeModelManagement /> : <RoleManagement />;
+  const content = match
+    ? <BikeManagement modelId={Number(match[1])} />
+    : window.location.pathname === "/admin/bike-models" ? <BikeModelManagement />
+    : window.location.pathname === "/admin/specs" ? <SpecGroupManagement />
+    : <RoleManagement />;
 
   async function signOut() {
     await signOutAdmin();
@@ -37,7 +42,7 @@ function AdminShell({ session }: { session: AdminSession }) {
         <div className="flex items-center gap-4"><span className="hidden text-sm sm:inline">{session.displayName ?? session.facebookUserId}</span><button className="text-sm underline" type="button" onClick={() => void signOut()}>Sign out</button></div>
       </header>
       <div className="mx-auto grid max-w-7xl gap-6 p-4 md:grid-cols-[14rem_minmax(0,1fr)] md:p-8">
-        <nav className="bg-brand-sidebar p-4 text-white"><p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-gold">Catalog</p><a className="block bg-white/10 px-3 py-2 font-semibold" href="/admin/roles">Administrators</a><a className="mt-2 block px-3 py-2 font-semibold hover:bg-white/10" href="/admin/bike-models">BikeModels</a></nav>
+        <nav className="bg-brand-sidebar p-4 text-white"><p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-gold">Catalog</p><a className="block bg-white/10 px-3 py-2 font-semibold" href="/admin/roles">Administrators</a><a className="mt-2 block px-3 py-2 font-semibold hover:bg-white/10" href="/admin/bike-models">BikeModels</a><a className="mt-2 block px-3 py-2 font-semibold hover:bg-white/10" href="/admin/specs">Spec Groups &amp; Definitions</a></nav>
         <main>{content}</main>
       </div>
     </div>

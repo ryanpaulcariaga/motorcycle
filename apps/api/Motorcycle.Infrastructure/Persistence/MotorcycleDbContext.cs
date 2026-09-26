@@ -109,7 +109,7 @@ public class MotorcycleDbContext : DbContext
             bi.HasIndex(x => x.BikeId);
         });
 
-        // SpecGroup configuration
+        // Spec group configuration
         modelBuilder.Entity<SpecGroup>(sg =>
         {
             sg.HasKey(x => x.Id);
@@ -117,7 +117,7 @@ public class MotorcycleDbContext : DbContext
             sg.Property(x => x.Name).IsRequired().HasMaxLength(255);
             sg.Property(x => x.IconName).HasMaxLength(255);
             sg.HasIndex(x => x.Code).IsUnique();
-            sg.HasMany(x => x.Definitions).WithOne(x => x.Group).HasForeignKey(x => x.GroupId).OnDelete(DeleteBehavior.Cascade);
+            sg.HasMany(x => x.Definitions).WithOne(x => x.Group).HasForeignKey(x => x.GroupId).OnDelete(DeleteBehavior.Restrict);
         });
 
         // SpecDefinition configuration
@@ -129,7 +129,10 @@ public class MotorcycleDbContext : DbContext
             sd.Property(x => x.DataType).IsRequired().HasMaxLength(50);
             sd.Property(x => x.Unit).HasMaxLength(50);
             sd.Property(x => x.FilterType).HasMaxLength(50);
-            sd.HasIndex(x => new { x.GroupId, x.Code }).IsUnique();
+            sd.HasIndex(x => x.GroupId);
+            // Code is the JSON key used across every bikes.specs row, so it must be globally
+            // unique across all groups, not merely unique within one group.
+            sd.HasIndex(x => x.Code).IsUnique();
         });
 
         modelBuilder.Entity<AdminRole>(ar =>

@@ -1,4 +1,4 @@
-import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, UpdateAdminRoleRequest, UpdateBikeRequest } from "./types";
+import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, UpdateAdminRoleRequest, UpdateBikeRequest } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
@@ -97,3 +97,29 @@ export function reorderAdminBikeImages(bikeId: number, imageIds: number[]): Prom
 export function deleteAdminBikeImage(bikeId: number, imageId: number): Promise<void> {
   return apiFetch(`/api/admin/bikes/${bikeId}/images/${imageId}`, { method: "DELETE" });
 }
+
+export function getAdminSpecGroups(): Promise<SpecGroupAdmin[]> { return apiFetch("/api/admin/spec-groups"); }
+export function createAdminSpecGroup(request: SpecGroupRequest): Promise<SpecGroupAdmin> {
+  return apiFetch("/api/admin/spec-groups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+}
+export function updateAdminSpecGroup(id: number, request: SpecGroupRequest): Promise<SpecGroupAdmin> {
+  return apiFetch(`/api/admin/spec-groups/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+}
+export function reorderAdminSpecGroups(groupIds: number[]): Promise<SpecGroupAdmin[]> {
+  return apiFetch("/api/admin/spec-groups/order", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ groupIds }) });
+}
+export function deleteAdminSpecGroup(id: number): Promise<void> { return apiFetch(`/api/admin/spec-groups/${id}`, { method: "DELETE" }); }
+
+export function getAdminSpecDefinitions(groupId?: number): Promise<SpecDefinitionAdmin[]> {
+  return apiFetch(groupId ? `/api/admin/spec-definitions?groupId=${groupId}` : "/api/admin/spec-definitions");
+}
+export function createAdminSpecDefinition(request: SpecDefinitionRequest): Promise<SpecDefinitionAdmin> {
+  return apiFetch("/api/admin/spec-definitions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+}
+export function updateAdminSpecDefinition(id: number, request: SpecDefinitionRequest): Promise<SpecDefinitionAdmin> {
+  return apiFetch(`/api/admin/spec-definitions/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+}
+export function reorderAdminSpecDefinitions(groupId: number, definitionIds: number[]): Promise<SpecDefinitionAdmin[]> {
+  return apiFetch(`/api/admin/spec-groups/${groupId}/spec-definitions/order`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ definitionIds }) });
+}
+export function deleteAdminSpecDefinition(id: number): Promise<void> { return apiFetch(`/api/admin/spec-definitions/${id}`, { method: "DELETE" }); }

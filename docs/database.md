@@ -72,6 +72,8 @@ CREATE TABLE spec_groups (
 );
 ```
 
+Deleting a `spec_groups` row is blocked at both the application layer and the `spec_definitions.group_id` foreign key (`ON DELETE RESTRICT`) while any `spec_definitions` row still references it — an administrator must move or delete its definitions first (`specs/009-spec-metadata-management/`).
+
 ### bike_models
 ```sql
 CREATE TABLE bike_models (
@@ -142,18 +144,19 @@ A `User` is the durable public-catalog identity; `user_external_logins` links it
 ```sql
 CREATE TABLE spec_definitions (
   id SERIAL PRIMARY KEY,
-  group_id INT NOT NULL REFERENCES spec_groups(id),
-  code VARCHAR(255) NOT NULL,
+  group_id INT NOT NULL REFERENCES spec_groups(id) ON DELETE RESTRICT,
+  code VARCHAR(255) NOT NULL UNIQUE,  -- globally unique: this is the JSON key used across every bikes.specs row
   label VARCHAR(255) NOT NULL,
   data_type VARCHAR(50) NOT NULL,  -- 'number', 'text', 'boolean', 'enum'
   unit VARCHAR(50),
-  sort_order INT NOT NULL DEFAULT 0,
+  sort_order INT NOT NULL DEFAULT 0,  -- scoped within its own group_id
   is_filterable BOOLEAN DEFAULT false,
   filter_type VARCHAR(50),  -- 'range', 'exact', 'multiselect'
-  created_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(group_id, code)
+  created_at TIMESTAMP DEFAULT NOW()
 );
 ```
+
+Managed through protected `/api/admin/spec-groups`/`/api/admin/spec-definitions` endpoints (`specs/009-spec-metadata-management/`). `code` was originally unique only per `(group_id, code)`; it is now globally unique because it is the literal JSON key read from every `bikes.specs` row, and a duplicate across groups would be ambiguous in that flat map. Renaming a `code` renames the matching key across every affected `bikes.specs` row in the same transaction (one `UPDATE bikes SET specs = (specs - old) || jsonb_build_object(new, specs -> old) WHERE specs ? old` statement). Deleting a `spec_definitions` row that any bike currently has a non-null value for is blocked at the application layer with a `409` conflict.
 
 ### Future Tables (Schema Stubs)
 ```sql

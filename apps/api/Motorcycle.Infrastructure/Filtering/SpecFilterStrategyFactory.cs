@@ -17,4 +17,6 @@ public class SpecFilterStrategyFactory : ISpecFilterStrategyFactory
             throw new NotSupportedException($"No ISpecFilterStrategy registered for filter type '{filterType}'.");
         return strategy;
     }
+
+    public IReadOnlyCollection<string> SupportedFilterTypes => _strategies.Keys;
 }

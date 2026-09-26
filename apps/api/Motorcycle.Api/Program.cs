@@ -33,6 +33,8 @@ builder.Services.AddScoped<IBikeAdminRepository, BikeAdminRepository>();
 builder.Services.AddScoped<IBikeImageAdminRepository, BikeImageAdminRepository>();
 builder.Services.AddScoped<IImageStorage, AzureBlobImageStorage>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ISpecGroupAdminRepository, SpecGroupAdminRepository>();
+builder.Services.AddScoped<ISpecDefinitionAdminRepository, SpecDefinitionAdminRepository>();
 
 // Spec filter strategies (Strategy pattern)
 builder.Services.AddSingleton<ISpecFilterStrategy, NumberRangeFilterStrategy>();
@@ -49,6 +51,8 @@ builder.Services.AddScoped<IBikeModelService, BikeModelService>();
 builder.Services.AddScoped<IBikeAdminService, BikeAdminService>();
 builder.Services.AddScoped<IBikeImageAdminService, BikeImageAdminService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
+builder.Services.AddScoped<ISpecGroupAdminService, SpecGroupAdminService>();
+builder.Services.AddScoped<ISpecDefinitionAdminService, SpecDefinitionAdminService>();
 
 // External sign-in providers (Strategy pattern): add another AddHttpClient<>/AddScoped pair here
 // to introduce Google (or any provider) without touching the auth controller or account-linking logic.

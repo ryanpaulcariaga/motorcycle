@@ -188,7 +188,19 @@ BikeModel deletion conflicts return `409` with `bike_model_referenced` and a dep
 
 The BikeModel UI loads its dropdown data directly from the API's public `/api/brands` and `/api/categories` endpoints.
 
-Azure Blob image upload/assignment is implemented in Stage 3; spec-group/spec-definition management remains a deferred follow-on stage.
+Azure Blob image upload/assignment is implemented in Stage 3; spec-group/spec-definition management is implemented per `specs/009-spec-metadata-management/`.
+
+#### Spec Group and Spec Definition Administration
+
+Protected endpoints under `/api/admin/spec-groups` and `/api/admin/spec-definitions` manage the same `SpecGroup`/`SpecDefinition` metadata the public `/api/spec-groups` endpoint renders:
+
+- `GET/POST/PUT/DELETE /api/admin/spec-groups` and `PUT /api/admin/spec-groups/order` (bulk reorder, `{ groupIds: [...] }`).
+- `GET/POST/PUT/DELETE /api/admin/spec-definitions` (optionally `?groupId=` to scope the list) and `PUT /api/admin/spec-groups/{groupId}/spec-definitions/order` (bulk reorder within one group, `{ definitionIds: [...] }`).
+- `spec_definitions.code` is the literal JSON key used across every `bikes.specs` row and is validated as **globally unique** (case-insensitive, across all groups), not merely unique within one group. Renaming a definition's `code` via `PUT /api/admin/spec-definitions/{id}` renames the matching key across every bike's `specs` in the same database transaction as the definition update — both succeed or neither does. A `dataType` change that is incompatible with any bike's existing stored value is rejected outright (`409 spec_definition_datatype_incompatible` with an affected-bike count); no conversion is attempted.
+- Deleting a `SpecGroup` that still has `SpecDefinition` rows returns `409` with `spec_group_referenced`. Deleting a `SpecDefinition` that any bike currently has a non-null value for returns `409` with `spec_definition_referenced`. Duplicate codes return `409` with `spec_group_code_exists`/`spec_definition_code_exists`.
+- `isFilterable`/`filterType` consistency is validated dynamically against the currently registered `ISpecFilterStrategy` implementations, so adding a new strategy automatically expands the accepted `filterType` values without an API contract change.
+
+See [contracts/admin-spec-metadata-api.md](../specs/009-spec-metadata-management/contracts/admin-spec-metadata-api.md) for the full contract.
 
 #### Bike (Variant) Administration
 
@@ -202,7 +214,7 @@ Stage 2 provides typed contracts for administering `Bike` (year/trim variant) re
 - `DELETE /api/admin/bikes/{id}` permanently deletes a variant. Returns `409` with `bike_referenced` and a dependent image count when the variant has assigned images.
 - Create/update requests validate the referenced BikeModel's existence, require year and variant name, enforce a unique `(modelId, year, variantName)` combination (`409` with `bike_exists` on conflict), and validate submitted spec values against the full existing spec-definition set (not filtered by category); unrecognized codes or mismatched types return `400`.
 
-See [contracts/admin-bikes-api.md](../specs/006-bike-catalog-management/contracts/admin-bikes-api.md) for the full request/response contract. Spec-group/spec-definition management remains a deferred follow-on stage.
+See [contracts/admin-bikes-api.md](../specs/006-bike-catalog-management/contracts/admin-bikes-api.md) for the full request/response contract. Spec-group/spec-definition management is implemented per `specs/009-spec-metadata-management/` (see above).
 
 #### Bike Image Administration
 

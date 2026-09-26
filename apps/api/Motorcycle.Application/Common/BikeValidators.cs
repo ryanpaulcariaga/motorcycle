@@ -34,7 +34,11 @@ public static class BikeValidators
         return result;
     }
 
-    private static bool IsValueValidForType(object? value, string dataType)
+    private static bool IsValueValidForType(object? value, string dataType) => ValidateValueForType(value, dataType);
+
+    /// <summary>Shared by bike spec validation and spec-definition dataType-change hard-blocking
+    /// (see SpecDefinitionAdminService), so both use the same type-compatibility rule.</summary>
+    public static bool ValidateValueForType(object? value, string dataType)
     {
         if (value is null) return true;
 
