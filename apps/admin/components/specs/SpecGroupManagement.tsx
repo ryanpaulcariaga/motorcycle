@@ -136,7 +136,7 @@ export default function SpecGroupManagement() {
               <p className="text-sm font-semibold uppercase tracking-wide text-brand-button">
                 Catalog
               </p>
-              <h1 className="text-2xl font-bold">Spec Groups</h1>
+              <h1 className="text-2xl font-bold">Specifications</h1>
             </div>
             <button
               className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"

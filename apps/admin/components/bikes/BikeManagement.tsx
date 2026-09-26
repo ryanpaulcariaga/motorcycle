@@ -163,7 +163,7 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
               className="text-sm font-semibold text-brand-button underline"
               href="/admin/bike-models"
             >
-              ← BikeModels
+              ← Bikes
             </a>
             <h1 className="mt-2 text-2xl font-bold">Bike Variants</h1>
           </div>

@@ -35,3 +35,24 @@ body {
   color: var(--foreground);
   font-family: "Aptos", "Segoe UI", sans-serif;
 }
+
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  border: 1px solid #a1a1aa;
+  background-color: #ffffff;
+  color: #0a0a0a;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #52525b;
+  opacity: 1;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-brand-gold);
+  outline-offset: 2px;
+}
