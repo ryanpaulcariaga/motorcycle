@@ -76,6 +76,7 @@ export type CreateBikeRequest = {
 };
 
 export type UpdateBikeRequest = {
+  modelId?: number;
   variantName: string;
   year: number;
   msrpPrice: number | null;

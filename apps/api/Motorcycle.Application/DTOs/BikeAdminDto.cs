@@ -52,4 +52,5 @@ public sealed record UpdateBikeRequest(
     string VariantName,
     int Year,
     decimal? MsrpPrice,
-    Dictionary<string, object?>? Specs);
+    Dictionary<string, object?>? Specs,
+    int? ModelId = null);

@@ -7,17 +7,19 @@ import {
   deleteAdminBike,
   getAdminBike,
   getAdminBikes,
+  getBikeModels,
   getSpecGroups,
   publishAdminBike,
   unpublishAdminBike,
   updateAdminBike,
 } from '@/lib/api';
-import type { BikeAdminListItem } from '@/lib/types';
+import type { BikeAdminListItem, BikeModel } from '@/lib/types';
 import BikeImageManagement from './BikeImageManagement';
 
 type SpecGroup = Awaited<ReturnType<typeof getSpecGroups>>[number];
 
 const emptyForm = {
+  modelId: '',
   variantName: '',
   year: '',
   msrpPrice: '',
@@ -27,6 +29,7 @@ const emptyForm = {
 export default function BikeManagement({ modelId }: { modelId: number }) {
   const [bikes, setBikes] = useState<BikeAdminListItem[]>([]);
   const [specGroups, setSpecGroups] = useState<SpecGroup[]>([]);
+  const [models, setModels] = useState<BikeModel[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,12 +40,14 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
     setLoading(true);
     setError(null);
     try {
-      const [bikeResult, specGroupResult] = await Promise.all([
+      const [bikeResult, specGroupResult, modelResult] = await Promise.all([
         getAdminBikes(modelId),
         getSpecGroups(),
+        getBikeModels(),
       ]);
       setBikes(bikeResult);
       setSpecGroups(specGroupResult);
+      setModels(modelResult);
     } catch (cause) {
       setError(
         cause instanceof AdminApiError ? cause.message : 'Unable to load bikes.'
@@ -71,6 +76,7 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
           value === null || value === undefined ? '' : String(value);
       setEditingId(bike.id);
       setForm({
+        modelId: String(detail.modelId),
         variantName: detail.variantName,
         year: String(detail.year),
         msrpPrice: detail.msrpPrice ? String(detail.msrpPrice) : '',
@@ -110,7 +116,11 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
         specs: buildSpecs(),
       };
       if (editingId === null) await createAdminBike({ modelId, ...request });
-      else await updateAdminBike(editingId, request);
+      else
+        await updateAdminBike(editingId, {
+          ...request,
+          modelId: Number(form.modelId) || undefined,
+        });
       reset();
       await load();
     } catch (cause) {
@@ -222,7 +232,7 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
                         <span className="text-brand-grey">Unpublished</span>
                       )}
                     </td>
-                    <td className="p-3 text-right">
+                    <td className="whitespace-nowrap p-3 text-right">
                       <button
                         className="mr-3 font-semibold text-brand-button underline"
                         onClick={() => void edit(bike)}
@@ -256,6 +266,31 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
         <h2 className="text-xl font-bold">
           {editingId === null ? 'Add Bike Variant' : 'Edit Bike Variant'}
         </h2>
+        {editingId !== null && (
+          <>
+            <label
+              className="mt-5 block text-sm font-semibold"
+              htmlFor="bikeModel"
+            >
+              Model
+            </label>
+            <select
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="bikeModel"
+              required
+              value={form.modelId}
+              onChange={(event) =>
+                setForm({ ...form, modelId: event.target.value })
+              }
+            >
+              {models.map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.brandName} {model.name}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
         <label
           className="mt-5 block text-sm font-semibold"
           htmlFor="variantName"

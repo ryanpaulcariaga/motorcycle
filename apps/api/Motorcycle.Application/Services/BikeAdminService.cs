@@ -108,12 +108,24 @@ public sealed class BikeAdminService : IBikeAdminService
     {
         var bike = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Bike was not found.");
 
+        var targetModelId = request.ModelId ?? bike.ModelId;
+        var targetModel = targetModelId == bike.ModelId
+            ? null
+            : await _bikeModelRepository.GetByIdAsync(targetModelId, ct)
+                ?? throw new KeyNotFoundException("BikeModel was not found.");
+
         var (variantName, year) = BikeValidators.ValidateCore(request.VariantName, request.Year);
-        if (await _repository.VariantExistsAsync(bike.ModelId, year, variantName, id, ct))
+        if (await _repository.VariantExistsAsync(targetModelId, year, variantName, id, ct))
             throw new InvalidOperationException("A bike with this model, year, and variant name already exists.");
 
         var definitionsByCode = await GetDefinitionsByCodeAsync(ct);
         var specs = BikeValidators.ValidateSpecs(request.Specs, definitionsByCode);
+
+        if (targetModel is not null)
+        {
+            bike.ModelId = targetModel.Id;
+            bike.Model = targetModel;
+        }
 
         bike.VariantName = variantName;
         bike.Year = year;
