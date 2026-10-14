@@ -14,6 +14,7 @@ import {
   updateAdminBike,
 } from '@/lib/api';
 import type { BikeAdminListItem, BikeModel } from '@/lib/types';
+import { getBikeModelListSearch } from '@/lib/bikeModelListState';
 import BikeImageManagement from './BikeImageManagement';
 
 type SpecGroup = Awaited<ReturnType<typeof getSpecGroups>>[number];
@@ -171,7 +172,7 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
           <div>
             <a
               className="text-sm font-semibold text-brand-button underline"
-              href="/admin/bike-models"
+              href={`/admin/bike-models${getBikeModelListSearch(window.location.search)}`}
             >
               ← Bikes
             </a>

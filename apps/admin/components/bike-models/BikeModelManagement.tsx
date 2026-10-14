@@ -11,18 +11,82 @@ import {
   updateBikeModel,
 } from '@/lib/api';
 import type { BikeModel, LookupOption } from '@/lib/types';
+import {
+  parseBikeModelListState,
+  serializeBikeModelListState,
+} from '@/lib/bikeModelListState';
 
 const emptyForm = { brandId: '', categoryId: '', name: '' };
 
 export default function BikeModelManagement() {
+  const [initialListState] = useState(() =>
+    parseBikeModelListState(window.location.search)
+  );
   const [models, setModels] = useState<BikeModel[]>([]);
   const [brands, setBrands] = useState<LookupOption[]>([]);
   const [categories, setCategories] = useState<LookupOption[]>([]);
+  const [brandFilter, setBrandFilter] = useState(initialListState.brandFilter);
+  const [categoryFilter, setCategoryFilter] = useState(
+    initialListState.categoryFilter
+  );
+  const [sortField, setSortField] = useState<
+    'brand' | 'category' | 'name'
+  >(initialListState.sortField);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
+    initialListState.sortDirection
+  );
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const bikeListSearch = serializeBikeModelListState({
+    brandFilter,
+    categoryFilter,
+    sortField,
+    sortDirection,
+  });
+  const filteredModels = models
+    .filter(
+      (model) =>
+        (!brandFilter || model.brandId === Number(brandFilter)) &&
+        (!categoryFilter || model.categoryId === Number(categoryFilter))
+    )
+    .sort((left, right) => {
+      const leftValue =
+        sortField === 'brand'
+          ? left.brandName
+          : sortField === 'category'
+            ? left.categoryName
+            : left.name;
+      const rightValue =
+        sortField === 'brand'
+          ? right.brandName
+          : sortField === 'category'
+            ? right.categoryName
+            : right.name;
+      const compareNames = (leftName: string, rightName: string) =>
+        leftName.localeCompare(rightName, undefined, {
+          sensitivity: 'base',
+          numeric: true,
+        });
+      const primary = compareNames(leftValue, rightValue);
+      const comparison =
+        primary ||
+        compareNames(left.brandName, right.brandName) ||
+        compareNames(left.categoryName, right.categoryName) ||
+        compareNames(left.name, right.name);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+  function sortBy(field: 'brand' | 'category' | 'name') {
+    if (sortField === field) {
+      setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortField(field);
+    setSortDirection('asc');
+  }
 
   async function load() {
     setLoading(true);
@@ -50,6 +114,17 @@ export default function BikeModelManagement() {
   useEffect(() => {
     queueMicrotask(() => void load());
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (brandFilter) params.set('brandId', brandFilter);
+    if (categoryFilter) params.set('categoryId', categoryFilter);
+    if (sortField !== 'brand') params.set('sort', sortField);
+    if (sortDirection !== 'asc') params.set('direction', sortDirection);
+    const search = params.toString();
+    const url = `${window.location.pathname}${search ? `?${search}` : ''}`;
+    window.history.replaceState(window.history.state, '', url);
+  }, [brandFilter, categoryFilter, sortField, sortDirection]);
 
   function reset() {
     setForm(emptyForm);
@@ -139,48 +214,193 @@ export default function BikeModelManagement() {
         ) : models.length === 0 ? (
           <p className="mt-8 text-brand-grey">No bikes have been added.</p>
         ) : (
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[38rem] text-left text-sm">
-              <thead>
-                <tr className="border-b border-black/10">
-                  <th className="p-3">Brand</th>
-                  <th className="p-3">Category</th>
-                  <th className="p-3">Model line</th>
-                  <th className="p-3">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {models.map((model) => (
-                  <tr className="border-b border-black/10" key={model.id}>
-                    <td className="p-3">{model.brandName}</td>
-                    <td className="p-3">{model.categoryName}</td>
-                    <td className="p-3 font-semibold">{model.name}</td>
-                    <td className="whitespace-nowrap p-3 text-right">
-                      <button
-                        className="mr-3 font-semibold text-brand-button underline"
-                        onClick={() => edit(model)}
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-grey">
+                Filter
+              </h2>
+              <button
+                className="text-sm font-semibold text-brand-button underline disabled:text-brand-grey disabled:no-underline"
+                disabled={!brandFilter && !categoryFilter}
+                onClick={() => {
+                  setBrandFilter('');
+                  setCategoryFilter('');
+                }}
+                type="button"
+              >
+                Clear filters
+              </button>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label
+                className="block text-sm font-semibold"
+                htmlFor="bikeBrandFilter"
+              >
+                Filter by brand
+                <select
+                  className="mt-2 block w-full px-3 py-2 font-normal text-brand-black"
+                  id="bikeBrandFilter"
+                  value={brandFilter}
+                  onChange={(event) => setBrandFilter(event.target.value)}
+                >
+                  <option value="">All brands</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label
+                className="block text-sm font-semibold"
+                htmlFor="bikeCategoryFilter"
+              >
+                Filter by category
+                <select
+                  className="mt-2 block w-full px-3 py-2 font-normal text-brand-black"
+                  id="bikeCategoryFilter"
+                  value={categoryFilter}
+                  onChange={(event) => setCategoryFilter(event.target.value)}
+                >
+                  <option value="">All categories</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {filteredModels.length === 0 ? (
+              <p className="py-4 text-brand-grey" role="status">
+                No bike models match the selected filters.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[38rem] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-black/10">
+                      <th
+                        aria-sort={
+                          sortField === 'brand'
+                            ? sortDirection === 'asc'
+                              ? 'ascending'
+                              : 'descending'
+                            : 'none'
+                        }
+                        className="p-3"
                       >
-                        Edit
-                      </button>
-                      <a
-                        className="mr-3 font-semibold text-brand-button underline"
-                        href={`/admin/bike-models/${model.id}/bikes`}
+                        <button
+                          className="inline-flex items-center gap-1 font-semibold hover:underline"
+                          onClick={() => sortBy('brand')}
+                          type="button"
+                        >
+                          Brand
+                          {sortField === 'brand' && (
+                            <span aria-hidden="true">
+                              {sortDirection === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                          <span className="sr-only">
+                            {sortField === 'brand'
+                              ? `, sorted ${sortDirection === 'asc' ? 'ascending' : 'descending'}`
+                              : ', sort by brand'}
+                          </span>
+                        </button>
+                      </th>
+                      <th
+                        aria-sort={
+                          sortField === 'category'
+                            ? sortDirection === 'asc'
+                              ? 'ascending'
+                              : 'descending'
+                            : 'none'
+                        }
+                        className="p-3"
                       >
-                        Variants
-                      </a>
-                      <button
-                        className="font-semibold text-red-700 underline"
-                        onClick={() => void remove(model)}
+                        <button
+                          className="inline-flex items-center gap-1 font-semibold hover:underline"
+                          onClick={() => sortBy('category')}
+                          type="button"
+                        >
+                          Category
+                          {sortField === 'category' && (
+                            <span aria-hidden="true">
+                              {sortDirection === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                          <span className="sr-only">
+                            {sortField === 'category'
+                              ? `, sorted ${sortDirection === 'asc' ? 'ascending' : 'descending'}`
+                              : ', sort by category'}
+                          </span>
+                        </button>
+                      </th>
+                      <th
+                        aria-sort={
+                          sortField === 'name'
+                            ? sortDirection === 'asc'
+                              ? 'ascending'
+                              : 'descending'
+                            : 'none'
+                        }
+                        className="p-3"
                       >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        <button
+                          className="inline-flex items-center gap-1 font-semibold hover:underline"
+                          onClick={() => sortBy('name')}
+                          type="button"
+                        >
+                          Model line
+                          {sortField === 'name' && (
+                            <span aria-hidden="true">
+                              {sortDirection === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                          <span className="sr-only">
+                            {sortField === 'name'
+                              ? `, sorted ${sortDirection === 'asc' ? 'ascending' : 'descending'}`
+                              : ', sort by model line'}
+                          </span>
+                        </button>
+                      </th>
+                      <th className="p-3">
+                        <span className="sr-only">Actions</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredModels.map((model) => (
+                      <tr className="border-b border-black/10" key={model.id}>
+                        <td className="p-3">{model.brandName}</td>
+                        <td className="p-3">{model.categoryName}</td>
+                        <td className="p-3 font-semibold">{model.name}</td>
+                        <td className="whitespace-nowrap p-3 text-right">
+                          <button
+                            className="mr-3 font-semibold text-brand-button underline"
+                            onClick={() => edit(model)}
+                          >
+                            Edit
+                          </button>
+                          <a
+                            className="mr-3 font-semibold text-brand-button underline"
+                            href={`/admin/bike-models/${model.id}/bikes${bikeListSearch}`}
+                          >
+                            Variants
+                          </a>
+                          <button
+                            className="font-semibold text-red-700 underline"
+                            onClick={() => void remove(model)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </section>
