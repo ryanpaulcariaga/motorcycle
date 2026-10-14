@@ -17,6 +17,21 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
         return await query.OrderBy(x => x.Model.Name).ThenBy(x => x.Year).ThenBy(x => x.VariantName).ToListAsync(ct);
     }
 
+    public async Task<List<Bike>> GetForSpecEditAsync(int brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default)
+    {
+        var query = _context.Bikes.AsNoTracking()
+            .Include(x => x.Model).ThenInclude(m => m.Brand)
+            .Include(x => x.Model).ThenInclude(m => m.Category)
+            .Where(x => x.Model.BrandId == brandId);
+        if (categoryId.HasValue) query = query.Where(x => x.Model.CategoryId == categoryId.Value);
+        if (minPrice.HasValue) query = query.Where(x => x.MsrpPrice >= minPrice.Value);
+        if (maxPrice.HasValue) query = query.Where(x => x.MsrpPrice <= maxPrice.Value);
+        return await query.OrderBy(x => x.Model.Name).ThenBy(x => x.Year).ThenBy(x => x.VariantName).ToListAsync(ct);
+    }
+
+    public Task<List<Bike>> GetByIdsAsync(IReadOnlyCollection<int> ids, CancellationToken ct = default) =>
+        _context.Bikes.Where(x => ids.Contains(x.Id)).ToListAsync(ct);
+
     public Task<Bike?> GetByIdAsync(int id, CancellationToken ct = default) =>
         _context.Bikes.Include(x => x.Model).ThenInclude(m => m.Brand).SingleOrDefaultAsync(x => x.Id == id, ct);
 

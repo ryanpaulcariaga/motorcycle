@@ -50,8 +50,8 @@ The bootstrap command is operator-only and idempotent for an existing active adm
 
 ## Stage 1 Scope
 
-Implemented locally: API-owned Facebook PKCE sign-in, encrypted HttpOnly sessions, administrator-role lifecycle, BikeModel CRUD, Bike variant CRUD/publication, and Azure Blob-backed image operations. Specification metadata CRUD remains deferred. The API uses the provisioned Azure PostgreSQL and Blob Storage resources through local user secrets; production App Service deployment remains deferred until feature completion.
+Implemented locally: API-owned Facebook PKCE sign-in, encrypted HttpOnly sessions, administrator-role lifecycle, BikeModel CRUD, Bike variant CRUD/publication, Azure Blob-backed image operations, specification metadata CRUD (`/admin/specs`, `specs/009-spec-metadata-management/`), and bulk single-spec editing across many bikes (`/admin/bulk-spec`, `specs/010-bulk-single-spec-edit/`). The API uses the provisioned Azure PostgreSQL and Blob Storage resources through local user secrets; production App Service deployment remains deferred until feature completion. Local access to the Azure PostgreSQL server requires your current public IP in its firewall rules.
 
 ## Continuing Work
 
-Use [../../specs/005-admin-catalog-management/implementation-status.md](../../specs/005-admin-catalog-management/implementation-status.md) and [../../specs/007-bike-image-management/tasks.md](../../specs/007-bike-image-management/tasks.md) as handoff documents. The remaining work is focused image acceptance testing, specification metadata management, and final release validation.
+Use [../../specs/005-admin-catalog-management/implementation-status.md](../../specs/005-admin-catalog-management/implementation-status.md) and [../../specs/007-bike-image-management/tasks.md](../../specs/007-bike-image-management/tasks.md) as handoff documents. The remaining work is focused image acceptance testing, tests and browser validation for bulk spec edit (`specs/010-bulk-single-spec-edit/tasks.md`), and final release validation.

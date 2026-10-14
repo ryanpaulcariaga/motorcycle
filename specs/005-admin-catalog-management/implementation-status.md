@@ -92,6 +92,6 @@ Stage 2 (bike CRUD/publication management) and Stage 3 (Azure Blob image managem
 2. ~~Add bike CRUD and publication management with a new data model and API contract.~~ Done — `/api/admin/bikes` and the admin variant UI.
 3. ~~Add image assignment/upload through API-owned storage operations using the provisioned Azure Blob Storage development resource.~~ Done — protected upload, list, primary, reorder, delete, and admin UI are implemented.
 4. Add focused image service/controller tests and validate an authenticated upload against the provisioned Azure Blob container.
-5. Add specification metadata management and validation.
+5. ~~Add specification metadata management and validation.~~ Done — `specs/009-spec-metadata-management/`. Bulk single-spec editing is also added in `specs/010-bulk-single-spec-edit/`.
 
 Each follow-on stage needs its own contract, migration review, frontend types/client functions, and focused acceptance tests. Do not add direct browser access to PostgreSQL or Blob Storage. Production App Service deployment is intentionally deferred until the remaining feature stages are complete.

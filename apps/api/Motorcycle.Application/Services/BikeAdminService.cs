@@ -22,6 +22,57 @@ public sealed class BikeAdminService : IBikeAdminService
     public async Task<IReadOnlyList<BikeAdminListItemDto>> GetAllAsync(int? modelId, CancellationToken ct = default) =>
         (await _repository.GetAllAsync(modelId, ct)).Select(ToListItemDto).ToList();
 
+    public async Task<IReadOnlyList<BikeSpecValueItemDto>> GetSpecValuesAsync(int brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, string specCode, CancellationToken ct = default)
+    {
+        var definitions = await GetDefinitionsByCodeAsync(ct);
+        if (!definitions.ContainsKey(specCode))
+            throw new ArgumentException($"Unrecognized specification code '{specCode}'.", nameof(specCode));
+
+        var bikes = await _repository.GetForSpecEditAsync(brandId, categoryId, minPrice, maxPrice, ct);
+        return bikes.Select(b => new BikeSpecValueItemDto(
+            b.Id,
+            b.Model?.Name ?? string.Empty,
+            b.Model?.Brand?.Name ?? string.Empty,
+            b.Model?.Category?.Name ?? string.Empty,
+            b.VariantName,
+            b.Year,
+            b.MsrpPrice,
+            b.IsPublished,
+            b.Specs.TryGetValue(specCode, out var value) ? value : null)).ToList();
+    }
+
+    public async Task<int> UpdateSingleSpecAsync(UpdateSingleSpecRequest request, CancellationToken ct = default)
+    {
+        var definitions = await GetDefinitionsByCodeAsync(ct);
+        if (string.IsNullOrWhiteSpace(request.SpecCode) || !definitions.ContainsKey(request.SpecCode))
+            throw new ArgumentException($"Unrecognized specification code '{request.SpecCode}'.", nameof(request));
+        if (request.Values is null || request.Values.Count == 0) return 0;
+        if (request.Values.Select(v => v.BikeId).Distinct().Count() != request.Values.Count)
+            throw new ArgumentException("Each bike may appear only once.", nameof(request));
+
+        // Validate every value before mutating so a bad row rejects the whole batch.
+        foreach (var item in request.Values)
+            BikeValidators.ValidateSpecs(new Dictionary<string, object?> { [request.SpecCode] = item.Value }, definitions);
+
+        var bikes = (await _repository.GetByIdsAsync(request.Values.Select(v => v.BikeId).ToList(), ct)).ToDictionary(b => b.Id);
+        var missing = request.Values.Where(v => !bikes.ContainsKey(v.BikeId)).Select(v => v.BikeId).ToList();
+        if (missing.Count > 0) throw new KeyNotFoundException($"Bike(s) not found: {string.Join(", ", missing)}.");
+
+        var now = DateTime.UtcNow;
+        foreach (var item in request.Values)
+        {
+            var bike = bikes[item.BikeId];
+            var specs = new Dictionary<string, object>(bike.Specs);
+            if (item.Value is null) specs.Remove(request.SpecCode);
+            else specs[request.SpecCode] = item.Value;
+            bike.Specs = specs;
+            bike.UpdatedAt = now;
+        }
+
+        await _repository.SaveChangesAsync(ct);
+        return request.Values.Count;
+    }
+
     public async Task<BikeAdminDetailDto> GetByIdAsync(int id, CancellationToken ct = default) =>
         ToDetailDto(await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Bike was not found."));
 

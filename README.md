@@ -19,7 +19,8 @@ motorcycle-app/
 │   ├── 006-bike-catalog-management/
 │   ├── 007-bike-image-management/
 │   ├── 008-public-user-authentication/
-│   └── 009-spec-metadata-management/
+│   ├── 009-spec-metadata-management/
+│   └── 010-bulk-single-spec-edit/
 ├── docs/                 # Shared documentation
 ├── .github/workflows/    # CI/CD pipelines
 ├── .npmrc                # pnpm install config (see Windows Environment Setup)

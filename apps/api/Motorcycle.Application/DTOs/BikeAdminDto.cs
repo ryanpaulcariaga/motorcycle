@@ -26,6 +26,21 @@ public sealed record BikeAdminDetailDto(
     DateTime CreatedAt,
     DateTime UpdatedAt);
 
+public sealed record BikeSpecValueItemDto(
+    int Id,
+    string ModelName,
+    string BrandName,
+    string CategoryName,
+    string VariantName,
+    int Year,
+    decimal? MsrpPrice,
+    bool IsPublished,
+    object? Value);
+
+public sealed record BikeSpecValueUpdate(int BikeId, object? Value);
+
+public sealed record UpdateSingleSpecRequest(string SpecCode, List<BikeSpecValueUpdate> Values);
+
 public sealed record CreateBikeRequest(
     int ModelId,
     string VariantName,

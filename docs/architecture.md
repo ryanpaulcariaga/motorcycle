@@ -56,6 +56,8 @@ Stage 2 adds Bike (year/trim variant) CRUD and publication management under `/ap
 
 Spec metadata management (`specs/009-spec-metadata-management/`) adds protected CRUD for `SpecGroup`/`SpecDefinition` under `/api/admin/spec-groups`/`/api/admin/spec-definitions`, including group/definition reordering. Because `SpecDefinition.Code` is the literal JSON key read from every `Bike.Specs` row, its uniqueness is enforced globally (not per-group), and renaming it triggers a transactional rename-cascade across every affected bike so no data is silently orphaned; deleting a group with definitions, deleting a definition bikes still hold values for, or changing a `dataType` incompatibly with existing bike values are all hard-blocked with a `409` conflict rather than silently discarding data.
 
+Bulk single-spec editing (`specs/010-bulk-single-spec-edit/`) lets an administrator set one specification across many bikes of a brand (optionally filtered by category and MSRP range) through `GET`/`PUT /api/admin/bikes/spec-values`; values are validated against the definition's `dataType` and saved all-or-nothing in one transaction, with no schema change.
+
 ### Public User Authentication Boundary
 
 `apps/web` users sign in through the same shared API under `/api/auth`, using a session model that is architecturally identical to the admin one (OAuth Authorization Code + PKCE completed by the API, provider tokens never reaching the browser) but functionally separate: any active external identity may sign in — there is no manual allowlist or `AdminRole`-style approval step — and the session uses its own `UserAuth` cookie scheme (`mc_user_session`) and `AuthenticatedUser` authorization policy, distinct from `AdminAuth`/`ActiveAdministrator`.

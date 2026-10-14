@@ -1,4 +1,4 @@
-import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, UpdateAdminRoleRequest, UpdateBikeRequest } from "./types";
+import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, BikeSpecValueItem, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
@@ -68,6 +68,16 @@ export function getSpecGroups(): Promise<{ code: string; name: string; sortOrder
 
 export function getAdminBikes(modelId?: number): Promise<BikeAdminListItem[]> {
   return apiFetch(modelId ? `/api/admin/bikes?modelId=${modelId}` : "/api/admin/bikes");
+}
+export function getAdminBikeSpecValues(filters: SpecValueFilters): Promise<BikeSpecValueItem[]> {
+  const params = new URLSearchParams({ brandId: String(filters.brandId), specCode: filters.specCode });
+  if (filters.categoryId) params.set("categoryId", String(filters.categoryId));
+  if (filters.minPrice !== undefined) params.set("minPrice", String(filters.minPrice));
+  if (filters.maxPrice !== undefined) params.set("maxPrice", String(filters.maxPrice));
+  return apiFetch(`/api/admin/bikes/spec-values?${params}`);
+}
+export function updateAdminBikeSpecValues(request: UpdateSingleSpecRequest): Promise<{ updatedCount: number }> {
+  return apiFetch("/api/admin/bikes/spec-values", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
 }
 export function getAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}`); }
 export function createAdminBike(request: CreateBikeRequest): Promise<BikeAdminDetail> {

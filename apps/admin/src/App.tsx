@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import BikeModelManagement from '@/components/bike-models/BikeModelManagement';
 import BikeManagement from '@/components/bikes/BikeManagement';
+import BulkSpecEditor from '@/components/bikes/BulkSpecEditor';
 import RoleManagement from '@/components/roles/RoleManagement';
 import SpecGroupManagement from '@/components/specs/SpecGroupManagement';
 import {
@@ -48,8 +49,11 @@ function AdminShell({ session }: { session: AdminSession }) {
     pathname === '/admin' || pathname === '/admin/roles';
   const isBikesActive = pathname === '/admin/bike-models' || match !== null;
   const isSpecificationsActive = pathname === '/admin/specs';
+  const isBulkSpecActive = pathname === '/admin/bulk-spec';
   const content = match ? (
     <BikeManagement modelId={Number(match[1])} />
+  ) : pathname === '/admin/bulk-spec' ? (
+    <BulkSpecEditor />
   ) : pathname === '/admin/bike-models' ? (
     <BikeModelManagement />
   ) : pathname === '/admin/specs' ? (
@@ -107,6 +111,13 @@ function AdminShell({ session }: { session: AdminSession }) {
             href="/admin/specs"
           >
             Specifications
+          </a>
+          <a
+            aria-current={isBulkSpecActive ? 'page' : undefined}
+            className={`mt-2 block px-3 py-2 font-semibold ${isBulkSpecActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+            href="/admin/bulk-spec"
+          >
+            Bulk Spec Edit
           </a>
         </nav>
         <main>{content}</main>

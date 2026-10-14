@@ -82,6 +82,31 @@ export type UpdateBikeRequest = {
   specs: Record<string, unknown>;
 };
 
+export type BikeSpecValueItem = {
+  id: number;
+  modelName: string;
+  brandName: string;
+  categoryName: string;
+  variantName: string;
+  year: number;
+  msrpPrice: number | null;
+  isPublished: boolean;
+  value: unknown;
+};
+
+export type SpecValueFilters = {
+  brandId: number;
+  categoryId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  specCode: string;
+};
+
+export type UpdateSingleSpecRequest = {
+  specCode: string;
+  values: { bikeId: number; value: unknown }[];
+};
+
 export type BikeImage = {
   id: number;
   blobUrl: string;

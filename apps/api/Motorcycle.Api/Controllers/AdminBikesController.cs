@@ -18,6 +18,22 @@ public sealed class AdminBikesController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<BikeAdminListItemDto>>> GetAll([FromQuery] int? modelId, CancellationToken ct) =>
         Ok(await _service.GetAllAsync(modelId, ct));
 
+    [HttpGet("spec-values")]
+    public async Task<ActionResult<IReadOnlyList<BikeSpecValueItemDto>>> GetSpecValues([FromQuery] int brandId, [FromQuery] int? categoryId, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, [FromQuery] string specCode, CancellationToken ct)
+    {
+        if (brandId <= 0) return BadRequest(new { message = "A brand is required." });
+        try { return Ok(await _service.GetSpecValuesAsync(brandId, categoryId, minPrice, maxPrice, specCode, ct)); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpPut("spec-values")]
+    public async Task<ActionResult<object>> UpdateSingleSpec(UpdateSingleSpecRequest request, CancellationToken ct)
+    {
+        try { return Ok(new { updatedCount = await _service.UpdateSingleSpecAsync(request, ct) }); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BikeAdminDetailDto>> GetById(int id, CancellationToken ct)
     {
