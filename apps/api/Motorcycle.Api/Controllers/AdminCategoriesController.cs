@@ -27,8 +27,11 @@ public sealed class AdminCategoriesController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<CategoryAdminDto>> GetById(int id, CancellationToken ct)
     {
-        try { return Ok(await _service.GetByIdAsync(id, ct)); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        try {
+            return Ok(await _service.GetByIdAsync(id, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPost]
@@ -38,9 +41,11 @@ public sealed class AdminCategoriesController : ControllerBase
             var result = await _service.CreateAsync(request, ct);
             _cache.Remove(CategoriesController.CacheKey);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        } catch (InvalidOperationException ex) {
+            return Conflict(new { code = "category_exists", message = ex.Message });
         }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (InvalidOperationException ex) { return Conflict(new { code = "category_exists", message = ex.Message }); }
     }
 
     [HttpPut("{id:int}")]
@@ -50,10 +55,17 @@ public sealed class AdminCategoriesController : ControllerBase
             var result = await _service.UpdateAsync(id, request, ct);
             _cache.Remove(CategoriesController.CacheKey);
             return Ok(result);
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        } catch (InvalidOperationException ex) {
+            return Conflict(new
+            {
+                code = "category_exists",
+                message = ex.Message
+            });
         }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (InvalidOperationException ex) { return Conflict(new { code = "category_exists", message = ex.Message }); }
     }
 
     [HttpDelete("{id:int}")]
@@ -63,10 +75,16 @@ public sealed class AdminCategoriesController : ControllerBase
             await _service.DeleteAsync(id, ct);
             _cache.Remove(CategoriesController.CacheKey);
             return NoContent();
-        }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (CategoryReferencedException ex) {
-            return Conflict(new { code = "category_referenced", message = ex.Message, dependentCount = ex.BikeCount, modelCount = ex.ModelCount });
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (CategoryReferencedException ex) {
+            return Conflict(new
+            {
+                code = "category_referenced",
+                message = ex.Message,
+                dependentCount = ex.BikeCount,
+                modelCount = ex.ModelCount
+            });
         }
     }
 }

@@ -16,8 +16,11 @@ public sealed class AdminBikeImagesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<BikeImageAdminDto>>> GetAll(int bikeId, CancellationToken ct)
     {
-        try { return Ok(await _service.GetAllAsync(bikeId, ct)); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        try {
+            return Ok(await _service.GetAllAsync(bikeId, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPost]
@@ -32,30 +35,42 @@ public sealed class AdminBikeImagesController : ControllerBase
             await using var stream = file.OpenReadStream();
             var result = await _service.UploadAsync(bikeId, stream, file.FileName, file.ContentType, file.Length, ct);
             return Ok(result);
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
         }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
     [HttpPatch("{imageId:int}/primary")]
     public async Task<ActionResult<BikeImageAdminDto>> SetPrimary(int bikeId, int imageId, CancellationToken ct)
     {
-        try { return Ok(await _service.SetPrimaryAsync(bikeId, imageId, ct)); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        try {
+            return Ok(await _service.SetPrimaryAsync(bikeId, imageId, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPut("order")]
     public async Task<ActionResult<IReadOnlyList<BikeImageAdminDto>>> Reorder(int bikeId, ReorderBikeImagesRequest request, CancellationToken ct)
     {
-        try { return Ok(await _service.ReorderAsync(bikeId, request, ct)); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        try {
+            return Ok(await _service.ReorderAsync(bikeId, request, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{imageId:int}")]
     public async Task<IActionResult> Delete(int bikeId, int imageId, CancellationToken ct)
     {
-        try { await _service.DeleteAsync(bikeId, imageId, ct); return NoContent(); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        try {
+            await _service.DeleteAsync(bikeId, imageId, ct); return NoContent();
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        }
     }
 }

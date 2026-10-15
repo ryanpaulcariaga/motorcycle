@@ -25,63 +25,94 @@ public sealed class AdminBikesController : ControllerBase
             return BadRequest(new { message = "A brand is required." });
         }
 
-        try { return Ok(await _service.GetSpecValuesAsync(brandId, categoryId, minPrice, maxPrice, specCode, ct)); }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        try {
+            return Ok(await _service.GetSpecValuesAsync(brandId, categoryId, minPrice, maxPrice, specCode, ct));
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("spec-values")]
     public async Task<ActionResult<object>> UpdateSingleSpec(UpdateSingleSpecRequest request, CancellationToken ct)
     {
-        try { return Ok(new { updatedCount = await _service.UpdateSingleSpecAsync(request, ct) }); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+        try {
+            return Ok(new { updatedCount = await _service.UpdateSingleSpecAsync(request, ct) });
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BikeAdminDetailDto>> GetById(int id, CancellationToken ct)
     {
-        try { return Ok(await _service.GetByIdAsync(id, ct)); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        try {
+            return Ok(await _service.GetByIdAsync(id, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPost]
     public async Task<ActionResult<BikeAdminDetailDto>> Create(CreateBikeRequest request, CancellationToken ct)
     {
-        try { var result = await _service.CreateAsync(request, ct); return CreatedAtAction(nameof(GetById), new { id = result.Id }, result); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (InvalidOperationException ex) { return Conflict(new { code = "bike_exists", message = ex.Message }); }
+        try {
+            var result = await _service.CreateAsync(request, ct); return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        } catch (InvalidOperationException ex) {
+            return Conflict(new { code = "bike_exists", message = ex.Message });
+        }
     }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult<BikeAdminDetailDto>> Update(int id, UpdateBikeRequest request, CancellationToken ct)
     {
-        try { return Ok(await _service.UpdateAsync(id, request, ct)); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (InvalidOperationException ex) { return Conflict(new { code = "bike_exists", message = ex.Message }); }
+        try {
+            return Ok(await _service.UpdateAsync(id, request, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        } catch (InvalidOperationException ex) {
+            return Conflict(new { code = "bike_exists", message = ex.Message });
+        }
     }
 
     [HttpPatch("{id:int}/publish")]
     public async Task<ActionResult<BikeAdminDetailDto>> Publish(int id, CancellationToken ct)
     {
-        try { return Ok(await _service.PublishAsync(id, ct)); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (InvalidOperationException ex) { return BadRequest(new { code = "bike_not_publishable", message = ex.Message }); }
+        try {
+            return Ok(await _service.PublishAsync(id, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (InvalidOperationException ex) {
+            return BadRequest(new { code = "bike_not_publishable", message = ex.Message });
+        }
     }
 
     [HttpPatch("{id:int}/unpublish")]
     public async Task<ActionResult<BikeAdminDetailDto>> Unpublish(int id, CancellationToken ct)
     {
-        try { return Ok(await _service.UnpublishAsync(id, ct)); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        try {
+            return Ok(await _service.UnpublishAsync(id, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
-        try { await _service.DeleteAsync(id, ct); return NoContent(); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (BikeReferencedException ex) { return Conflict(new { code = "bike_referenced", message = ex.Message, dependentCount = ex.DependentCount }); }
+        try {
+            await _service.DeleteAsync(id, ct); return NoContent();
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (BikeReferencedException ex) {
+            return Conflict(new { code = "bike_referenced", message = ex.Message, dependentCount = ex.DependentCount });
+        }
     }
 }

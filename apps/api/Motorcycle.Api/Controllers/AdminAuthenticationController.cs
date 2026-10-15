@@ -123,8 +123,7 @@ public sealed class AdminAuthenticationController : ControllerBase
                 ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1),
             });
             return Redirect(_options.AdminAppUrl);
-        }
-        catch (HttpRequestException) {
+        } catch (HttpRequestException) {
             return RedirectToAdmin("Facebook sign-in is temporarily unavailable.");
         }
     }

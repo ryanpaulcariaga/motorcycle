@@ -27,8 +27,11 @@ public sealed class AdminBrandsController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BrandAdminDto>> GetById(int id, CancellationToken ct)
     {
-        try { return Ok(await _service.GetByIdAsync(id, ct)); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        try {
+            return Ok(await _service.GetByIdAsync(id, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPost]
@@ -38,9 +41,15 @@ public sealed class AdminBrandsController : ControllerBase
             var result = await _service.CreateAsync(request, ct);
             _cache.Remove(BrandsController.CacheKey);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        } catch (InvalidOperationException ex) {
+            return Conflict(new
+            {
+                code = "brand_exists",
+                message = ex.Message
+            });
         }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (InvalidOperationException ex) { return Conflict(new { code = "brand_exists", message = ex.Message }); }
     }
 
     [HttpPut("{id:int}")]
@@ -50,10 +59,13 @@ public sealed class AdminBrandsController : ControllerBase
             var result = await _service.UpdateAsync(id, request, ct);
             _cache.Remove(BrandsController.CacheKey);
             return Ok(result);
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        } catch (InvalidOperationException ex) {
+            return Conflict(new { code = "brand_exists", message = ex.Message });
         }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (InvalidOperationException ex) { return Conflict(new { code = "brand_exists", message = ex.Message }); }
     }
 
     [HttpDelete("{id:int}")]
@@ -63,10 +75,16 @@ public sealed class AdminBrandsController : ControllerBase
             await _service.DeleteAsync(id, ct);
             _cache.Remove(BrandsController.CacheKey);
             return NoContent();
-        }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (BrandReferencedException ex) {
-            return Conflict(new { code = "brand_referenced", message = ex.Message, dependentCount = ex.BikeCount, modelCount = ex.ModelCount });
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (BrandReferencedException ex) {
+            return Conflict(new
+            {
+                code = "brand_referenced",
+                message = ex.Message,
+                dependentCount = ex.BikeCount,
+                modelCount = ex.ModelCount
+            });
         }
     }
 }
