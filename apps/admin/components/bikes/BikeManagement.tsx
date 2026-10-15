@@ -5,17 +5,20 @@ import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
   createAdminBike,
+  createBikeModel,
   deleteAdminBike,
   getAdminBike,
   getAdminBikes,
   getBikeModels,
+  getBrands,
+  getCategories,
   getSpecGroups,
   publishAdminBike,
   reassignAdminBikeModel,
   unpublishAdminBike,
   updateAdminBike,
 } from '@/lib/api';
-import type { BikeAdminListItem, BikeModel } from '@/lib/types';
+import type { BikeAdminListItem, BikeModel, LookupOption } from '@/lib/types';
 import { getBikeModelListSearch } from '@/lib/bikeModelListState';
 import BikeImageManagement from './BikeImageManagement';
 
@@ -44,6 +47,10 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [reassigning, setReassigning] = useState(false);
+  const [creatingModel, setCreatingModel] = useState(false);
+  const [newModel, setNewModel] = useState({ brandId: '', categoryId: '', name: '' });
+  const [brands, setBrands] = useState<LookupOption[]>([]);
+  const [categories, setCategories] = useState<LookupOption[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [brandFilter, setBrandFilter] = useState('');
@@ -284,7 +291,24 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
     setError(null);
     setNotice(null);
     setTargetModelId(String(bike.modelId));
+    setCreatingModel(false);
     setReassignTargetBike(bike);
+  }
+
+  async function startCreateModel() {
+    setError(null);
+    setNewModel({ brandId: '', categoryId: '', name: '' });
+    setCreatingModel(true);
+    try {
+      const [brandResult, categoryResult] = await Promise.all([
+        getBrands(),
+        getCategories(),
+      ]);
+      setBrands(brandResult);
+      setCategories(categoryResult);
+    } catch {
+      setError('Unable to load brands and categories.');
+    }
   }
 
   function closeReassign() {
@@ -293,25 +317,36 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
     }
     setReassignTargetBike(null);
     setTargetModelId('');
+    setCreatingModel(false);
     setError(null);
   }
 
   async function reassignModel(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!reassignTargetBike || !targetModelId) {
+    if (!reassignTargetBike || (!creatingModel && !targetModelId)) {
       return;
     }
     setReassigning(true);
     setError(null);
     try {
-      const targetModel = models.find(
+      let targetModel = models.find(
         (model) => model.id === Number(targetModelId)
       );
+      let newModelId = Number(targetModelId);
+      if (creatingModel) {
+        targetModel = await createBikeModel({
+          brandId: Number(newModel.brandId),
+          categoryId: Number(newModel.categoryId),
+          name: newModel.name.trim(),
+        });
+        newModelId = targetModel.id;
+      }
       await reassignAdminBikeModel(reassignTargetBike.id, {
-        modelId: Number(targetModelId),
+        modelId: newModelId,
       });
       setReassignTargetBike(null);
       setTargetModelId('');
+      setCreatingModel(false);
       setNotice(
         `${reassignTargetBike.brandName} - ${reassignTargetBike.variantName} (${reassignTargetBike.year}) was reassigned to ${targetModel ? `${targetModel.brandName} - ${targetModel.name}` : 'the selected BikeModel'}.`
       );
@@ -693,12 +728,32 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
             <p className="mt-2 text-sm text-white/80">
               Only the BikeModel assignment will change.
             </p>
-            <label
-              className="mt-5 block text-sm font-semibold"
-              htmlFor="reassignBikeModel"
-            >
-              BikeModel
-            </label>
+            <div className="mt-5 flex items-center justify-between">
+              <label className="block text-sm font-semibold" htmlFor="reassignBikeModel">
+                BikeModel
+              </label>
+              <button
+                className="text-sm font-semibold text-brand-gold disabled:opacity-50"
+                type="button"
+                disabled={reassigning}
+                onClick={() => (creatingModel ? setCreatingModel(false) : void startCreateModel())}
+              >
+                {creatingModel ? 'Choose existing' : '+ New BikeModel'}
+              </button>
+            </div>
+            {creatingModel ? (
+              <div className="mt-2 grid gap-3">
+                <select className="w-full px-3 py-2 text-brand-black" aria-label="Brand" required value={newModel.brandId} disabled={reassigning} onChange={(e) => setNewModel({ ...newModel, brandId: e.target.value })}>
+                  <option value="">Select brand</option>
+                  {brands.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
+                </select>
+                <select className="w-full px-3 py-2 text-brand-black" aria-label="Category" required value={newModel.categoryId} disabled={reassigning} onChange={(e) => setNewModel({ ...newModel, categoryId: e.target.value })}>
+                  <option value="">Select category</option>
+                  {categories.map((cat) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                </select>
+                <input className="w-full px-3 py-2 text-brand-black" aria-label="BikeModel name" placeholder="BikeModel name" required maxLength={100} value={newModel.name} disabled={reassigning} onChange={(e) => setNewModel({ ...newModel, name: e.target.value })} />
+              </div>
+            ) : (
             <select
               className="mt-2 w-full px-3 py-2 text-brand-black"
               id="reassignBikeModel"
@@ -714,6 +769,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
                 </option>
               ))}
             </select>
+            )}
             <ModalFooter>
               <button
                 className="flex-1 border border-white/40 px-5 py-3 font-semibold disabled:opacity-50"
@@ -728,11 +784,19 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
                 type="submit"
                 disabled={
                   reassigning ||
-                  !targetModelId ||
-                  Number(targetModelId) === reassignTargetBike.modelId
+                  (creatingModel
+                    ? !newModel.brandId ||
+                      !newModel.categoryId ||
+                      !newModel.name.trim()
+                    : !targetModelId ||
+                      Number(targetModelId) === reassignTargetBike.modelId)
                 }
               >
-                {reassigning ? 'Reassigning...' : 'Reassign'}
+                {reassigning
+                  ? 'Saving...'
+                  : creatingModel
+                    ? 'Create & Reassign'
+                    : 'Reassign'}
               </button>
             </ModalFooter>
           </form>
