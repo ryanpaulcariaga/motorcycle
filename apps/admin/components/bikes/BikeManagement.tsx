@@ -215,7 +215,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
     try {
       const request = {
         variantName: form.variantName,
-        year: Number(form.year),
+        year: Number(form.year) || 0,
         msrpPrice: form.msrpPrice === '' ? null : Number(form.msrpPrice),
         specs: buildSpecs(),
       };
@@ -612,7 +612,8 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
               className="mt-2 w-full px-3 py-2 text-brand-black"
               id="year"
               type="number"
-              required
+              min={0}
+              placeholder="0 if unknown"
               value={form.year}
               onChange={(event) =>
                 setForm({ ...form, year: event.target.value })

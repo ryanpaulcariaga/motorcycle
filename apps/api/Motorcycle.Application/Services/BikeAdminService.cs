@@ -180,7 +180,7 @@ public sealed class BikeAdminService : IBikeAdminService
     public async Task<BikeAdminDetailDto> PublishAsync(int id, CancellationToken ct = default)
     {
         var bike = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Bike was not found.");
-        if (string.IsNullOrWhiteSpace(bike.VariantName) || bike.Year <= 0) {
+        if (string.IsNullOrWhiteSpace(bike.VariantName) ||         bike.Year < 0) {
             throw new InvalidOperationException("Bike is missing required details (year, variant name) and cannot be published.");
         }
 

@@ -146,7 +146,7 @@ public class BikeAdminServiceTests
 
     [Theory]
     [InlineData("", 2024)]
-    [InlineData("SE", 0)]
+    [InlineData("SE", -1)]
     public async Task CreateAsync_WithMissingCoreFields_ThrowsArgumentException(string variantName, int year)
     {
         var (service, _) = CreateService();

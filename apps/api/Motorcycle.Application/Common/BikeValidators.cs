@@ -11,8 +11,9 @@ public static class BikeValidators
             throw new ArgumentException("Variant name must contain between 1 and 255 characters.", nameof(variantName));
         }
 
-        if (year <= 0) {
-            throw new ArgumentException("Year is required.", nameof(year));
+        // The bikes.year column is a non-null integer that defaults to 0 (unknown year).
+        if (year < 0) {
+            throw new ArgumentException("Year cannot be negative.", nameof(year));
         }
 
         return (normalized, year);
