@@ -35,7 +35,7 @@ export default async function Home() {
             <div className="flex flex-col gap-1">
               {latestBikes.slice(0, 5).map((bike) => (
                 <SidebarLink key={bike.id} href={`/bikes/${bike.slug}`}>
-                  {bike.brandName} {bike.modelName}
+                  {bike.brandName} - {bike.variantName}
                 </SidebarLink>
               ))}
             </div>
@@ -67,16 +67,15 @@ export default async function Home() {
                   {bike.primaryImageUrl && (
                     <Image
                       src={bike.primaryImageUrl}
-                      alt={bike.modelName}
+                      alt={`${bike.brandName} - ${bike.variantName}`}
                       fill
                       className="object-cover"
                     />
                   )}
                 </div>
                 <div className="p-3">
-                  <p className="text-xs text-zinc-500">{bike.brandName}</p>
                   <p className="font-semibold">
-                    {bike.modelName} {bike.variantName}
+                    {bike.brandName} - {bike.variantName}
                   </p>
                   <p className="text-sm text-zinc-600">
                     {bike.year}{' '}

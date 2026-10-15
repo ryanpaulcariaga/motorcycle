@@ -18,10 +18,10 @@ export async function generateMetadata({
   try {
     const bike = await getBikeBySlug(slug);
     return {
-      title: `${bike.brandName} ${bike.modelName} ${bike.variantName} (${bike.year})`,
-      description: `Specs and details for the ${bike.year} ${bike.brandName} ${bike.modelName} ${bike.variantName}.`,
+      title: `${bike.brandName} - ${bike.variantName} (${bike.year})`,
+      description: `Specs and details for the ${bike.year} ${bike.brandName} - ${bike.variantName}.`,
       openGraph: {
-        title: `${bike.brandName} ${bike.modelName} ${bike.variantName}`,
+        title: `${bike.brandName} - ${bike.variantName}`,
         images: bike.images[0] ? [bike.images[0].blobUrl] : [],
       },
     };
@@ -68,11 +68,9 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
         </Sidebar>
 
         <div className="min-w-0 flex-1 rounded-md bg-brand-content p-4 sm:p-6 shadow-sm">
-          <p className="text-sm text-zinc-500">
-            {bike.brandName} · {bike.categoryName}
-          </p>
+          <p className="text-sm text-zinc-500">{bike.categoryName}</p>
           <h1 className="text-2xl sm:text-3xl font-bold">
-            {bike.modelName} {bike.variantName}
+            {bike.brandName} - {bike.variantName}
           </h1>
           <p className="mt-1 text-lg text-zinc-700">
             {bike.year}{' '}
@@ -85,7 +83,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                 {bike.images[0] && (
                   <Image
                     src={bike.images[0].blobUrl}
-                    alt={bike.modelName}
+                    alt={`${bike.brandName} - ${bike.variantName}`}
                     fill
                     className="object-cover"
                     priority
@@ -101,7 +99,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                     >
                       <Image
                         src={image.blobUrl}
-                        alt={bike.modelName}
+                        alt={`${bike.brandName} - ${bike.variantName}`}
                         fill
                         className="object-cover"
                       />

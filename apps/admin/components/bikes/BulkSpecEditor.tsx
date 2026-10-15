@@ -168,7 +168,7 @@ export default function BulkSpecEditor() {
     const current = edits[row.id] ?? toText(row.value);
     const onChange = (value: string) =>
       setEdits((prev) => ({ ...prev, [row.id]: value }));
-    const label = `${def.label} for ${row.modelName} ${row.variantName} ${row.year}`;
+    const label = `${def.label} for ${row.brandName} - ${row.variantName} ${row.year}`;
     if (def.dataType === 'boolean') {
       return (
         <select
@@ -370,7 +370,7 @@ export default function BulkSpecEditor() {
                           key={row.id}
                         >
                           <td className="p-3 font-semibold">
-                            {row.modelName} {row.variantName}
+                            {row.brandName} - {row.variantName}
                           </td>
                           <td className="p-3">{row.year}</td>
                           <td className="p-3">{row.categoryName}</td>

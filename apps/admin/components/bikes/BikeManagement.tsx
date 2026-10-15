@@ -29,7 +29,7 @@ const emptyForm = {
   specs: {} as Record<string, string>,
 };
 
-type SortField = 'model' | 'variant' | 'year' | 'msrp' | 'status';
+type SortField = 'variant' | 'year' | 'msrp' | 'status';
 
 export default function BikeManagement({ modelId }: { modelId?: number }) {
   const [bikes, setBikes] = useState<BikeAdminListItem[]>([]);
@@ -51,7 +51,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField>(
-    modelId ? 'year' : 'model'
+    modelId ? 'year' : 'variant'
   );
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
     modelId ? 'desc' : 'asc'
@@ -71,21 +71,19 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
         (!statusFilter ||
           (statusFilter === 'published') === bike.isPublished) &&
         (!search ||
-          ` ${bike.modelName} ${bike.variantName} ${bike.year}`
+          ` ${bike.variantName} ${bike.year}`
             .toLowerCase()
             .includes(search.trim().toLowerCase()))
     )
     .sort((a, b) => {
       const comparison =
-        sortField === 'model'
-          ? ` ${a.modelName}`.localeCompare(` ${b.modelName}`)
-          : sortField === 'variant'
-            ? a.variantName.localeCompare(b.variantName)
-            : sortField === 'year'
-              ? a.year - b.year
-              : sortField === 'msrp'
-                ? (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1)
-                : Number(a.isPublished) - Number(b.isPublished);
+        sortField === 'variant'
+          ? a.variantName.localeCompare(b.variantName)
+          : sortField === 'year'
+            ? a.year - b.year
+            : sortField === 'msrp'
+              ? (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1)
+              : Number(a.isPublished) - Number(b.isPublished);
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
@@ -261,7 +259,11 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
   }
 
   async function remove(bike: BikeAdminListItem) {
-    if (!window.confirm(`Delete ${bike.variantName} (${bike.year})?`)) {
+    if (
+      !window.confirm(
+        `Delete ${bike.brandName} - ${bike.variantName} (${bike.year})?`
+      )
+    ) {
       return;
     }
     setError(null);
@@ -311,7 +313,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
       setReassignTargetBike(null);
       setTargetModelId('');
       setNotice(
-        `${reassignTargetBike.variantName} (${reassignTargetBike.year}) was reassigned to ${targetModel ? `${targetModel.brandName} ${targetModel.name}` : 'the selected BikeModel'}.`
+        `${reassignTargetBike.brandName} - ${reassignTargetBike.variantName} (${reassignTargetBike.year}) was reassigned to ${targetModel ? `${targetModel.brandName} - ${targetModel.name}` : 'the selected BikeModel'}.`
       );
       await load();
     } catch (cause) {
@@ -408,7 +410,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
               <option value="">All models</option>
               {filterModels.map((model) => (
                 <option key={model.id} value={model.id}>
-                  {model.brandName} {model.name}
+                  {model.brandName} - {model.name}
                 </option>
               ))}
             </select>
@@ -453,9 +455,8 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
             <table className="w-full min-w-[48rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
-                  {showModel && sortHeader('model', 'Model')}
                   {sortHeader('year', 'Year')}
-                  {sortHeader('variant', 'Variant')}
+                  {sortHeader('variant', 'Motorcycle')}
                   {sortHeader('msrp', 'MSRP')}
                   {sortHeader('status', 'Status')}
                   <th className="p-3">
@@ -466,13 +467,10 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
               <tbody>
                 {visibleBikes.map((bike) => (
                   <tr className="border-b border-black/10" key={bike.id}>
-                    {showModel && (
-                      <td className="p-3">
-                        {bike.brandName} {bike.modelName}
-                      </td>
-                    )}
                     <td className="p-3">{bike.year}</td>
-                    <td className="p-3 font-semibold">{bike.variantName}</td>
+                    <td className="p-3 font-semibold">
+                      {bike.brandName} - {bike.variantName}
+                    </td>
                     <td className="p-3">
                       {bike.msrpPrice
                         ? `$${bike.msrpPrice.toLocaleString()}`
@@ -550,7 +548,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
                   )}
                   {models.map((model) => (
                     <option key={model.id} value={model.id}>
-                      {model.brandName} {model.name}
+                      {model.brandName} - {model.name}
                     </option>
                   ))}
                 </select>
@@ -689,8 +687,8 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
         >
           <form onSubmit={reassignModel}>
             <p className="mt-5 text-sm text-white/80">
-              {reassignTargetBike.year} {reassignTargetBike.brandName}{' '}
-              {reassignTargetBike.modelName} {reassignTargetBike.variantName}
+              {reassignTargetBike.year} {reassignTargetBike.brandName} -{' '}
+              {reassignTargetBike.variantName}
             </p>
             <p className="mt-2 text-sm text-white/80">
               Only the BikeModel assignment will change.
@@ -711,7 +709,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
             >
               {models.map((model) => (
                 <option key={model.id} value={model.id}>
-                  {model.brandName} {model.name}
+                  {model.brandName} - {model.name}
                   {model.id === reassignTargetBike.modelId ? ' (current)' : ''}
                 </option>
               ))}

@@ -191,7 +191,7 @@ export default function BikeModelManagement() {
   }
 
   async function remove(model: BikeModel) {
-    if (!window.confirm(`Delete ${model.brandName} ${model.name}?`)) {
+    if (!window.confirm(`Delete ${model.brandName} - ${model.name}?`)) {
       return;
     }
     setError(null);

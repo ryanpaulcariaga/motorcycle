@@ -27,7 +27,7 @@ function toSelected(
   if (compareResult && compareResult.bikes.length > 0) {
     return compareResult.bikes.map((bike) => ({
       id: String(bike.id),
-      label: `${bike.brandName} ${bike.modelName} ${bike.variantName}`,
+      label: `${bike.brandName} - ${bike.variantName}`,
     }));
   }
   return fallbackIds.map((id) => ({ id, label: `Bike #${id}` }));
@@ -72,7 +72,10 @@ export default function CompareClient({
     }
     updateUrl([
       ...selected,
-      { id, label: `${bike.brandName} ${bike.modelName} ${bike.variantName}` },
+      {
+        id,
+        label: `${bike.brandName} - ${bike.variantName}`,
+      },
     ]);
     setSearchTerm('');
     setSearchResults([]);
@@ -139,14 +142,14 @@ export default function CompareClient({
                     {bike.primaryImageUrl && (
                       <Image
                         src={bike.primaryImageUrl}
-                        alt={bike.modelName}
+                        alt={`${bike.brandName} - ${bike.variantName}`}
                         fill
                         className="object-cover"
                       />
                     )}
                   </span>
                   <span>
-                    {bike.brandName} {bike.modelName} {bike.variantName}{' '}
+                    {bike.brandName} - {bike.variantName}{' '}
                     <span className="text-zinc-400">({bike.year})</span>
                   </span>
                 </button>
@@ -173,7 +176,7 @@ export default function CompareClient({
                     key={bike.id}
                     className="p-2 border-b border-zinc-200 text-left min-w-[140px]"
                   >
-                    {bike.brandName} {bike.modelName} {bike.variantName}
+                    {bike.brandName} - {bike.variantName}
                   </th>
                 ))}
               </tr>
@@ -217,16 +220,15 @@ export default function CompareClient({
                 {bike.primaryImageUrl && (
                   <Image
                     src={bike.primaryImageUrl}
-                    alt={bike.modelName}
+                    alt={`${bike.brandName} - ${bike.variantName}`}
                     fill
                     className="object-cover"
                   />
                 )}
               </div>
               <div className="p-3">
-                <p className="text-xs text-zinc-500">{bike.brandName}</p>
                 <p className="font-semibold mb-2">
-                  {bike.modelName} {bike.variantName}
+                  {bike.brandName} - {bike.variantName}
                 </p>
                 {compareResult.specGroups.map((group) => (
                   <div key={group.code} className="mb-2">

@@ -115,18 +115,16 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                   {bike.primaryImageUrl && (
                     <Image
                       src={bike.primaryImageUrl}
-                      alt={bike.modelName}
+                      alt={`${bike.brandName} - ${bike.variantName}`}
                       fill
                       className="object-cover"
                     />
                   )}
                 </div>
                 <div className="p-3">
-                  <p className="text-xs text-zinc-500">
-                    {bike.brandName} · {bike.categoryName}
-                  </p>
+                  <p className="text-xs text-zinc-500">{bike.categoryName}</p>
                   <p className="font-semibold">
-                    {bike.modelName} {bike.variantName}
+                    {bike.brandName} - {bike.variantName}
                   </p>
                   <p className="text-sm text-zinc-600">
                     {bike.year}{' '}
