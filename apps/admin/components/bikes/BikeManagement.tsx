@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
@@ -32,7 +33,7 @@ const emptyForm = {
   specs: {} as Record<string, string>,
 };
 
-type SortField = 'variant' | 'year' | 'msrp' | 'status';
+type SortField = 'variant' | 'model' | 'year' | 'msrp' | 'status';
 
 export default function BikeManagement({ modelId }: { modelId?: number }) {
   const [bikes, setBikes] = useState<BikeAdminListItem[]>([]);
@@ -48,13 +49,22 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
   const [submitting, setSubmitting] = useState(false);
   const [reassigning, setReassigning] = useState(false);
   const [creatingModel, setCreatingModel] = useState(false);
-  const [newModel, setNewModel] = useState({ brandId: '', categoryId: '', name: '' });
+  const [newModel, setNewModel] = useState({
+    brandId: '',
+    categoryId: '',
+    name: '',
+  });
   const [brands, setBrands] = useState<LookupOption[]>([]);
   const [categories, setCategories] = useState<LookupOption[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [brandFilter, setBrandFilter] = useState('');
-  const [modelFilter, setModelFilter] = useState('');
+  const [modelFilter, setModelFilter] = useState(
+    () =>
+      (modelId === undefined &&
+        new URLSearchParams(window.location.search).get('modelId')) ||
+      ''
+  );
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField>(
@@ -86,11 +96,13 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
       const comparison =
         sortField === 'variant'
           ? a.variantName.localeCompare(b.variantName)
-          : sortField === 'year'
-            ? a.year - b.year
-            : sortField === 'msrp'
-              ? (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1)
-              : Number(a.isPublished) - Number(b.isPublished);
+          : sortField === 'model'
+            ? a.modelName.localeCompare(b.modelName)
+            : sortField === 'year'
+              ? a.year - b.year
+              : sortField === 'msrp'
+                ? (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1)
+                : Number(a.isPublished) - Number(b.isPublished);
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
@@ -492,6 +504,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
                 <tr className="border-b border-black/10">
                   {sortHeader('year', 'Year')}
                   {sortHeader('variant', 'Motorcycle')}
+                  {sortHeader('model', 'Bike Model')}
                   {sortHeader('msrp', 'MSRP')}
                   {sortHeader('status', 'Status')}
                   <th className="p-3">
@@ -507,6 +520,35 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
                       {bike.brandName} - {bike.variantName}
                     </td>
                     <td className="p-3">
+                      <span className="inline-flex items-center gap-2">
+                        {bike.modelName}
+                        <button
+                          type="button"
+                          className="text-brand-button hover:opacity-70"
+                          aria-label={`Reassign BikeModel for ${bike.brandName} - ${bike.variantName} (${bike.year})`}
+                          title="Reassign BikeModel"
+                          onClick={() => startReassign(bike)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
+                            aria-hidden="true"
+                          >
+                            <path d="M17 3l4 4-4 4" />
+                            <path d="M3 7h18" />
+                            <path d="M7 21l-4-4 4-4" />
+                            <path d="M21 17H3" />
+                          </svg>
+                        </button>
+                      </span>
+                    </td>
+                    <td className="p-3">
                       {bike.msrpPrice
                         ? `$${bike.msrpPrice.toLocaleString()}`
                         : '—'}
@@ -520,31 +562,25 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
                         <span className="text-brand-grey">Unpublished</span>
                       )}
                     </td>
-                    <td className="whitespace-nowrap p-3 text-right">
-                      <button
-                        className="mr-3 font-semibold text-brand-button underline"
-                        onClick={() => startReassign(bike)}
-                      >
-                        Reassign BikeModel
-                      </button>
-                      <button
-                        className="mr-3 font-semibold text-brand-button underline"
-                        onClick={() => void edit(bike)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="mr-3 font-semibold text-brand-button underline"
-                        onClick={() => void togglePublish(bike)}
-                      >
-                        {bike.isPublished ? 'Unpublish' : 'Publish'}
-                      </button>
-                      <button
-                        className="font-semibold text-red-700 underline"
-                        onClick={() => void remove(bike)}
-                      >
-                        Delete
-                      </button>
+                    <td className="p-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          icon="edit"
+                          label="Edit"
+                          onClick={() => void edit(bike)}
+                        />
+                        <IconButton
+                          icon={bike.isPublished ? 'unpublish' : 'publish'}
+                          label={bike.isPublished ? 'Unpublish' : 'Publish'}
+                          onClick={() => void togglePublish(bike)}
+                        />
+                        <IconButton
+                          icon="delete"
+                          label="Delete"
+                          variant="danger"
+                          onClick={() => void remove(bike)}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -730,46 +766,92 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
               Only the BikeModel assignment will change.
             </p>
             <div className="mt-5 flex items-center justify-between">
-              <label className="block text-sm font-semibold" htmlFor="reassignBikeModel">
+              <label
+                className="block text-sm font-semibold"
+                htmlFor="reassignBikeModel"
+              >
                 BikeModel
               </label>
               <button
                 className="text-sm font-semibold text-brand-gold disabled:opacity-50"
                 type="button"
                 disabled={reassigning}
-                onClick={() => (creatingModel ? setCreatingModel(false) : void startCreateModel())}
+                onClick={() =>
+                  creatingModel
+                    ? setCreatingModel(false)
+                    : void startCreateModel()
+                }
               >
                 {creatingModel ? 'Choose existing' : '+ New BikeModel'}
               </button>
             </div>
             {creatingModel ? (
               <div className="mt-2 grid gap-3">
-                <select className="w-full px-3 py-2 text-brand-black" aria-label="Brand" required value={newModel.brandId} disabled={reassigning} onChange={(e) => setNewModel({ ...newModel, brandId: e.target.value })}>
+                <select
+                  className="w-full px-3 py-2 text-brand-black"
+                  aria-label="Brand"
+                  required
+                  value={newModel.brandId}
+                  disabled={reassigning}
+                  onChange={(e) =>
+                    setNewModel({ ...newModel, brandId: e.target.value })
+                  }
+                >
                   <option value="">Select brand</option>
-                  {brands.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
                 </select>
-                <select className="w-full px-3 py-2 text-brand-black" aria-label="Category" required value={newModel.categoryId} disabled={reassigning} onChange={(e) => setNewModel({ ...newModel, categoryId: e.target.value })}>
+                <select
+                  className="w-full px-3 py-2 text-brand-black"
+                  aria-label="Category"
+                  required
+                  value={newModel.categoryId}
+                  disabled={reassigning}
+                  onChange={(e) =>
+                    setNewModel({ ...newModel, categoryId: e.target.value })
+                  }
+                >
                   <option value="">Select category</option>
-                  {categories.map((cat) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
                 </select>
-                <input className="w-full px-3 py-2 text-brand-black" aria-label="BikeModel name" placeholder="BikeModel name" required maxLength={100} value={newModel.name} disabled={reassigning} onChange={(e) => setNewModel({ ...newModel, name: e.target.value })} />
+                <input
+                  className="w-full px-3 py-2 text-brand-black"
+                  aria-label="BikeModel name"
+                  placeholder="BikeModel name"
+                  required
+                  maxLength={100}
+                  value={newModel.name}
+                  disabled={reassigning}
+                  onChange={(e) =>
+                    setNewModel({ ...newModel, name: e.target.value })
+                  }
+                />
               </div>
             ) : (
-            <select
-              className="mt-2 w-full px-3 py-2 text-brand-black"
-              id="reassignBikeModel"
-              required
-              value={targetModelId}
-              disabled={reassigning}
-              onChange={(event) => setTargetModelId(event.target.value)}
-            >
-              {models.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.brandName} - {model.name}
-                  {model.id === reassignTargetBike.modelId ? ' (current)' : ''}
-                </option>
-              ))}
-            </select>
+              <select
+                className="mt-2 w-full px-3 py-2 text-brand-black"
+                id="reassignBikeModel"
+                required
+                value={targetModelId}
+                disabled={reassigning}
+                onChange={(event) => setTargetModelId(event.target.value)}
+              >
+                {models.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.brandName} - {model.name}
+                    {model.id === reassignTargetBike.modelId
+                      ? ' (current)'
+                      : ''}
+                  </option>
+                ))}
+              </select>
             )}
             <ModalFooter>
               <button

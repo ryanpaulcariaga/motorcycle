@@ -1,4 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
@@ -159,19 +160,20 @@ export default function BrandManagement() {
                     <td className="p-3 font-semibold">{brand.name}</td>
                     <td className="p-3">{brand.modelCount}</td>
                     <td className="p-3">{brand.bikeCount}</td>
-                    <td className="space-x-4 p-3 text-right">
-                      <button
-                        className="font-semibold text-brand-button underline"
-                        onClick={() => startEdit(brand)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="font-semibold text-red-700 underline"
-                        onClick={() => void handleDelete(brand)}
-                      >
-                        Delete
-                      </button>
+                    <td className="p-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          icon="edit"
+                          label="Edit"
+                          onClick={() => startEdit(brand)}
+                        />
+                        <IconButton
+                          icon="delete"
+                          label="Delete"
+                          variant="danger"
+                          onClick={() => void handleDelete(brand)}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

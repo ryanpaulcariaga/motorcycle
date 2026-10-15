@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   createAdminRole,
@@ -210,26 +211,24 @@ export default function RoleManagement() {
                       {role.isActive ? 'Active' : 'Inactive'}
                     </td>
                     <td className="p-3 text-right">
-                      <div className="flex justify-end gap-4">
-                        <button
-                          className="font-semibold text-brand-button underline"
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          icon="edit"
+                          label="Edit"
                           onClick={() => openEditModal(role)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="font-semibold text-brand-button underline"
+                        />
+                        <IconButton
+                          icon={role.isActive ? 'deactivate' : 'activate'}
+                          label={role.isActive ? 'Deactivate' : 'Activate'}
                           onClick={() => void toggleRole(role)}
-                        >
-                          {role.isActive ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <button
-                          className="font-semibold text-red-700 underline disabled:opacity-50"
+                        />
+                        <IconButton
+                          icon="delete"
+                          label="Delete"
+                          variant="danger"
                           onClick={() => void removeRole(role)}
                           disabled={deletingId !== null}
-                        >
-                          {deletingId === role.id ? 'Deleting...' : 'Delete'}
-                        </button>
+                        />
                       </div>
                     </td>
                   </tr>

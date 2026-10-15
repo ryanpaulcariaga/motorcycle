@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
@@ -293,19 +294,20 @@ export default function SpecDefinitionManagement({
                         : ''}
                     </td>
                     <td className="p-3">{definition.bikesWithValueCount}</td>
-                    <td className="p-3 text-right">
-                      <button
-                        className="mr-3 font-semibold text-brand-button underline"
-                        onClick={() => edit(definition)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="font-semibold text-red-700 underline"
-                        onClick={() => void remove(definition)}
-                      >
-                        Delete
-                      </button>
+                    <td className="p-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          icon="edit"
+                          label="Edit"
+                          onClick={() => edit(definition)}
+                        />
+                        <IconButton
+                          icon="delete"
+                          label="Delete"
+                          variant="danger"
+                          onClick={() => void remove(definition)}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

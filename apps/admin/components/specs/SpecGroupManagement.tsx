@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
@@ -237,19 +238,20 @@ export default function SpecGroupManagement() {
                         </button>
                       </td>
                       <td className="p-3">{group.definitionCount}</td>
-                      <td className="p-3 text-right">
-                        <button
-                          className="mr-3 font-semibold text-brand-button underline"
-                          onClick={() => edit(group)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="font-semibold text-red-700 underline"
-                          onClick={() => void remove(group)}
-                        >
-                          Delete
-                        </button>
+                      <td className="p-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <IconButton
+                            icon="edit"
+                            label="Edit"
+                            onClick={() => edit(group)}
+                          />
+                          <IconButton
+                            icon="delete"
+                            label="Delete"
+                            variant="danger"
+                            onClick={() => void remove(group)}
+                          />
+                        </div>
                       </td>
                     </tr>
                   ))}

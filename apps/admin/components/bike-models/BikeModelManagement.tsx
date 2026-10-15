@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
@@ -12,10 +13,7 @@ import {
   updateBikeModel,
 } from '@/lib/api';
 import type { BikeModel, LookupOption } from '@/lib/types';
-import {
-  parseBikeModelListState,
-  serializeBikeModelListState,
-} from '@/lib/bikeModelListState';
+import { parseBikeModelListState } from '@/lib/bikeModelListState';
 
 const emptyForm = { brandId: '', categoryId: '', name: '' };
 
@@ -42,12 +40,6 @@ export default function BikeModelManagement() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const bikeListSearch = serializeBikeModelListState({
-    brandFilter,
-    categoryFilter,
-    sortField,
-    sortDirection,
-  });
   const filteredModels = models
     .filter(
       (model) =>
@@ -408,25 +400,25 @@ export default function BikeModelManagement() {
                         <td className="p-3">{model.brandName}</td>
                         <td className="p-3">{model.categoryName}</td>
                         <td className="p-3 font-semibold">{model.name}</td>
-                        <td className="whitespace-nowrap p-3 text-right">
-                          <button
-                            className="mr-3 font-semibold text-brand-button underline"
-                            onClick={() => edit(model)}
-                          >
-                            Edit
-                          </button>
-                          <a
-                            className="mr-3 font-semibold text-brand-button underline"
-                            href={`/admin/bike-models/${model.id}/bikes${bikeListSearch}`}
-                          >
-                            Variants
-                          </a>
-                          <button
-                            className="font-semibold text-red-700 underline"
-                            onClick={() => void remove(model)}
-                          >
-                            Delete
-                          </button>
+                        <td className="p-3">
+                          <div className="flex items-center justify-end gap-1">
+                            <IconButton
+                              icon="edit"
+                              label="Edit"
+                              onClick={() => edit(model)}
+                            />
+                            <IconButton
+                              icon="variants"
+                              label="Variants"
+                              href={`/admin/bike-variants?modelId=${model.id}`}
+                            />
+                            <IconButton
+                              icon="delete"
+                              label="Delete"
+                              variant="danger"
+                              onClick={() => void remove(model)}
+                            />
+                          </div>
                         </td>
                       </tr>
                     ))}

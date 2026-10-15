@@ -98,7 +98,7 @@ function AdminShell({ session }: { session: AdminSession }) {
         </div>
       </header>
       <div className="mx-auto grid max-w-7xl gap-6 p-4 md:grid-cols-[14rem_minmax(0,1fr)] md:p-8">
-        <nav className="bg-brand-sidebar p-4 text-white">
+        <nav className="h-fit self-start bg-brand-sidebar p-4 text-white md:sticky md:top-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-gold">
             Catalog
           </p>

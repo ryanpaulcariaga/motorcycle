@@ -1,4 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
@@ -160,19 +161,20 @@ export default function CategoryManagement() {
                     <td className="p-3 font-semibold">{category.name}</td>
                     <td className="p-3">{category.modelCount}</td>
                     <td className="p-3">{category.bikeCount}</td>
-                    <td className="space-x-4 p-3 text-right">
-                      <button
-                        className="font-semibold text-brand-button underline"
-                        onClick={() => startEdit(category)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="font-semibold text-red-700 underline"
-                        onClick={() => void handleDelete(category)}
-                      >
-                        Delete
-                      </button>
+                    <td className="p-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconButton
+                          icon="edit"
+                          label="Edit"
+                          onClick={() => startEdit(category)}
+                        />
+                        <IconButton
+                          icon="delete"
+                          label="Delete"
+                          variant="danger"
+                          onClick={() => void handleDelete(category)}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}
