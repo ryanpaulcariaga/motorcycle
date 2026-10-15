@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
   createAdminSpecGroup,
@@ -19,6 +20,7 @@ export default function SpecGroupManagement() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,9 +49,17 @@ export default function SpecGroupManagement() {
     queueMicrotask(() => void load());
   }, []);
 
-  function reset() {
+  const reset = useCallback(() => {
     setForm(emptyForm);
     setEditingId(null);
+    setModalOpen(false);
+  }, []);
+
+  function startCreate() {
+    setForm(emptyForm);
+    setEditingId(null);
+    setError(null);
+    setModalOpen(true);
   }
 
   function edit(group: SpecGroupAdmin) {
@@ -59,6 +69,8 @@ export default function SpecGroupManagement() {
       name: group.name,
       iconName: group.iconName ?? '',
     });
+    setError(null);
+    setModalOpen(true);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -138,7 +150,7 @@ export default function SpecGroupManagement() {
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div>
         <section className="bg-brand-content p-6 shadow-lg">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -147,15 +159,23 @@ export default function SpecGroupManagement() {
               </p>
               <h1 className="text-2xl font-bold">Specifications</h1>
             </div>
-            <button
-              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
-              onClick={() => void load()}
-              disabled={loading}
-            >
-              Refresh
-            </button>
+            <div className="flex gap-3">
+              <button
+                className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+                onClick={() => void load()}
+                disabled={loading}
+              >
+                Refresh
+              </button>
+              <button
+                className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+                onClick={startCreate}
+              >
+                Add group
+              </button>
+            </div>
           </div>
-          {error && (
+          {error && !modalOpen && (
             <p
               className="mt-4 border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
               role="alert"
@@ -238,78 +258,82 @@ export default function SpecGroupManagement() {
             </div>
           )}
         </section>
-        <form
-          className="h-fit bg-brand-sidebar p-6 text-white shadow-lg"
-          onSubmit={submit}
-        >
-          <h2 className="text-xl font-bold">
-            {editingId === null ? 'Add spec group' : 'Edit spec group'}
-          </h2>
-          <label
-            className="mt-5 block text-sm font-semibold"
-            htmlFor="groupCode"
+        {modalOpen && (
+          <Modal
+            title={editingId === null ? 'Add spec group' : 'Edit spec group'}
+            error={error}
+            onClose={reset}
           >
-            Code
-          </label>
-          <input
-            className="mt-2 w-full px-3 py-2 text-brand-black"
-            id="groupCode"
-            required
-            value={form.code}
-            onChange={(event) => setForm({ ...form, code: event.target.value })}
-            placeholder="engine"
-          />
-          <label
-            className="mt-4 block text-sm font-semibold"
-            htmlFor="groupName"
-          >
-            Name
-          </label>
-          <input
-            className="mt-2 w-full px-3 py-2 text-brand-black"
-            id="groupName"
-            required
-            value={form.name}
-            onChange={(event) => setForm({ ...form, name: event.target.value })}
-            placeholder="Engine"
-          />
-          <label
-            className="mt-4 block text-sm font-semibold"
-            htmlFor="groupIcon"
-          >
-            Icon name (optional)
-          </label>
-          <input
-            className="mt-2 w-full px-3 py-2 text-brand-black"
-            id="groupIcon"
-            value={form.iconName}
-            onChange={(event) =>
-              setForm({ ...form, iconName: event.target.value })
-            }
-          />
-          <div className="mt-6 flex gap-3">
-            {' '}
-            <button
-              className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
-              disabled={submitting}
-            >
-              {submitting
-                ? 'Saving...'
-                : editingId === null
-                  ? 'Add group'
-                  : 'Save changes'}
-            </button>
-            {editingId !== null && (
-              <button
-                type="button"
-                className="border border-white px-4 py-3 font-semibold"
-                onClick={reset}
+            <form onSubmit={submit}>
+              <label
+                className="mt-5 block text-sm font-semibold"
+                htmlFor="groupCode"
               >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
+                Code
+              </label>
+              <input
+                className="mt-2 w-full px-3 py-2 text-brand-black"
+                id="groupCode"
+                required
+                value={form.code}
+                onChange={(event) =>
+                  setForm({ ...form, code: event.target.value })
+                }
+                placeholder="engine"
+              />
+              <label
+                className="mt-4 block text-sm font-semibold"
+                htmlFor="groupName"
+              >
+                Name
+              </label>
+              <input
+                className="mt-2 w-full px-3 py-2 text-brand-black"
+                id="groupName"
+                required
+                value={form.name}
+                onChange={(event) =>
+                  setForm({ ...form, name: event.target.value })
+                }
+                placeholder="Engine"
+              />
+              <label
+                className="mt-4 block text-sm font-semibold"
+                htmlFor="groupIcon"
+              >
+                Icon name (optional)
+              </label>
+              <input
+                className="mt-2 w-full px-3 py-2 text-brand-black"
+                id="groupIcon"
+                value={form.iconName}
+                onChange={(event) =>
+                  setForm({ ...form, iconName: event.target.value })
+                }
+              />
+              <ModalFooter>
+                {' '}
+                <button
+                  className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
+                  disabled={submitting}
+                >
+                  {submitting
+                    ? 'Saving...'
+                    : editingId === null
+                      ? 'Add group'
+                      : 'Save changes'}
+                </button>
+                <button
+                  type="button"
+                  className="border border-white px-4 py-3 font-semibold"
+                  onClick={reset}
+                >
+                  Cancel
+                </button>
+              </ModalFooter>
+            </form>
+          </Modal>
+        )}
       </div>
 
       {selectedGroupId !== null && (

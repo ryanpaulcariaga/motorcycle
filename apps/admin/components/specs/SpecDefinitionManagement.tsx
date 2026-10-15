@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
   createAdminSpecDefinition,
@@ -43,6 +44,7 @@ export default function SpecDefinitionManagement({
   const [definitions, setDefinitions] = useState<SpecDefinitionAdmin[]>([]);
   const [form, setForm] = useState({ ...emptyForm, groupId });
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,9 +69,17 @@ export default function SpecDefinitionManagement({
     queueMicrotask(() => void load());
   }, [groupId]);
 
-  function reset() {
+  const reset = useCallback(() => {
     setForm({ ...emptyForm, groupId });
     setEditingId(null);
+    setModalOpen(false);
+  }, [groupId]);
+
+  function startCreate() {
+    setForm({ ...emptyForm, groupId });
+    setEditingId(null);
+    setError(null);
+    setModalOpen(true);
   }
 
   function edit(definition: SpecDefinitionAdmin) {
@@ -83,6 +93,8 @@ export default function SpecDefinitionManagement({
       isFilterable: definition.isFilterable,
       filterType: definition.filterType ?? '',
     });
+    setError(null);
+    setModalOpen(true);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -192,7 +204,7 @@ export default function SpecDefinitionManagement({
   const ordered = [...definitions].sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div>
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -203,15 +215,23 @@ export default function SpecDefinitionManagement({
               {groups.find((g) => g.id === groupId)?.name ?? 'Group'}
             </h2>
           </div>
-          <button
-            className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
-            onClick={() => void load()}
-            disabled={loading}
-          >
-            Refresh
-          </button>
+          <div className="flex gap-3">
+            <button
+              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+              onClick={() => void load()}
+              disabled={loading}
+            >
+              Refresh
+            </button>
+            <button
+              className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+              onClick={startCreate}
+            >
+              Add spec
+            </button>
+          </div>
         </div>
-        {error && (
+        {error && !modalOpen && (
           <p
             className="mt-4 whitespace-pre-line border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
             role="alert"
@@ -294,155 +314,175 @@ export default function SpecDefinitionManagement({
           </div>
         )}
       </section>
-      <form
-        className="h-fit bg-brand-sidebar p-6 text-white shadow-lg"
-        onSubmit={submit}
-      >
-        <h2 className="text-xl font-bold">
-          {editingId === null ? 'Add spec definition' : 'Edit spec definition'}
-        </h2>
-
-        <label className="mt-5 block text-sm font-semibold" htmlFor="defGroup">
-          Group
-        </label>
-        <select
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="defGroup"
-          value={form.groupId}
-          onChange={(event) =>
-            setForm({ ...form, groupId: Number(event.target.value) })
+      {modalOpen && (
+        <Modal
+          title={
+            editingId === null ? 'Add spec definition' : 'Edit spec definition'
           }
+          error={error}
+          onClose={reset}
         >
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
-
-        <label className="mt-4 block text-sm font-semibold" htmlFor="defCode">
-          Code
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="defCode"
-          required
-          value={form.code}
-          onChange={(event) => setForm({ ...form, code: event.target.value })}
-          placeholder="cubic_centimeter"
-        />
-
-        <label className="mt-4 block text-sm font-semibold" htmlFor="defLabel">
-          Label
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="defLabel"
-          required
-          value={form.label}
-          onChange={(event) => setForm({ ...form, label: event.target.value })}
-          placeholder="Displacement"
-        />
-
-        <label
-          className="mt-4 block text-sm font-semibold"
-          htmlFor="defDataType"
-        >
-          Data type
-        </label>
-        <select
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="defDataType"
-          value={form.dataType}
-          onChange={(event) =>
-            setForm({
-              ...form,
-              dataType: event.target.value as SpecDefinitionAdmin['dataType'],
-            })
-          }
-        >
-          {DATA_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-
-        <label className="mt-4 block text-sm font-semibold" htmlFor="defUnit">
-          Unit (optional)
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="defUnit"
-          value={form.unit}
-          onChange={(event) => setForm({ ...form, unit: event.target.value })}
-          placeholder="cc"
-        />
-
-        <label className="mt-4 flex items-center gap-2 text-sm font-semibold">
-          <input
-            type="checkbox"
-            checked={form.isFilterable}
-            onChange={(event) =>
-              setForm({
-                ...form,
-                isFilterable: event.target.checked,
-                filterType: event.target.checked ? form.filterType : '',
-              })
-            }
-          />
-          Filterable
-        </label>
-
-        {form.isFilterable && (
-          <>
+          <form onSubmit={submit}>
             <label
-              className="mt-4 block text-sm font-semibold"
-              htmlFor="defFilterType"
+              className="mt-5 block text-sm font-semibold"
+              htmlFor="defGroup"
             >
-              Filter type
+              Group
             </label>
             <select
               className="mt-2 w-full px-3 py-2 text-brand-black"
-              id="defFilterType"
-              required
-              value={form.filterType}
+              id="defGroup"
+              value={form.groupId}
               onChange={(event) =>
-                setForm({ ...form, filterType: event.target.value })
+                setForm({ ...form, groupId: Number(event.target.value) })
               }
             >
-              <option value="">Select...</option>
-              {FILTER_TYPES.map((t) => (
+              {groups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="defCode"
+            >
+              Code
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="defCode"
+              required
+              value={form.code}
+              onChange={(event) =>
+                setForm({ ...form, code: event.target.value })
+              }
+              placeholder="cubic_centimeter"
+            />
+
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="defLabel"
+            >
+              Label
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="defLabel"
+              required
+              value={form.label}
+              onChange={(event) =>
+                setForm({ ...form, label: event.target.value })
+              }
+              placeholder="Displacement"
+            />
+
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="defDataType"
+            >
+              Data type
+            </label>
+            <select
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="defDataType"
+              value={form.dataType}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  dataType: event.target
+                    .value as SpecDefinitionAdmin['dataType'],
+                })
+              }
+            >
+              {DATA_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>
               ))}
             </select>
-          </>
-        )}
 
-        <div className="mt-6 flex gap-3">
-          <button
-            className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
-            disabled={submitting}
-          >
-            {submitting
-              ? 'Saving...'
-              : editingId === null
-                ? 'Add spec'
-                : 'Save changes'}
-          </button>
-          {editingId !== null && (
-            <button
-              type="button"
-              className="border border-white px-4 py-3 font-semibold"
-              onClick={reset}
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="defUnit"
             >
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
+              Unit (optional)
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="defUnit"
+              value={form.unit}
+              onChange={(event) =>
+                setForm({ ...form, unit: event.target.value })
+              }
+              placeholder="cc"
+            />
+
+            <label className="mt-4 flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={form.isFilterable}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    isFilterable: event.target.checked,
+                    filterType: event.target.checked ? form.filterType : '',
+                  })
+                }
+              />
+              Filterable
+            </label>
+
+            {form.isFilterable && (
+              <>
+                <label
+                  className="mt-4 block text-sm font-semibold"
+                  htmlFor="defFilterType"
+                >
+                  Filter type
+                </label>
+                <select
+                  className="mt-2 w-full px-3 py-2 text-brand-black"
+                  id="defFilterType"
+                  required
+                  value={form.filterType}
+                  onChange={(event) =>
+                    setForm({ ...form, filterType: event.target.value })
+                  }
+                >
+                  <option value="">Select...</option>
+                  {FILTER_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            <ModalFooter>
+              <button
+                className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
+                disabled={submitting}
+              >
+                {submitting
+                  ? 'Saving...'
+                  : editingId === null
+                    ? 'Add spec'
+                    : 'Save changes'}
+              </button>
+              <button
+                type="button"
+                className="border border-white px-4 py-3 font-semibold"
+                onClick={reset}
+              >
+                Cancel
+              </button>
+            </ModalFooter>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

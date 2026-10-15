@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import Modal, { ModalFooter } from '@/components/Modal';
 import {
   createAdminRole,
   getAdminRoles,
@@ -18,6 +19,7 @@ const emptyForm = {
 export default function RoleManagement() {
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [form, setForm] = useState(emptyForm);
+  const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,13 +44,18 @@ export default function RoleManagement() {
     queueMicrotask(() => void loadRoles());
   }, []);
 
+  const closeModal = useCallback(() => {
+    setForm(emptyForm);
+    setModalOpen(false);
+  }, []);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
     try {
       await createAdminRole({ ...form, role: 'Administrator' });
-      setForm(emptyForm);
+      closeModal();
       await loadRoles();
     } catch (cause) {
       setError(
@@ -83,7 +90,7 @@ export default function RoleManagement() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div>
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -92,15 +99,23 @@ export default function RoleManagement() {
             </p>
             <h1 className="text-2xl font-bold">Administrators</h1>
           </div>
-          <button
-            className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
-            onClick={() => void loadRoles()}
-            disabled={loading}
-          >
-            Refresh
-          </button>
+          <div className="flex gap-3">
+            <button
+              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+              onClick={() => void loadRoles()}
+              disabled={loading}
+            >
+              Refresh
+            </button>
+            <button
+              className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+              onClick={() => setModalOpen(true)}
+            >
+              Provision administrator
+            </button>
+          </div>
         </div>
-        {error && (
+        {error && !modalOpen && (
           <p
             className="mt-4 border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
             role="alert"
@@ -157,63 +172,76 @@ export default function RoleManagement() {
           </div>
         )}
       </section>
-      <form
-        className="h-fit bg-brand-sidebar p-6 text-white shadow-lg"
-        onSubmit={handleSubmit}
-      >
-        <h2 className="text-xl font-bold">Provision administrator</h2>
-        <label
-          className="mt-5 block text-sm font-semibold"
-          htmlFor="facebookUserId"
+      {modalOpen && (
+        <Modal
+          title="Provision administrator"
+          error={error}
+          onClose={closeModal}
         >
-          Facebook user ID
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="facebookUserId"
-          required
-          value={form.facebookUserId}
-          onChange={(event) =>
-            setForm({ ...form, facebookUserId: event.target.value })
-          }
-        />
-        <label
-          className="mt-4 block text-sm font-semibold"
-          htmlFor="emailSnapshot"
-        >
-          Email snapshot
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="emailSnapshot"
-          type="email"
-          value={form.emailSnapshot}
-          onChange={(event) =>
-            setForm({ ...form, emailSnapshot: event.target.value })
-          }
-        />
-        <label
-          className="mt-4 block text-sm font-semibold"
-          htmlFor="displayNameSnapshot"
-        >
-          Display name snapshot
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="displayNameSnapshot"
-          required
-          value={form.displayNameSnapshot}
-          onChange={(event) =>
-            setForm({ ...form, displayNameSnapshot: event.target.value })
-          }
-        />
-        <button
-          className="mt-6 w-full bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
-          disabled={submitting}
-        >
-          {submitting ? 'Provisioning...' : 'Provision administrator'}
-        </button>
-      </form>
+          <form onSubmit={handleSubmit}>
+            <label
+              className="mt-5 block text-sm font-semibold"
+              htmlFor="facebookUserId"
+            >
+              Facebook user ID
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="facebookUserId"
+              required
+              value={form.facebookUserId}
+              onChange={(event) =>
+                setForm({ ...form, facebookUserId: event.target.value })
+              }
+            />
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="emailSnapshot"
+            >
+              Email snapshot
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="emailSnapshot"
+              type="email"
+              value={form.emailSnapshot}
+              onChange={(event) =>
+                setForm({ ...form, emailSnapshot: event.target.value })
+              }
+            />
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="displayNameSnapshot"
+            >
+              Display name snapshot
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="displayNameSnapshot"
+              required
+              value={form.displayNameSnapshot}
+              onChange={(event) =>
+                setForm({ ...form, displayNameSnapshot: event.target.value })
+              }
+            />
+            <ModalFooter>
+              <button
+                className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
+                disabled={submitting}
+              >
+                {submitting ? 'Provisioning...' : 'Provision administrator'}
+              </button>
+              <button
+                className="border border-white px-4 py-3 font-semibold"
+                type="button"
+                onClick={closeModal}
+              >
+                Cancel
+              </button>
+            </ModalFooter>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

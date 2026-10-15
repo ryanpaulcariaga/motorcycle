@@ -9,6 +9,7 @@ import {
   getSpecGroups,
   updateAdminBikeSpecValues,
 } from '@/lib/api';
+import Modal, { ModalFooter } from '@/components/Modal';
 import type { BikeSpecValueItem, LookupOption } from '@/lib/types';
 
 type SpecGroup = Awaited<ReturnType<typeof getSpecGroups>>[number];
@@ -33,6 +34,7 @@ export default function BulkSpecEditor() {
   const [rows, setRows] = useState<BikeSpecValueItem[]>([]);
   const [edits, setEdits] = useState<Record<number, string>>({});
   const [loaded, setLoaded] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,6 +85,7 @@ export default function BulkSpecEditor() {
       setEdits({});
       setLoadedSpecCode(specCode);
       setLoaded(true);
+      setModalOpen(result.length > 0);
     } catch (cause) {
       setError(
         cause instanceof AdminApiError
@@ -92,6 +95,16 @@ export default function BulkSpecEditor() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function closeModal() {
+    if (dirtyIds.length > 0 && !window.confirm('Discard unsaved changes?')) {
+      return;
+    }
+    setEdits({});
+    setNotice(null);
+    setError(null);
+    setModalOpen(false);
   }
 
   function toValue(raw: string, def: SpecDefinition): unknown {
@@ -297,7 +310,7 @@ export default function BulkSpecEditor() {
         </div>
       </form>
 
-      {error && (
+      {error && !modalOpen && (
         <p
           className="mt-4 border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
           role="alert"
@@ -305,7 +318,7 @@ export default function BulkSpecEditor() {
           {error}
         </p>
       )}
-      {notice && (
+      {notice && !modalOpen && (
         <p
           className="mt-4 border-l-4 border-green-700 bg-green-50 p-3 text-sm text-green-800"
           role="status"
@@ -321,63 +334,88 @@ export default function BulkSpecEditor() {
             No motorcycles match these filters.
           </p>
         ) : (
-          <>
-            <div className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[36rem] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-black/10">
-                    <th className="p-3">Motorcycle</th>
-                    <th className="p-3">Year</th>
-                    <th className="p-3">Category</th>
-                    <th className="p-3">MSRP</th>
-                    <th className="p-3">
-                      {definition.label}
-                      {definition.unit ? ` (${definition.unit})` : ''}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr
-                      className={`border-b border-black/10 ${dirtyIds.includes(row.id) ? 'bg-yellow-50' : ''}`}
-                      key={row.id}
-                    >
-                      <td className="p-3 font-semibold">
-                        {row.modelName} {row.variantName}
-                      </td>
-                      <td className="p-3">{row.year}</td>
-                      <td className="p-3">{row.categoryName}</td>
-                      <td className="p-3">
-                        {row.msrpPrice
-                          ? `$${row.msrpPrice.toLocaleString()}`
-                          : '—'}
-                      </td>
-                      <td className="p-3">{renderInput(row, definition)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-6 flex items-center gap-4">
-              <button
-                className="bg-brand-gold px-5 py-3 font-bold text-brand-black disabled:opacity-50"
-                disabled={saving || dirtyIds.length === 0}
-                onClick={() => void save()}
-              >
-                {saving
-                  ? 'Saving...'
-                  : `Save ${dirtyIds.length} change${dirtyIds.length === 1 ? '' : 's'}`}
-              </button>
-              {dirtyIds.length > 0 && (
-                <button
-                  className="border border-brand-button px-4 py-3 font-semibold text-brand-button"
-                  onClick={() => setEdits({})}
+          modalOpen && (
+            <Modal
+              title={`Set ${definition.label}`}
+              error={error}
+              extraWide
+              onClose={closeModal}
+            >
+              {notice && (
+                <p
+                  className="mt-4 border-l-4 border-green-700 bg-green-50 p-3 text-sm text-green-800"
+                  role="status"
                 >
-                  Discard
-                </button>
+                  {notice}
+                </p>
               )}
-            </div>
-          </>
+              <div className="mt-4 bg-brand-content p-3 text-brand-black">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[36rem] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-black/10">
+                        <th className="p-3">Motorcycle</th>
+                        <th className="p-3">Year</th>
+                        <th className="p-3">Category</th>
+                        <th className="p-3">MSRP</th>
+                        <th className="p-3">
+                          {definition.label}
+                          {definition.unit ? ` (${definition.unit})` : ''}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((row) => (
+                        <tr
+                          className={`border-b border-black/10 ${dirtyIds.includes(row.id) ? 'bg-yellow-50' : ''}`}
+                          key={row.id}
+                        >
+                          <td className="p-3 font-semibold">
+                            {row.modelName} {row.variantName}
+                          </td>
+                          <td className="p-3">{row.year}</td>
+                          <td className="p-3">{row.categoryName}</td>
+                          <td className="p-3">
+                            {row.msrpPrice
+                              ? `${row.msrpPrice.toLocaleString()}`
+                              : '—'}
+                          </td>
+                          <td className="p-3">
+                            {renderInput(row, definition)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <ModalFooter>
+                <button
+                  className="flex-1 bg-brand-gold px-5 py-3 font-bold text-brand-black disabled:opacity-50"
+                  disabled={saving || dirtyIds.length === 0}
+                  onClick={() => void save()}
+                >
+                  {saving
+                    ? 'Saving...'
+                    : `Save ${dirtyIds.length} change${dirtyIds.length === 1 ? '' : 's'}`}
+                </button>
+                {dirtyIds.length > 0 && (
+                  <button
+                    className="border border-white px-4 py-3 font-semibold"
+                    onClick={() => setEdits({})}
+                  >
+                    Discard
+                  </button>
+                )}
+                <button
+                  className="border border-white px-4 py-3 font-semibold"
+                  onClick={closeModal}
+                >
+                  Close
+                </button>
+              </ModalFooter>
+            </Modal>
+          )
         ))}
     </section>
   );

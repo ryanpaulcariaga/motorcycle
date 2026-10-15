@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
   createAdminBike,
@@ -35,6 +36,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
   const [models, setModels] = useState<BikeModel[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -140,9 +142,17 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
     queueMicrotask(() => void load());
   }, [modelId]);
 
-  function reset() {
+  const reset = useCallback(() => {
     setForm(emptyForm);
     setEditingId(null);
+    setModalOpen(false);
+  }, []);
+
+  function startCreate() {
+    setForm(emptyForm);
+    setEditingId(null);
+    setError(null);
+    setModalOpen(true);
   }
 
   async function edit(bike: BikeAdminListItem) {
@@ -155,6 +165,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
           value === null || value === undefined ? '' : String(value);
       }
       setEditingId(bike.id);
+      setModalOpen(true);
       setForm({
         modelId: String(detail.modelId),
         variantName: detail.variantName,
@@ -262,7 +273,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div>
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -276,15 +287,23 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
             )}
             <h1 className="mt-2 text-2xl font-bold">Bike Variants</h1>
           </div>
-          <button
-            className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
-            onClick={() => void load()}
-            disabled={loading}
-          >
-            Refresh
-          </button>
+          <div className="flex gap-3">
+            <button
+              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+              onClick={() => void load()}
+              disabled={loading}
+            >
+              Refresh
+            </button>
+            <button
+              className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+              onClick={startCreate}
+            >
+              Add variant
+            </button>
+          </div>
         </div>
-        {error && (
+        {error && !modalOpen && (
           <p
             className="mt-4 border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
             role="alert"
@@ -434,159 +453,167 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
           </div>
         )}
       </section>
-      <form
-        className="h-fit bg-brand-sidebar p-6 text-white shadow-lg"
-        onSubmit={submit}
-      >
-        <h2 className="text-xl font-bold">
-          {editingId === null ? 'Add Bike Variant' : 'Edit Bike Variant'}
-        </h2>
-        {(editingId !== null || showModel) && (
-          <>
+      {modalOpen && (
+        <Modal
+          title={editingId === null ? 'Add Bike Variant' : 'Edit Bike Variant'}
+          error={error}
+          wide
+          onClose={reset}
+        >
+          <form onSubmit={submit}>
+            {(editingId !== null || showModel) && (
+              <>
+                <label
+                  className="mt-5 block text-sm font-semibold"
+                  htmlFor="bikeModel"
+                >
+                  Model
+                </label>
+                <select
+                  className="mt-2 w-full px-3 py-2 text-brand-black"
+                  id="bikeModel"
+                  required
+                  value={form.modelId}
+                  onChange={(event) =>
+                    setForm({ ...form, modelId: event.target.value })
+                  }
+                >
+                  {editingId === null && (
+                    <option value="">Select a model</option>
+                  )}
+                  {models.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.brandName} {model.name}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
             <label
               className="mt-5 block text-sm font-semibold"
-              htmlFor="bikeModel"
+              htmlFor="variantName"
             >
-              Model
+              Variant name
             </label>
-            <select
+            <input
               className="mt-2 w-full px-3 py-2 text-brand-black"
-              id="bikeModel"
+              id="variantName"
               required
-              value={form.modelId}
+              maxLength={255}
+              value={form.variantName}
               onChange={(event) =>
-                setForm({ ...form, modelId: event.target.value })
+                setForm({ ...form, variantName: event.target.value })
               }
+            />
+            <label className="mt-4 block text-sm font-semibold" htmlFor="year">
+              Year
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="year"
+              type="number"
+              required
+              value={form.year}
+              onChange={(event) =>
+                setForm({ ...form, year: event.target.value })
+              }
+            />
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="msrpPrice"
             >
-              {editingId === null && <option value="">Select a model</option>}
-              {models.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.brandName} {model.name}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
-        <label
-          className="mt-5 block text-sm font-semibold"
-          htmlFor="variantName"
-        >
-          Variant name
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="variantName"
-          required
-          maxLength={255}
-          value={form.variantName}
-          onChange={(event) =>
-            setForm({ ...form, variantName: event.target.value })
-          }
-        />
-        <label className="mt-4 block text-sm font-semibold" htmlFor="year">
-          Year
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="year"
-          type="number"
-          required
-          value={form.year}
-          onChange={(event) => setForm({ ...form, year: event.target.value })}
-        />
-        <label className="mt-4 block text-sm font-semibold" htmlFor="msrpPrice">
-          MSRP (optional)
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="msrpPrice"
-          type="number"
-          step="0.01"
-          value={form.msrpPrice}
-          onChange={(event) =>
-            setForm({ ...form, msrpPrice: event.target.value })
-          }
-        />
-        {specGroups.map((group) => (
-          <fieldset
-            className="mt-4 border-t border-white/20 pt-4"
-            key={group.code}
-          >
-            <legend className="text-sm font-semibold uppercase tracking-wide text-brand-gold">
-              {group.name}
-            </legend>
-            {group.definitions.map((def) => (
-              <div className="mt-2" key={def.code}>
-                <label
-                  className="block text-xs font-semibold"
-                  htmlFor={`spec-${def.code}`}
-                >
-                  {def.label}
-                  {def.unit ? ` (${def.unit})` : ''}
-                </label>
-                {def.dataType === 'boolean' ? (
-                  <select
-                    className="mt-1 w-full px-3 py-2 text-brand-black"
-                    id={`spec-${def.code}`}
-                    value={form.specs[def.code] ?? ''}
-                    onChange={(event) =>
-                      setForm({
-                        ...form,
-                        specs: {
-                          ...form.specs,
-                          [def.code]: event.target.value,
-                        },
-                      })
-                    }
-                  >
-                    <option value="">—</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                ) : (
-                  <input
-                    className="mt-1 w-full px-3 py-2 text-brand-black"
-                    id={`spec-${def.code}`}
-                    type={def.dataType === 'number' ? 'number' : 'text'}
-                    value={form.specs[def.code] ?? ''}
-                    onChange={(event) =>
-                      setForm({
-                        ...form,
-                        specs: {
-                          ...form.specs,
-                          [def.code]: event.target.value,
-                        },
-                      })
-                    }
-                  />
-                )}
-              </div>
+              MSRP (optional)
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="msrpPrice"
+              type="number"
+              step="0.01"
+              value={form.msrpPrice}
+              onChange={(event) =>
+                setForm({ ...form, msrpPrice: event.target.value })
+              }
+            />
+            {specGroups.map((group) => (
+              <fieldset
+                className="mt-4 border-t border-white/20 pt-4"
+                key={group.code}
+              >
+                <legend className="text-sm font-semibold uppercase tracking-wide text-brand-gold">
+                  {group.name}
+                </legend>
+                {group.definitions.map((def) => (
+                  <div className="mt-2" key={def.code}>
+                    <label
+                      className="block text-xs font-semibold"
+                      htmlFor={`spec-${def.code}`}
+                    >
+                      {def.label}
+                      {def.unit ? ` (${def.unit})` : ''}
+                    </label>
+                    {def.dataType === 'boolean' ? (
+                      <select
+                        className="mt-1 w-full px-3 py-2 text-brand-black"
+                        id={`spec-${def.code}`}
+                        value={form.specs[def.code] ?? ''}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            specs: {
+                              ...form.specs,
+                              [def.code]: event.target.value,
+                            },
+                          })
+                        }
+                      >
+                        <option value="">—</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    ) : (
+                      <input
+                        className="mt-1 w-full px-3 py-2 text-brand-black"
+                        id={`spec-${def.code}`}
+                        type={def.dataType === 'number' ? 'number' : 'text'}
+                        value={form.specs[def.code] ?? ''}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            specs: {
+                              ...form.specs,
+                              [def.code]: event.target.value,
+                            },
+                          })
+                        }
+                      />
+                    )}
+                  </div>
+                ))}
+              </fieldset>
             ))}
-          </fieldset>
-        ))}
-        <div className="mt-6 flex gap-3">
-          <button
-            className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
-            disabled={submitting}
-          >
-            {submitting
-              ? 'Saving...'
-              : editingId === null
-                ? 'Add bike'
-                : 'Save changes'}
-          </button>
-          {editingId !== null && (
-            <button
-              className="border border-white px-4 py-3 font-semibold"
-              type="button"
-              onClick={reset}
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-        {editingId !== null && <BikeImageManagement bikeId={editingId} />}
-      </form>
+            <ModalFooter>
+              <button
+                className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
+                disabled={submitting}
+              >
+                {submitting
+                  ? 'Saving...'
+                  : editingId === null
+                    ? 'Add bike'
+                    : 'Save changes'}
+              </button>
+              <button
+                className="border border-white px-4 py-3 font-semibold"
+                type="button"
+                onClick={reset}
+              >
+                Cancel
+              </button>
+            </ModalFooter>
+            {editingId !== null && <BikeImageManagement bikeId={editingId} />}
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
   createBikeModel,
@@ -37,6 +38,7 @@ export default function BikeModelManagement() {
   );
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,9 +136,17 @@ export default function BikeModelManagement() {
     window.history.replaceState(window.history.state, '', url);
   }, [brandFilter, categoryFilter, sortField, sortDirection]);
 
-  function reset() {
+  const reset = useCallback(() => {
     setForm(emptyForm);
     setEditingId(null);
+    setModalOpen(false);
+  }, []);
+
+  function startCreate() {
+    setForm(emptyForm);
+    setEditingId(null);
+    setError(null);
+    setModalOpen(true);
   }
 
   function edit(model: BikeModel) {
@@ -146,6 +156,8 @@ export default function BikeModelManagement() {
       categoryId: String(model.categoryId),
       name: model.name,
     });
+    setError(null);
+    setModalOpen(true);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -197,7 +209,7 @@ export default function BikeModelManagement() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div>
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -206,15 +218,23 @@ export default function BikeModelManagement() {
             </p>
             <h1 className="text-2xl font-bold">Bikes Model</h1>
           </div>
-          <button
-            className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
-            onClick={() => void load()}
-            disabled={loading}
-          >
-            Refresh
-          </button>
+          <div className="flex gap-3">
+            <button
+              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+              onClick={() => void load()}
+              disabled={loading}
+            >
+              Refresh
+            </button>
+            <button
+              className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+              onClick={startCreate}
+            >
+              Add BikeModel
+            </button>
+          </div>
         </div>
-        {error && (
+        {error && !modalOpen && (
           <p
             className="mt-4 border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
             role="alert"
@@ -417,87 +437,95 @@ export default function BikeModelManagement() {
           </div>
         )}
       </section>
-      <form
-        className="h-fit bg-brand-sidebar p-6 text-white shadow-lg"
-        onSubmit={submit}
-      >
-        <h2 className="text-xl font-bold">
-          {editingId === null ? 'Add BikeModel' : 'Edit BikeModel'}
-        </h2>
-        <label className="mt-5 block text-sm font-semibold" htmlFor="brandId">
-          Brand
-        </label>
-        <select
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="brandId"
-          required
-          value={form.brandId}
-          onChange={(event) =>
-            setForm({ ...form, brandId: event.target.value })
-          }
+      {modalOpen && (
+        <Modal
+          title={editingId === null ? 'Add BikeModel' : 'Edit BikeModel'}
+          error={error}
+          onClose={reset}
         >
-          <option value="">Select brand</option>
-          {brands.map((brand) => (
-            <option key={brand.id} value={brand.id}>
-              {brand.name}
-            </option>
-          ))}
-        </select>
-        <label
-          className="mt-4 block text-sm font-semibold"
-          htmlFor="categoryId"
-        >
-          Category
-        </label>
-        <select
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="categoryId"
-          required
-          value={form.categoryId}
-          onChange={(event) =>
-            setForm({ ...form, categoryId: event.target.value })
-          }
-        >
-          <option value="">Select category</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        <label className="mt-4 block text-sm font-semibold" htmlFor="modelName">
-          Model
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="modelName"
-          required
-          maxLength={255}
-          value={form.name}
-          onChange={(event) => setForm({ ...form, name: event.target.value })}
-        />
-        <div className="mt-6 flex gap-3">
-          <button
-            className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
-            disabled={submitting}
-          >
-            {submitting
-              ? 'Saving...'
-              : editingId === null
-                ? 'Add model'
-                : 'Save changes'}
-          </button>
-          {editingId !== null && (
-            <button
-              className="border border-white px-4 py-3 font-semibold"
-              type="button"
-              onClick={reset}
+          <form onSubmit={submit}>
+            <label
+              className="mt-5 block text-sm font-semibold"
+              htmlFor="brandId"
             >
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
+              Brand
+            </label>
+            <select
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="brandId"
+              required
+              value={form.brandId}
+              onChange={(event) =>
+                setForm({ ...form, brandId: event.target.value })
+              }
+            >
+              <option value="">Select brand</option>
+              {brands.map((brand) => (
+                <option key={brand.id} value={brand.id}>
+                  {brand.name}
+                </option>
+              ))}
+            </select>
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="categoryId"
+            >
+              Category
+            </label>
+            <select
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="categoryId"
+              required
+              value={form.categoryId}
+              onChange={(event) =>
+                setForm({ ...form, categoryId: event.target.value })
+              }
+            >
+              <option value="">Select category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            <label
+              className="mt-4 block text-sm font-semibold"
+              htmlFor="modelName"
+            >
+              Model
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="modelName"
+              required
+              maxLength={255}
+              value={form.name}
+              onChange={(event) =>
+                setForm({ ...form, name: event.target.value })
+              }
+            />
+            <ModalFooter>
+              <button
+                className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
+                disabled={submitting}
+              >
+                {submitting
+                  ? 'Saving...'
+                  : editingId === null
+                    ? 'Add model'
+                    : 'Save changes'}
+              </button>
+              <button
+                className="border border-white px-4 py-3 font-semibold"
+                type="button"
+                onClick={reset}
+              >
+                Cancel
+              </button>
+            </ModalFooter>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
   createAdminCategory,
@@ -14,6 +15,7 @@ export default function CategoryManagement() {
   const [categories, setCategories] = useState<CategoryAdmin[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,9 +39,16 @@ export default function CategoryManagement() {
     queueMicrotask(() => void loadCategories());
   }, []);
 
-  function reset() {
+  const reset = useCallback(() => {
     setForm(emptyForm);
     setEditingId(null);
+    setModalOpen(false);
+  }, []);
+
+  function startCreate() {
+    setForm(emptyForm);
+    setEditingId(null);
+    setModalOpen(true);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -89,10 +98,11 @@ export default function CategoryManagement() {
   function startEdit(category: CategoryAdmin) {
     setEditingId(category.id);
     setForm({ name: category.name });
+    setModalOpen(true);
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div>
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -101,15 +111,23 @@ export default function CategoryManagement() {
             </p>
             <h1 className="text-2xl font-bold">Categories</h1>
           </div>
-          <button
-            className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
-            onClick={() => void loadCategories()}
-            disabled={loading}
-          >
-            Refresh
-          </button>
+          <div className="flex gap-3">
+            <button
+              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+              onClick={() => void loadCategories()}
+              disabled={loading}
+            >
+              Refresh
+            </button>
+            <button
+              className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+              onClick={startCreate}
+            >
+              Add category
+            </button>
+          </div>
         </div>
-        {error && (
+        {error && !modalOpen && (
           <p
             className="mt-4 border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
             role="alert"
@@ -163,47 +181,51 @@ export default function CategoryManagement() {
           </div>
         )}
       </section>
-      <form
-        className="h-fit bg-brand-sidebar p-6 text-white shadow-lg"
-        onSubmit={handleSubmit}
-      >
-        <h2 className="text-xl font-bold">
-          {editingId === null ? 'Add category' : 'Edit category'}
-        </h2>
-        <label
-          className="mt-5 block text-sm font-semibold"
-          htmlFor="categoryName"
+      {modalOpen && (
+        <Modal
+          title={editingId === null ? 'Add category' : 'Edit category'}
+          error={error}
+          onClose={reset}
         >
-          Name
-        </label>
-        <input
-          className="mt-2 w-full px-3 py-2 text-brand-black"
-          id="categoryName"
-          required
-          maxLength={255}
-          value={form.name}
-          onChange={(event) => setForm({ ...form, name: event.target.value })}
-        />
-        <button
-          className="mt-6 w-full bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
-          disabled={submitting}
-        >
-          {submitting
-            ? 'Saving...'
-            : editingId === null
-              ? 'Add category'
-              : 'Save changes'}
-        </button>
-        {editingId !== null && (
-          <button
-            className="mt-3 w-full border border-white px-4 py-2 font-semibold"
-            type="button"
-            onClick={reset}
-          >
-            Cancel
-          </button>
-        )}
-      </form>
+          <form onSubmit={handleSubmit}>
+            <label
+              className="mt-5 block text-sm font-semibold"
+              htmlFor="categoryName"
+            >
+              Name
+            </label>
+            <input
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="categoryName"
+              required
+              maxLength={255}
+              value={form.name}
+              onChange={(event) =>
+                setForm({ ...form, name: event.target.value })
+              }
+            />
+            <ModalFooter>
+              <button
+                className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
+                disabled={submitting}
+              >
+                {submitting
+                  ? 'Saving...'
+                  : editingId === null
+                    ? 'Add category'
+                    : 'Save changes'}
+              </button>
+              <button
+                className="border border-white px-4 py-3 font-semibold"
+                type="button"
+                onClick={reset}
+              >
+                Cancel
+              </button>
+            </ModalFooter>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }
