@@ -48,12 +48,15 @@ function AdminShell({ session }: { session: AdminSession }) {
   const isAdministratorsActive =
     pathname === '/admin' || pathname === '/admin/roles';
   const isBikesActive = pathname === '/admin/bike-models' || match !== null;
+  const isVariantsActive = pathname === '/admin/bike-variants';
   const isSpecificationsActive = pathname === '/admin/specs';
   const isBulkSpecActive = pathname === '/admin/bulk-spec';
   const content = match ? (
     <BikeManagement modelId={Number(match[1])} />
   ) : pathname === '/admin/bulk-spec' ? (
     <BulkSpecEditor />
+  ) : pathname === '/admin/bike-variants' ? (
+    <BikeManagement />
   ) : pathname === '/admin/bike-models' ? (
     <BikeModelManagement />
   ) : pathname === '/admin/specs' ? (
@@ -104,6 +107,13 @@ function AdminShell({ session }: { session: AdminSession }) {
             href="/admin/bike-models"
           >
             Bikes Model
+          </a>
+          <a
+            aria-current={isVariantsActive ? 'page' : undefined}
+            className={`mt-2 block px-3 py-2 font-semibold ${isVariantsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+            href="/admin/bike-variants"
+          >
+            Bikes Variants
           </a>
           <a
             aria-current={isSpecificationsActive ? 'page' : undefined}

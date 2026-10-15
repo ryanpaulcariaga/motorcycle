@@ -27,7 +27,9 @@ const emptyForm = {
   specs: {} as Record<string, string>,
 };
 
-export default function BikeManagement({ modelId }: { modelId: number }) {
+type SortField = 'model' | 'variant' | 'year' | 'msrp' | 'status';
+
+export default function BikeManagement({ modelId }: { modelId?: number }) {
   const [bikes, setBikes] = useState<BikeAdminListItem[]>([]);
   const [specGroups, setSpecGroups] = useState<SpecGroup[]>([]);
   const [models, setModels] = useState<BikeModel[]>([]);
@@ -36,6 +38,82 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [brandFilter, setBrandFilter] = useState('');
+  const [modelFilter, setModelFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState('');
+  const [sortField, setSortField] = useState<SortField>(
+    modelId ? 'year' : 'model'
+  );
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
+    modelId ? 'desc' : 'asc'
+  );
+  const showModel = modelId === undefined;
+  const brandNames = [...new Set(models.map((model) => model.brandName))].sort(
+    (a, b) => a.localeCompare(b)
+  );
+  const filterModels = models.filter(
+    (model) => !brandFilter || model.brandName === brandFilter
+  );
+  const visibleBikes = bikes
+    .filter(
+      (bike) =>
+        (!brandFilter || bike.brandName === brandFilter) &&
+        (!modelFilter || String(bike.modelId) === modelFilter) &&
+        (!statusFilter ||
+          (statusFilter === 'published') === bike.isPublished) &&
+        (!search ||
+          ` ${bike.modelName} ${bike.variantName} ${bike.year}`
+            .toLowerCase()
+            .includes(search.trim().toLowerCase()))
+    )
+    .sort((a, b) => {
+      const comparison =
+        sortField === 'model'
+          ? ` ${a.modelName}`.localeCompare(` ${b.modelName}`)
+          : sortField === 'variant'
+            ? a.variantName.localeCompare(b.variantName)
+            : sortField === 'year'
+              ? a.year - b.year
+              : sortField === 'msrp'
+                ? (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1)
+                : Number(a.isPublished) - Number(b.isPublished);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+  function sortBy(field: SortField) {
+    if (sortField === field)
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  }
+
+  function sortHeader(field: SortField, label: string) {
+    const active = sortField === field;
+    return (
+      <th
+        className="p-3"
+        aria-sort={
+          active
+            ? sortDirection === 'asc'
+              ? 'ascending'
+              : 'descending'
+            : undefined
+        }
+      >
+        <button
+          className="font-semibold"
+          type="button"
+          onClick={() => sortBy(field)}
+        >
+          {label}
+          {active && (sortDirection === 'asc' ? ' ↑' : ' ↓')}
+        </button>
+      </th>
+    );
+  }
 
   async function load() {
     setLoading(true);
@@ -116,8 +194,11 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
         msrpPrice: form.msrpPrice === '' ? null : Number(form.msrpPrice),
         specs: buildSpecs(),
       };
-      if (editingId === null) await createAdminBike({ modelId, ...request });
-      else
+      if (editingId === null) {
+        const targetModelId = modelId ?? Number(form.modelId);
+        if (!targetModelId) throw new Error('model_required');
+        await createAdminBike({ modelId: targetModelId, ...request });
+      } else
         await updateAdminBike(editingId, {
           ...request,
           modelId: Number(form.modelId) || undefined,
@@ -126,7 +207,11 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
       await load();
     } catch (cause) {
       setError(
-        cause instanceof AdminApiError ? cause.message : 'Unable to save bike.'
+        cause instanceof AdminApiError
+          ? cause.message
+          : cause instanceof Error && cause.message === 'model_required'
+            ? 'Select a model for the new variant.'
+            : 'Unable to save bike.'
       );
     } finally {
       setSubmitting(false);
@@ -170,12 +255,14 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <a
-              className="text-sm font-semibold text-brand-button underline"
-              href={`/admin/bike-models${getBikeModelListSearch(window.location.search)}`}
-            >
-              ← Bikes Model
-            </a>
+            {modelId !== undefined && (
+              <a
+                className="text-sm font-semibold text-brand-button underline"
+                href={`/admin/bike-models${getBikeModelListSearch(window.location.search)}`}
+              >
+                ← Bikes Model
+              </a>
+            )}
             <h1 className="mt-2 text-2xl font-bold">Bike Variants</h1>
           </div>
           <button
@@ -194,29 +281,105 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
             {error}
           </p>
         )}
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <input
+            aria-label="Search variants"
+            className="border border-black/20 px-3 py-2 text-sm"
+            placeholder="Search variants"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+          {showModel && (
+            <select
+              aria-label="Filter by brand"
+              className="border border-black/20 px-3 py-2 text-sm"
+              value={brandFilter}
+              onChange={(event) => {
+                setBrandFilter(event.target.value);
+                setModelFilter('');
+              }}
+            >
+              <option value="">All brands</option>
+              {brandNames.map((brand) => (
+                <option key={brand} value={brand}>
+                  {brand}
+                </option>
+              ))}
+            </select>
+          )}
+          {showModel && (
+            <select
+              aria-label="Filter by model"
+              className="border border-black/20 px-3 py-2 text-sm"
+              value={modelFilter}
+              onChange={(event) => setModelFilter(event.target.value)}
+            >
+              <option value="">All models</option>
+              {filterModels.map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.brandName} {model.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <select
+            aria-label="Filter by status"
+            className="border border-black/20 px-3 py-2 text-sm"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
+            <option value="">All statuses</option>
+            <option value="published">Published</option>
+            <option value="unpublished">Unpublished</option>
+          </select>
+          {(search || brandFilter || modelFilter || statusFilter) && (
+            <button
+              className="text-sm font-semibold text-brand-button underline"
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setBrandFilter('');
+                setModelFilter('');
+                setStatusFilter('');
+              }}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
         {loading ? (
           <p className="mt-8 text-brand-grey">Loading bikes...</p>
         ) : bikes.length === 0 ? (
           <p className="mt-8 text-brand-grey">
             No bike variants have been added.
           </p>
+        ) : visibleBikes.length === 0 ? (
+          <p className="mt-8 text-brand-grey">
+            No bike variants match the selected filters.
+          </p>
         ) : (
           <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[42rem] text-left text-sm">
+            <table className="w-full min-w-[48rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
-                  <th className="p-3">Year</th>
-                  <th className="p-3">Variant</th>
-                  <th className="p-3">MSRP</th>
-                  <th className="p-3">Status</th>
+                  {showModel && sortHeader('model', 'Model')}
+                  {sortHeader('year', 'Year')}
+                  {sortHeader('variant', 'Variant')}
+                  {sortHeader('msrp', 'MSRP')}
+                  {sortHeader('status', 'Status')}
                   <th className="p-3">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {bikes.map((bike) => (
+                {visibleBikes.map((bike) => (
                   <tr className="border-b border-black/10" key={bike.id}>
+                    {showModel && (
+                      <td className="p-3">
+                        {bike.brandName} {bike.modelName}
+                      </td>
+                    )}
                     <td className="p-3">{bike.year}</td>
                     <td className="p-3 font-semibold">{bike.variantName}</td>
                     <td className="p-3">
@@ -267,7 +430,7 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
         <h2 className="text-xl font-bold">
           {editingId === null ? 'Add Bike Variant' : 'Edit Bike Variant'}
         </h2>
-        {editingId !== null && (
+        {(editingId !== null || showModel) && (
           <>
             <label
               className="mt-5 block text-sm font-semibold"
@@ -284,6 +447,7 @@ export default function BikeManagement({ modelId }: { modelId: number }) {
                 setForm({ ...form, modelId: event.target.value })
               }
             >
+              {editingId === null && <option value="">Select a model</option>}
               {models.map((model) => (
                 <option key={model.id} value={model.id}>
                   {model.brandName} {model.name}
