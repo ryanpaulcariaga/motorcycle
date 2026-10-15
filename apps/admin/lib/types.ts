@@ -154,3 +154,5 @@ export type SpecDefinitionRequest = {
 
 export type BrandAdmin = { id: number; name: string; logoBlobUrl: string | null; modelCount: number; bikeCount: number };
 export type BrandRequest = { name: string; logoBlobUrl: string | null };
+export type CategoryAdmin = { id: number; name: string; modelCount: number; bikeCount: number };
+export type CategoryRequest = { name: string };

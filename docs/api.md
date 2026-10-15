@@ -184,6 +184,7 @@ Stage 1 provides typed contracts for:
 
 - BikeModel list, create, edit, and delete operations under `/api/admin/bike-models`;
 - Brand list (with `modelCount` and `bikeCount`), create, edit, and delete operations under `/api/admin/brands`; delete returns `409` with code `brand_referenced` when the brand has bike models or bikes;
+- Category list (with modelCount and ikeCount), create, edit, and delete operations under /api/admin/categories; delete returns 409 with code category_referenced when the category has bike models or bikes;
 - a `409 Conflict` response when a BikeModel is referenced by a bike and cannot be deleted.
 
 BikeModel deletion conflicts return `409` with `bike_model_referenced` and a dependent-bike count. Create/update requests validate brand/category references and the unique `(brandId, name)` pair.

@@ -8,7 +8,7 @@ namespace Motorcycle.Api.Controllers;
 [Route("api/categories")]
 public class CategoriesController : ControllerBase
 {
-    private const string CacheKey = "categories";
+    internal const string CacheKey = "categories";
     private readonly ILookupService _lookupService;
     private readonly IMemoryCache _cache;
 
@@ -29,3 +29,4 @@ public class CategoriesController : ControllerBase
         return Ok(categories);
     }
 }
+

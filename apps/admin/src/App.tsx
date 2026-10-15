@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import BikeModelManagement from '@/components/bike-models/BikeModelManagement';
+import CategoryManagement from '@/components/categories/CategoryManagement';
 import BrandManagement from '@/components/brands/BrandManagement';
 import BikeManagement from '@/components/bikes/BikeManagement';
 import BulkSpecEditor from '@/components/bikes/BulkSpecEditor';
@@ -53,12 +54,15 @@ function AdminShell({ session }: { session: AdminSession }) {
   const isSpecificationsActive = pathname === '/admin/specs';
   const isBulkSpecActive = pathname === '/admin/bulk-spec';
   const isBrandsActive = pathname === '/admin/brands';
+  const isCategoriesActive = pathname === '/admin/categories';
   const content = match ? (
     <BikeManagement modelId={Number(match[1])} />
   ) : pathname === '/admin/bulk-spec' ? (
     <BulkSpecEditor />
   ) : pathname === '/admin/brands' ? (
     <BrandManagement />
+  ) : pathname === '/admin/categories' ? (
+    <CategoryManagement />
   ) : pathname === '/admin/bike-variants' ? (
     <BikeManagement />
   ) : pathname === '/admin/bike-models' ? (
@@ -111,6 +115,13 @@ function AdminShell({ session }: { session: AdminSession }) {
             href="/admin/brands"
           >
             Brands
+          </a>
+          <a
+            aria-current={isCategoriesActive ? 'page' : undefined}
+            className={`mt-2 block px-3 py-2 font-semibold ${isCategoriesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+            href="/admin/categories"
+          >
+            Categories
           </a>
           <a
             aria-current={isBikesActive ? 'page' : undefined}
@@ -170,3 +181,4 @@ export default function App() {
     );
   return session ? <AdminShell session={session} /> : <SignIn error={error} />;
 }
+
