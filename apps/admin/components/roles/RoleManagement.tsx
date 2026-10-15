@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   createAdminRole,
+  deleteAdminRole,
   getAdminRoles,
   updateAdminRole,
   AdminApiError,
@@ -20,8 +21,10 @@ export default function RoleManagement() {
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<AdminRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function loadRoles() {
@@ -46,22 +49,45 @@ export default function RoleManagement() {
 
   const closeModal = useCallback(() => {
     setForm(emptyForm);
+    setEditingRole(null);
     setModalOpen(false);
   }, []);
+
+  function openEditModal(role: AdminRole) {
+    setEditingRole(role);
+    setForm({
+      facebookUserId: role.facebookUserId,
+      emailSnapshot: role.emailSnapshot ?? '',
+      displayNameSnapshot: role.displayNameSnapshot ?? '',
+    });
+    setError(null);
+    setModalOpen(true);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
     try {
-      await createAdminRole({ ...form, role: 'Administrator' });
+      if (editingRole) {
+        await updateAdminRole(editingRole.id, {
+          emailSnapshot: form.emailSnapshot,
+          displayNameSnapshot: form.displayNameSnapshot,
+          role: 'Administrator',
+          isActive: editingRole.isActive,
+        });
+      } else {
+        await createAdminRole({ ...form, role: 'Administrator' });
+      }
       closeModal();
       await loadRoles();
     } catch (cause) {
       setError(
         cause instanceof AdminApiError
           ? cause.message
-          : 'Unable to provision administrator.'
+          : editingRole
+            ? 'Unable to update administrator.'
+            : 'Unable to provision administrator.'
       );
     } finally {
       setSubmitting(false);
@@ -86,6 +112,32 @@ export default function RoleManagement() {
           ? cause.message
           : 'Unable to update administrator.'
       );
+    }
+  }
+
+  async function removeRole(role: AdminRole) {
+    const identity = role.displayNameSnapshot || role.facebookUserId;
+    if (
+      !window.confirm(
+        `Permanently delete administrator "${identity}"? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(role.id);
+    setError(null);
+    try {
+      await deleteAdminRole(role.id);
+      setRoles((current) => current.filter((item) => item.id !== role.id));
+    } catch (cause) {
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to delete administrator.'
+      );
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -131,7 +183,7 @@ export default function RoleManagement() {
           </p>
         ) : (
           <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[42rem] text-left text-sm">
+            <table className="w-full min-w-[52rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
                   <th className="p-3">Identity</th>
@@ -158,12 +210,27 @@ export default function RoleManagement() {
                       {role.isActive ? 'Active' : 'Inactive'}
                     </td>
                     <td className="p-3 text-right">
-                      <button
-                        className="font-semibold text-brand-button underline"
-                        onClick={() => void toggleRole(role)}
-                      >
-                        {role.isActive ? 'Deactivate' : 'Activate'}
-                      </button>
+                      <div className="flex justify-end gap-4">
+                        <button
+                          className="font-semibold text-brand-button underline"
+                          onClick={() => openEditModal(role)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="font-semibold text-brand-button underline"
+                          onClick={() => void toggleRole(role)}
+                        >
+                          {role.isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          className="font-semibold text-red-700 underline disabled:opacity-50"
+                          onClick={() => void removeRole(role)}
+                          disabled={deletingId !== null}
+                        >
+                          {deletingId === role.id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -174,21 +241,22 @@ export default function RoleManagement() {
       </section>
       {modalOpen && (
         <Modal
-          title="Provision administrator"
+          title={editingRole ? 'Edit administrator' : 'Provision administrator'}
           error={error}
           onClose={closeModal}
         >
           <form onSubmit={handleSubmit}>
             <label
               className="mt-5 block text-sm font-semibold"
-              htmlFor="facebookUserId"
+              htmlFor={editingRole ? 'editFacebookUserId' : 'facebookUserId'}
             >
               Facebook user ID
             </label>
             <input
               className="mt-2 w-full px-3 py-2 text-brand-black"
-              id="facebookUserId"
+              id={editingRole ? 'editFacebookUserId' : 'facebookUserId'}
               required
+              readOnly={Boolean(editingRole)}
               value={form.facebookUserId}
               onChange={(event) =>
                 setForm({ ...form, facebookUserId: event.target.value })
@@ -229,7 +297,13 @@ export default function RoleManagement() {
                 className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"
                 disabled={submitting}
               >
-                {submitting ? 'Provisioning...' : 'Provision administrator'}
+                {submitting
+                  ? editingRole
+                    ? 'Saving...'
+                    : 'Provisioning...'
+                  : editingRole
+                    ? 'Save changes'
+                    : 'Provision administrator'}
               </button>
               <button
                 className="border border-white px-4 py-3 font-semibold"

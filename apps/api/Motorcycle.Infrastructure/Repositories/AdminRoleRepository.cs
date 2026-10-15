@@ -23,5 +23,7 @@ public sealed class AdminRoleRepository : IAdminRoleRepository
     public async Task AddAsync(AdminRole role, CancellationToken ct = default) =>
         await _context.AdminRoles.AddAsync(role, ct);
 
+    public void Remove(AdminRole role) => _context.AdminRoles.Remove(role);
+
     public Task SaveChangesAsync(CancellationToken ct = default) => _context.SaveChangesAsync(ct);
 }

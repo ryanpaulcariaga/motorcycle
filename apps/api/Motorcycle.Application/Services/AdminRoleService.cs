@@ -32,6 +32,13 @@ public sealed class AdminRoleService : IAdminRoleService
         return entity;
     }
 
+    public async Task DeleteAsync(int id, CancellationToken ct = default)
+    {
+        var entity = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Administrator role was not found.");
+        _repository.Remove(entity);
+        await _repository.SaveChangesAsync(ct);
+    }
+
     private async Task<AdminRole> ProvisionInternalAsync(string facebookUserId, string? email, string? displayName, string role, bool allowExistingActive, CancellationToken ct)
     {
         AdminRoleValidators.Validate(facebookUserId, role);

@@ -8,5 +8,6 @@ public interface IAdminRoleRepository
     Task<AdminRole?> GetByIdAsync(int id, CancellationToken ct = default);
     Task<AdminRole?> GetByFacebookUserIdAsync(string facebookUserId, CancellationToken ct = default);
     Task AddAsync(AdminRole role, CancellationToken ct = default);
+    void Remove(AdminRole role);
     Task SaveChangesAsync(CancellationToken ct = default);
 }

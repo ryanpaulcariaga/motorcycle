@@ -48,6 +48,17 @@ public sealed class AdminRolesController : ControllerBase
         }
     }
 
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    {
+        try {
+            await _service.DeleteAsync(id, ct);
+            return NoContent();
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
     private static AdminRoleDto ToDto(AdminRole role) => new(
         role.Id,
         role.FacebookUserId,

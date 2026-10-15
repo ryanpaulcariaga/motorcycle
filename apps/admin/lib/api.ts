@@ -50,6 +50,9 @@ export function createAdminRole(request: CreateAdminRoleRequest): Promise<AdminR
 export function updateAdminRole(id: number, request: UpdateAdminRoleRequest): Promise<AdminRole> {
   return apiFetch(`/api/admin/admin-roles/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
 }
+export function deleteAdminRole(id: number): Promise<void> {
+  return apiFetch(`/api/admin/admin-roles/${id}`, { method: "DELETE" });
+}
 
 export function getBikeModels(): Promise<BikeModel[]> { return apiFetch("/api/admin/bike-models"); }
 export function createBikeModel(request: BikeModelRequest): Promise<BikeModel> { return apiFetch("/api/admin/bike-models", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) }); }

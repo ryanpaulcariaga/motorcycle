@@ -176,7 +176,8 @@ Protected `/api/admin` requests require the API session cookie. `401 Unauthorize
 - `GET /api/admin/admin-roles` lists administrator role records.
 - `POST /api/admin/admin-roles` provisions an active `Administrator` role.
 - `PATCH /api/admin/admin-roles/{id}` updates snapshots, role, or active status.
-- Role records are never deleted. Duplicate Facebook identities return `409` with `admin_role_exists`.
+- `DELETE /api/admin/admin-roles/{id}` permanently deletes an administrator role and returns `204`; a missing role returns `404`.
+- All administrator-role endpoints require the active-administrator policy. Duplicate Facebook identities return `409` with `admin_role_exists`.
 
 #### BikeModel Administration
 

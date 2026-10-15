@@ -8,4 +8,5 @@ public interface IAdminRoleService
     Task<AdminRole> BootstrapAsync(string facebookUserId, string? email, string? displayName, CancellationToken ct = default);
     Task<AdminRole> ProvisionAsync(string facebookUserId, string? email, string? displayName, string role, CancellationToken ct = default);
     Task<AdminRole> UpdateAsync(int id, string? email, string? displayName, string role, bool isActive, CancellationToken ct = default);
+    Task DeleteAsync(int id, CancellationToken ct = default);
 }
