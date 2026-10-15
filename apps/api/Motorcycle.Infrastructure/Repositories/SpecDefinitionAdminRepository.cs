@@ -59,8 +59,21 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
 
     public Task SaveChangesAsync(CancellationToken ct = default) => _context.SaveChangesAsync(ct);
 
-    public async Task SaveWithOptionalRenameAsync(SpecDefinition definition, string? renamedFromCode, CancellationToken ct = default)
+    public async Task SaveWithOptionalRenameAsync(SpecDefinition definition, string? renamedFromCode,
+        IReadOnlyDictionary<int, object?>? convertedValues, string valueCode, CancellationToken ct = default)
     {
+        if (convertedValues is { Count: > 0 })
+        {
+            var ids = convertedValues.Keys.ToList();
+            var bikes = await _context.Bikes.Where(b => ids.Contains(b.Id)).ToListAsync(ct);
+            foreach (var bike in bikes)
+            {
+                // Replace the dictionary so EF detects the JSONB change.
+                var specs = new Dictionary<string, object?>(bike.Specs) { [valueCode] = convertedValues[bike.Id] };
+                bike.Specs = specs;
+            }
+        }
+
         if (string.IsNullOrEmpty(renamedFromCode) || renamedFromCode == definition.Code)
         {
             await _context.SaveChangesAsync(ct);

@@ -15,6 +15,7 @@ export type ApiError = {
   fieldErrors?: Record<string, string[]>;
   dependentCount?: number;
   affectedBikeCount?: number;
+  failures?: { bikeId: number; value: string; reason: string }[];
 };
 
 export type AdminSession = {
@@ -150,3 +151,6 @@ export type SpecDefinitionRequest = {
   filterType: string | null;
 };
 
+
+export type BrandAdmin = { id: number; name: string; logoBlobUrl: string | null; modelCount: number; bikeCount: number };
+export type BrandRequest = { name: string; logoBlobUrl: string | null };

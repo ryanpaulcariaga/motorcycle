@@ -23,6 +23,8 @@ public interface ISpecDefinitionAdminRepository
     /// <summary>Persists pending changes already applied to the tracked <paramref name="definition"/> entity.
     /// When <paramref name="renamedFromCode"/> is non-null and differs from <paramref name="definition"/>.Code,
     /// the bikes.specs key-rename cascade runs in the same database transaction as this save (FR-005/FR-006).</summary>
-    Task SaveWithOptionalRenameAsync(SpecDefinition definition, string? renamedFromCode, CancellationToken ct = default);
+    /// <param name="convertedValues">Converted values keyed by bike id, written under <paramref name="valueCode"/> in the same transaction.</param>
+    Task SaveWithOptionalRenameAsync(SpecDefinition definition, string? renamedFromCode,
+        IReadOnlyDictionary<int, object?>? convertedValues, string valueCode, CancellationToken ct = default);
 }
 

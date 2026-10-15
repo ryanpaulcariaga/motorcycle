@@ -8,7 +8,7 @@ namespace Motorcycle.Api.Controllers;
 [Route("api/brands")]
 public class BrandsController : ControllerBase
 {
-    private const string CacheKey = "brands";
+    internal const string CacheKey = "brands";
     private readonly ILookupService _lookupService;
     private readonly IMemoryCache _cache;
 
@@ -29,3 +29,4 @@ public class BrandsController : ControllerBase
         return Ok(brands);
     }
 }
+

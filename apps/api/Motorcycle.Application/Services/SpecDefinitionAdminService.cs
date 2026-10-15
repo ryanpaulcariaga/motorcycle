@@ -73,13 +73,22 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
         var isGroupMove = definition.GroupId != request.GroupId;
         var isDataTypeChange = !string.Equals(definition.DataType, dataType, StringComparison.Ordinal);
 
-        // A dataType change is hard-blocked (never converted) when any bike's existing value no longer fits.
+        // A dataType change converts every stored value; if any cannot be converted, nothing changes.
+        Dictionary<int, object?>? convertedValues = null;
         if (isDataTypeChange)
         {
             var values = await _repository.GetBikeValuesForCodeAsync(oldCode, ct);
-            var incompatibleCount = values.Count(v => !BikeValidators.ValidateValueForType(v.Value, dataType));
-            if (incompatibleCount > 0)
-                throw new SpecDefinitionDataTypeIncompatibleException(incompatibleCount);
+            var failures = new List<SpecValueConversionFailure>();
+            convertedValues = new Dictionary<int, object?>();
+            foreach (var v in values)
+            {
+                if (!SpecValueConverter.TryConvert(v.Value, dataType, out var converted, out var reason))
+                    failures.Add(new SpecValueConversionFailure(v.BikeId, v.Value?.ToString() ?? string.Empty, reason!));
+                else if (!ReferenceEquals(converted, v.Value))
+                    convertedValues[v.BikeId] = converted;
+            }
+            if (failures.Count > 0)
+                throw new SpecDefinitionDataTypeIncompatibleException(failures);
         }
 
         definition.Code = code;
@@ -95,7 +104,7 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
             definition.SortOrder = newSiblings.Count == 0 ? 1 : newSiblings.Max(x => x.SortOrder) + 1;
         }
 
-        await _repository.SaveWithOptionalRenameAsync(definition, isRename ? oldCode : null, ct);
+        await _repository.SaveWithOptionalRenameAsync(definition, isRename ? oldCode : null, convertedValues, oldCode, ct);
         var bikesWithValue = await _repository.GetBikeValuesForCodeAsync(definition.Code, ct);
         return ToDto(definition, bikesWithValue.Count);
     }
@@ -169,8 +178,15 @@ public sealed class SpecDefinitionReferencedException : Exception
 
 public sealed class SpecDefinitionDataTypeIncompatibleException : Exception
 {
+    public const int MaxReportedFailures = 50;
     public int AffectedBikeCount { get; }
-    public SpecDefinitionDataTypeIncompatibleException(int affectedBikeCount)
-        : base($"{affectedBikeCount} bike(s) have a stored value incompatible with the requested data type; the change was not applied.") =>
-        AffectedBikeCount = affectedBikeCount;
+    public IReadOnlyList<SpecValueConversionFailure> Failures { get; }
+    public SpecDefinitionDataTypeIncompatibleException(IReadOnlyList<SpecValueConversionFailure> failures)
+        : base($"{failures.Count} bike(s) have a stored value that cannot be converted to the requested data type; the change was not applied.")
+    {
+        AffectedBikeCount = failures.Count;
+        Failures = failures.Take(MaxReportedFailures).ToList();
+    }
 }
+
+public sealed record SpecValueConversionFailure(int BikeId, string Value, string Reason);

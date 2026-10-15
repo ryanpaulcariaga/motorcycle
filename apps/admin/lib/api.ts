@@ -1,4 +1,4 @@
-import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, BikeSpecValueItem, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest } from "./types";
+import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
@@ -133,3 +133,8 @@ export function reorderAdminSpecDefinitions(groupId: number, definitionIds: numb
   return apiFetch(`/api/admin/spec-groups/${groupId}/spec-definitions/order`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ definitionIds }) });
 }
 export function deleteAdminSpecDefinition(id: number): Promise<void> { return apiFetch(`/api/admin/spec-definitions/${id}`, { method: "DELETE" }); }
+
+export function getAdminBrands(): Promise<BrandAdmin[]> { return apiFetch("/api/admin/brands"); }
+export function createAdminBrand(request: BrandRequest): Promise<BrandAdmin> { return apiFetch("/api/admin/brands", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) }); }
+export function updateAdminBrand(id: number, request: BrandRequest): Promise<BrandAdmin> { return apiFetch(`/api/admin/brands/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) }); }
+export function deleteAdminBrand(id: number): Promise<void> { return apiFetch(`/api/admin/brands/${id}`, { method: "DELETE" }); }

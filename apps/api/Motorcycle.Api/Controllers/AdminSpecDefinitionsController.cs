@@ -38,7 +38,7 @@ public sealed class AdminSpecDefinitionsController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         catch (SpecDefinitionCodeExistsException ex) { return Conflict(new { code = "spec_definition_code_exists", message = ex.Message }); }
-        catch (SpecDefinitionDataTypeIncompatibleException ex) { return Conflict(new { code = "spec_definition_datatype_incompatible", message = ex.Message, affectedBikeCount = ex.AffectedBikeCount }); }
+        catch (SpecDefinitionDataTypeIncompatibleException ex) { return Conflict(new { code = "spec_definition_datatype_incompatible", message = ex.Message,         affectedBikeCount = ex.AffectedBikeCount, failures = ex.Failures }); }
     }
 
     [HttpPut("api/admin/spec-groups/{groupId:int}/spec-definitions/order")]

@@ -28,6 +28,7 @@ builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ISpecGroupRepository, SpecGroupRepository>();
 builder.Services.AddScoped<IAdminRoleRepository, AdminRoleRepository>();
+builder.Services.AddScoped<IBrandAdminRepository, BrandAdminRepository>();
 builder.Services.AddScoped<IBikeModelRepository, BikeModelRepository>();
 builder.Services.AddScoped<IBikeAdminRepository, BikeAdminRepository>();
 builder.Services.AddScoped<IBikeImageAdminRepository, BikeImageAdminRepository>();
@@ -47,6 +48,7 @@ builder.Services.AddSingleton<ISpecFilterStrategyFactory, SpecFilterStrategyFact
 builder.Services.AddScoped<IBikeService, BikeService>();
 builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<IAdminRoleService, AdminRoleService>();
+builder.Services.AddScoped<IBrandAdminService, BrandAdminService>();
 builder.Services.AddScoped<IBikeModelService, BikeModelService>();
 builder.Services.AddScoped<IBikeAdminService, BikeAdminService>();
 builder.Services.AddScoped<IBikeImageAdminService, BikeImageAdminService>();
@@ -177,3 +179,4 @@ app.MapGet("/", () => "Motorcycle API - Running");
 app.MapGet("/health", () => Results.Ok("Healthy"));
 
 app.Run();
+

@@ -125,7 +125,10 @@ export default function SpecDefinitionManagement({
         cause.details?.code === 'spec_definition_datatype_incompatible'
       )
         setError(
-          `${cause.details.affectedBikeCount ?? 'Some'} bike(s) have a value incompatible with the new data type. Fix or clear those values first.`
+          `${cause.details.affectedBikeCount ?? 'Some'} bike(s) have a value that cannot be converted to "${form.dataType}", so the data type was not changed:\n` +
+            (cause.details.failures ?? [])
+              .map((f) => `• Bike #${f.bikeId}: ${f.reason}`)
+              .join('\n')
         );
       else
         setError(
@@ -201,7 +204,7 @@ export default function SpecDefinitionManagement({
         </div>
         {error && (
           <p
-            className="mt-4 border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
+            className="mt-4 whitespace-pre-line border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
             role="alert"
           >
             {error}
