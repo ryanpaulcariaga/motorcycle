@@ -845,7 +845,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
               >
                 {models.map((model) => (
                   <option key={model.id} value={model.id}>
-                    {model.brandName} - {model.name}
+                    {model.brandName} - {model.name} ({model.categoryName})
                     {model.id === reassignTargetBike.modelId
                       ? ' (current)'
                       : ''}
