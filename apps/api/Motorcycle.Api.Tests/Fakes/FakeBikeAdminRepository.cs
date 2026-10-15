@@ -16,8 +16,8 @@ public sealed class FakeBikeAdminRepository : IBikeAdminRepository
     public Task<List<Bike>> GetAllAsync(int? modelId, CancellationToken ct = default) =>
         Task.FromResult(_bikes.Where(b => !modelId.HasValue || b.ModelId == modelId.Value).ToList());
 
-    public Task<List<Bike>> GetForSpecEditAsync(int brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default) =>
-        Task.FromResult(_bikes.Where(b => b.Model?.BrandId == brandId
+    public Task<List<Bike>> GetForSpecEditAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default) =>
+        Task.FromResult(_bikes.Where(b => (!brandId.HasValue || b.Model?.BrandId == brandId.Value)
             && (!categoryId.HasValue || b.Model.CategoryId == categoryId.Value)
             && (!minPrice.HasValue || b.MsrpPrice >= minPrice.Value)
             && (!maxPrice.HasValue || b.MsrpPrice <= maxPrice.Value)).ToList());

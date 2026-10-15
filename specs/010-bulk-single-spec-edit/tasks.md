@@ -8,5 +8,5 @@
 - [X] T006 Build `BulkSpecEditor.tsx`, route, and sidebar link
 - [X] T007 Document endpoints in `docs/api.md`
 - [ ] T008 Run `dotnet build`/`dotnet test` and admin typecheck/lint (earlier run timed out)
-- [ ] T009 Add focused tests: all-or-nothing validation, null clears spec, unknown bike returns 404, brand required
+- [ ] T009 Add focused tests: all-or-nothing validation, null clears spec, unknown bike returns 404, optional filters
 - [ ] T010 Manual check in the browser against the live API

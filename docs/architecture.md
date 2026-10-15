@@ -56,7 +56,7 @@ Stage 2 adds Bike (year/trim variant) CRUD and publication management under `/ap
 
 Spec metadata management (`specs/009-spec-metadata-management/`) adds protected CRUD for `SpecGroup`/`SpecDefinition` under `/api/admin/spec-groups`/`/api/admin/spec-definitions`, including group/definition reordering. Because `SpecDefinition.Code` is the literal JSON key read from every `Bike.Specs` row, its uniqueness is enforced globally (not per-group), and renaming it triggers a transactional rename-cascade across every affected bike so no data is silently orphaned; deleting a group with definitions, deleting a definition bikes still hold values for, or changing a `dataType` incompatibly with existing bike values are all hard-blocked with a `409` conflict rather than silently discarding data.
 
-Bulk single-spec editing (`specs/010-bulk-single-spec-edit/`) lets an administrator set one specification across many bikes of a brand (optionally filtered by category and MSRP range) through `GET`/`PUT /api/admin/bikes/spec-values`; values are validated against the definition's `dataType` and saved all-or-nothing in one transaction, with no schema change.
+Bulk single-spec editing (`specs/010-bulk-single-spec-edit/`) lets an administrator set one specification across many bikes (optionally filtered by brand, category, and MSRP range) through `GET`/`PUT /api/admin/bikes/spec-values`; values are validated against the definition's `dataType` and saved all-or-nothing in one transaction, with no schema change.
 
 ### Public User Authentication Boundary
 

@@ -70,10 +70,19 @@ export function getAdminBikes(modelId?: number): Promise<BikeAdminListItem[]> {
   return apiFetch(modelId ? `/api/admin/bikes?modelId=${modelId}` : "/api/admin/bikes");
 }
 export function getAdminBikeSpecValues(filters: SpecValueFilters): Promise<BikeSpecValueItem[]> {
-  const params = new URLSearchParams({ brandId: String(filters.brandId), specCode: filters.specCode });
-  if (filters.categoryId) params.set("categoryId", String(filters.categoryId));
-  if (filters.minPrice !== undefined) params.set("minPrice", String(filters.minPrice));
-  if (filters.maxPrice !== undefined) params.set("maxPrice", String(filters.maxPrice));
+  const params = new URLSearchParams({ specCode: filters.specCode });
+  if (filters.brandId !== undefined) {
+    params.set("brandId", String(filters.brandId));
+  }
+  if (filters.categoryId) {
+    params.set("categoryId", String(filters.categoryId));
+  }
+  if (filters.minPrice !== undefined) {
+    params.set("minPrice", String(filters.minPrice));
+  }
+  if (filters.maxPrice !== undefined) {
+    params.set("maxPrice", String(filters.maxPrice));
+  }
   return apiFetch(`/api/admin/bikes/spec-values?${params}`);
 }
 export function updateAdminBikeSpecValues(request: UpdateSingleSpecRequest): Promise<{ updatedCount: number }> {
@@ -143,4 +152,3 @@ export function getAdminCategories(): Promise<CategoryAdmin[]> { return apiFetch
 export function createAdminCategory(request: CategoryRequest): Promise<CategoryAdmin> { return apiFetch("/api/admin/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) }); }
 export function updateAdminCategory(id: number, request: CategoryRequest): Promise<CategoryAdmin> { return apiFetch(`/api/admin/categories/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) }); }
 export function deleteAdminCategory(id: number): Promise<void> { return apiFetch(`/api/admin/categories/${id}`, { method: "DELETE" }); }
-

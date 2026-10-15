@@ -20,12 +20,15 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
         return await query.OrderBy(x => x.Model.Name).ThenBy(x => x.Year).ThenBy(x => x.VariantName).ToListAsync(ct);
     }
 
-    public async Task<List<Bike>> GetForSpecEditAsync(int brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default)
+    public async Task<List<Bike>> GetForSpecEditAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default)
     {
-        var query = _context.Bikes.AsNoTracking()
+        IQueryable<Bike> query = _context.Bikes.AsNoTracking()
             .Include(x => x.Model).ThenInclude(m => m.Brand)
-            .Include(x => x.Model).ThenInclude(m => m.Category)
-            .Where(x => x.Model.BrandId == brandId);
+            .Include(x => x.Model).ThenInclude(m => m.Category);
+        if (brandId.HasValue) {
+            query = query.Where(x => x.Model.BrandId == brandId.Value);
+        }
+
         if (categoryId.HasValue) {
             query = query.Where(x => x.Model.CategoryId == categoryId.Value);
         }

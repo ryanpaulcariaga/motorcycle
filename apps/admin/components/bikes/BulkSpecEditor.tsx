@@ -75,7 +75,7 @@ export default function BulkSpecEditor() {
     setNotice(null);
     try {
       const result = await getAdminBikeSpecValues({
-        brandId: Number(brandId),
+        brandId: brandId ? Number(brandId) : undefined,
         categoryId: categoryId ? Number(categoryId) : undefined,
         minPrice: minPrice === '' ? undefined : Number(minPrice),
         maxPrice: maxPrice === '' ? undefined : Number(maxPrice),
@@ -199,8 +199,8 @@ export default function BulkSpecEditor() {
     <section className="bg-brand-content p-6 shadow-lg">
       <h1 className="text-2xl font-bold">Bulk Spec Edit</h1>
       <p className="mt-1 text-sm text-brand-grey">
-        Choose a brand and one specification, then set that specification for
-        many motorcycles at once.
+        Choose one specification and optionally filter motorcycles before
+        editing its value across them.
       </p>
       <form
         className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
@@ -232,16 +232,15 @@ export default function BulkSpecEditor() {
         </div>
         <div>
           <label className="block text-sm font-semibold" htmlFor="bulk-brand">
-            Brand (required)
+            Brand
           </label>
           <select
             className={inputClass}
             id="bulk-brand"
-            required
             value={brandId}
             onChange={(e) => setBrandId(e.target.value)}
           >
-            <option value="">Select a brand</option>
+            <option value="">All brands</option>
             {brands.map((brand) => (
               <option key={brand.id} value={brand.id}>
                 {brand.name}
@@ -303,7 +302,7 @@ export default function BulkSpecEditor() {
         <div className="sm:col-span-2 lg:col-span-3">
           <button
             className="bg-brand-button px-5 py-2 font-semibold text-white disabled:opacity-50"
-            disabled={loading || !brandId || !specCode}
+            disabled={loading || !specCode}
           >
             {loading ? 'Loading...' : 'Load motorcycles'}
           </button>

@@ -97,7 +97,7 @@ export type BikeSpecValueItem = {
 };
 
 export type SpecValueFilters = {
-  brandId: number;
+  brandId?: number;
   categoryId?: number;
   minPrice?: number;
   maxPrice?: number;

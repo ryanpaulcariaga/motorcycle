@@ -22,7 +22,7 @@ public sealed class BikeAdminService : IBikeAdminService
     public async Task<IReadOnlyList<BikeAdminListItemDto>> GetAllAsync(int? modelId, CancellationToken ct = default) =>
         (await _repository.GetAllAsync(modelId, ct)).Select(ToListItemDto).ToList();
 
-    public async Task<IReadOnlyList<BikeSpecValueItemDto>> GetSpecValuesAsync(int brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, string specCode, CancellationToken ct = default)
+    public async Task<IReadOnlyList<BikeSpecValueItemDto>> GetSpecValuesAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, string specCode, CancellationToken ct = default)
     {
         var definitions = await GetDefinitionsByCodeAsync(ct);
         if (!definitions.ContainsKey(specCode)) {
