@@ -15,8 +15,7 @@ public static class DatabaseSeeder
                 .Where(n => !existingBrandNames.Contains(n))
                 .Select(n => new Brand { Name = n, CreatedAt = DateTime.UtcNow })
                 .ToList();
-            if (missingBrands.Count > 0)
-            {
+            if (missingBrands.Count > 0) {
                 context.Brands.AddRange(missingBrands);
                 await context.SaveChangesAsync();
             }
@@ -30,16 +29,14 @@ public static class DatabaseSeeder
                 .Where(n => !existingCategoryNames.Contains(n))
                 .Select(n => new Category { Name = n })
                 .ToList();
-            if (missingCategories.Count > 0)
-            {
+            if (missingCategories.Count > 0) {
                 context.Categories.AddRange(missingCategories);
                 await context.SaveChangesAsync();
             }
         }
 
         // Seed spec groups
-        if (!context.SpecGroups.Any())
-        {
+        if (!context.SpecGroups.Any()) {
             var specGroups = new[]
             {
                 new SpecGroup { Code = "engine", Name = "Engine", SortOrder = 1, IconName = "engine" },
@@ -116,16 +113,14 @@ public static class DatabaseSeeder
 
             var existingCodes = context.SpecDefinitions.Select(d => d.GroupId + "|" + d.Code).ToHashSet();
             var missing = specDefinitions.Where(d => !existingCodes.Contains(d.GroupId + "|" + d.Code)).ToList();
-            if (missing.Count > 0)
-            {
+            if (missing.Count > 0) {
                 context.SpecDefinitions.AddRange(missing);
                 await context.SaveChangesAsync();
             }
         }
 
         // Seed bikes
-        if (!context.Bikes.Any())
-        {
+        if (!context.Bikes.Any()) {
             var kawasakiBrand = context.Brands.First(b => b.Name == "Kawasaki");
             var hondaBrand = context.Brands.First(b => b.Name == "Honda");
             var yamahabrand = context.Brands.First(b => b.Name == "Yamaha");
@@ -233,8 +228,7 @@ public static class DatabaseSeeder
             await context.SaveChangesAsync();
 
             // Seed bike images
-            foreach (var bike in bikes)
-            {
+            foreach (var bike in bikes) {
                 var bikeImages = new[]
                 {
                     new BikeImage { BikeId = bike.Id, BlobUrl = $"https://placeholder.com/600x400?text={bike.Model.Name}", SortOrder = 1, IsPrimary = true },

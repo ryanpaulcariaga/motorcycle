@@ -25,17 +25,12 @@ public sealed class AdminRolesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<AdminRoleDto>> Create(CreateAdminRoleRequest request, CancellationToken ct)
     {
-        try
-        {
+        try {
             var role = await _service.ProvisionAsync(request.FacebookUserId, request.EmailSnapshot, request.DisplayNameSnapshot, request.Role, ct);
             return CreatedAtAction(nameof(GetAll), new { id = role.Id }, ToDto(role));
-        }
-        catch (ArgumentException ex)
-        {
+        } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
+        } catch (InvalidOperationException ex) {
             return Conflict(new { code = "admin_role_exists", message = ex.Message });
         }
     }
@@ -43,17 +38,12 @@ public sealed class AdminRolesController : ControllerBase
     [HttpPatch("{id:int}")]
     public async Task<ActionResult<AdminRoleDto>> Update(int id, UpdateAdminRoleRequest request, CancellationToken ct)
     {
-        try
-        {
+        try {
             var role = await _service.UpdateAsync(id, request.EmailSnapshot, request.DisplayNameSnapshot, request.Role, request.IsActive, ct);
             return Ok(ToDto(role));
-        }
-        catch (ArgumentException ex)
-        {
+        } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
-        }
-        catch (KeyNotFoundException ex)
-        {
+        } catch (KeyNotFoundException ex) {
             return NotFound(new { message = ex.Message });
         }
     }

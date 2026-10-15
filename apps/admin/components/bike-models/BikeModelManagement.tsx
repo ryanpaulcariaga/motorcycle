@@ -29,9 +29,9 @@ export default function BikeModelManagement() {
   const [categoryFilter, setCategoryFilter] = useState(
     initialListState.categoryFilter
   );
-  const [sortField, setSortField] = useState<
-    'brand' | 'category' | 'name'
-  >(initialListState.sortField);
+  const [sortField, setSortField] = useState<'brand' | 'category' | 'name'>(
+    initialListState.sortField
+  );
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
     initialListState.sortDirection
   );
@@ -117,10 +117,18 @@ export default function BikeModelManagement() {
 
   useEffect(() => {
     const params = new URLSearchParams();
-    if (brandFilter) params.set('brandId', brandFilter);
-    if (categoryFilter) params.set('categoryId', categoryFilter);
-    if (sortField !== 'brand') params.set('sort', sortField);
-    if (sortDirection !== 'asc') params.set('direction', sortDirection);
+    if (brandFilter) {
+      params.set('brandId', brandFilter);
+    }
+    if (categoryFilter) {
+      params.set('categoryId', categoryFilter);
+    }
+    if (sortField !== 'brand') {
+      params.set('sort', sortField);
+    }
+    if (sortDirection !== 'asc') {
+      params.set('direction', sortDirection);
+    }
     const search = params.toString();
     const url = `${window.location.pathname}${search ? `?${search}` : ''}`;
     window.history.replaceState(window.history.state, '', url);
@@ -150,8 +158,11 @@ export default function BikeModelManagement() {
         categoryId: Number(form.categoryId),
         name: form.name,
       };
-      if (editingId === null) await createBikeModel(request);
-      else await updateBikeModel(editingId, request);
+      if (editingId === null) {
+        await createBikeModel(request);
+      } else {
+        await updateBikeModel(editingId, request);
+      }
       reset();
       await load();
     } catch (cause) {
@@ -168,7 +179,9 @@ export default function BikeModelManagement() {
   }
 
   async function remove(model: BikeModel) {
-    if (!window.confirm(`Delete ${model.brandName} ${model.name}?`)) return;
+    if (!window.confirm(`Delete ${model.brandName} ${model.name}?`)) {
+      return;
+    }
     setError(null);
     try {
       await deleteBikeModel(model.id);

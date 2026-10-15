@@ -47,16 +47,20 @@ public sealed class FacebookExternalAuthProvider : IExternalAuthProvider
         };
         var tokenQuery = await new FormUrlEncodedContent(tokenParameters).ReadAsStringAsync(ct);
         var tokenResponse = await _httpClient.GetAsync($"{TokenUrl}?{tokenQuery}", ct);
-        if (!tokenResponse.IsSuccessStatusCode)
+        if (!tokenResponse.IsSuccessStatusCode) {
             throw new InvalidOperationException("Facebook token exchange failed.");
+        }
+
         var token = await tokenResponse.Content.ReadFromJsonAsync<FacebookTokenResponse>(cancellationToken: ct);
-        if (string.IsNullOrWhiteSpace(token?.AccessToken))
+        if (string.IsNullOrWhiteSpace(token?.AccessToken)) {
             throw new InvalidOperationException("Facebook did not return an access token.");
+        }
 
         var profile = await _httpClient.GetFromJsonAsync<FacebookProfile>(
             $"{ProfileUrl}?fields=id,email,name&access_token={Uri.EscapeDataString(token.AccessToken)}", ct);
-        if (string.IsNullOrWhiteSpace(profile?.Id))
+        if (string.IsNullOrWhiteSpace(profile?.Id)) {
             throw new InvalidOperationException("Facebook profile lookup failed.");
+        }
 
         return new ExternalAuthProfile(profile.Id, profile.Email, EmailVerified: !string.IsNullOrWhiteSpace(profile.Email), profile.Name);
     }

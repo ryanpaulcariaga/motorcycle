@@ -18,8 +18,7 @@ public static class DbSeedCommand
         var db = services.GetRequiredService<MotorcycleDbContext>();
         await db.Database.MigrateAsync(ct);
 
-        if (!force && await db.Bikes.AnyAsync(ct))
-        {
+        if (!force && await db.Bikes.AnyAsync(ct)) {
             Console.WriteLine("Bikes table already has data; skipping seed. Pass --force to seed/backfill anyway.");
             return 0;
         }

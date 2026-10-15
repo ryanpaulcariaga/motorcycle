@@ -25,8 +25,9 @@ public sealed class BikeAdminService : IBikeAdminService
     public async Task<IReadOnlyList<BikeSpecValueItemDto>> GetSpecValuesAsync(int brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, string specCode, CancellationToken ct = default)
     {
         var definitions = await GetDefinitionsByCodeAsync(ct);
-        if (!definitions.ContainsKey(specCode))
+        if (!definitions.ContainsKey(specCode)) {
             throw new ArgumentException($"Unrecognized specification code '{specCode}'.", nameof(specCode));
+        }
 
         var bikes = await _repository.GetForSpecEditAsync(brandId, categoryId, minPrice, maxPrice, ct);
         return bikes.Select(b => new BikeSpecValueItemDto(
@@ -44,27 +45,40 @@ public sealed class BikeAdminService : IBikeAdminService
     public async Task<int> UpdateSingleSpecAsync(UpdateSingleSpecRequest request, CancellationToken ct = default)
     {
         var definitions = await GetDefinitionsByCodeAsync(ct);
-        if (string.IsNullOrWhiteSpace(request.SpecCode) || !definitions.ContainsKey(request.SpecCode))
+        if (string.IsNullOrWhiteSpace(request.SpecCode) || !definitions.ContainsKey(request.SpecCode)) {
             throw new ArgumentException($"Unrecognized specification code '{request.SpecCode}'.", nameof(request));
-        if (request.Values is null || request.Values.Count == 0) return 0;
-        if (request.Values.Select(v => v.BikeId).Distinct().Count() != request.Values.Count)
+        }
+
+        if (request.Values is null || request.Values.Count == 0) {
+            return 0;
+        }
+
+        if (request.Values.Select(v => v.BikeId).Distinct().Count() != request.Values.Count) {
             throw new ArgumentException("Each bike may appear only once.", nameof(request));
+        }
 
         // Validate every value before mutating so a bad row rejects the whole batch.
-        foreach (var item in request.Values)
+        foreach (var item in request.Values) {
             BikeValidators.ValidateSpecs(new Dictionary<string, object?> { [request.SpecCode] = item.Value }, definitions);
+        }
 
         var bikes = (await _repository.GetByIdsAsync(request.Values.Select(v => v.BikeId).ToList(), ct)).ToDictionary(b => b.Id);
         var missing = request.Values.Where(v => !bikes.ContainsKey(v.BikeId)).Select(v => v.BikeId).ToList();
-        if (missing.Count > 0) throw new KeyNotFoundException($"Bike(s) not found: {string.Join(", ", missing)}.");
+        if (missing.Count > 0) {
+            throw new KeyNotFoundException($"Bike(s) not found: {string.Join(", ", missing)}.");
+        }
 
         var now = DateTime.UtcNow;
-        foreach (var item in request.Values)
-        {
+        foreach (var item in request.Values) {
             var bike = bikes[item.BikeId];
             var specs = new Dictionary<string, object>(bike.Specs);
-            if (item.Value is null) specs.Remove(request.SpecCode);
-            else specs[request.SpecCode] = item.Value;
+            if (item.Value is null) {
+                specs.Remove(request.SpecCode);
+            }
+            else {
+                specs[request.SpecCode] = item.Value;
+            }
+
             bike.Specs = specs;
             bike.UpdatedAt = now;
         }
@@ -78,12 +92,14 @@ public sealed class BikeAdminService : IBikeAdminService
 
     public async Task<BikeAdminDetailDto> CreateAsync(CreateBikeRequest request, CancellationToken ct = default)
     {
-        if (!await _repository.BikeModelExistsAsync(request.ModelId, ct))
+        if (!await _repository.BikeModelExistsAsync(request.ModelId, ct)) {
             throw new KeyNotFoundException("BikeModel was not found.");
+        }
 
         var (variantName, year) = BikeValidators.ValidateCore(request.VariantName, request.Year);
-        if (await _repository.VariantExistsAsync(request.ModelId, year, variantName, null, ct))
+        if (await _repository.VariantExistsAsync(request.ModelId, year, variantName, null, ct)) {
             throw new InvalidOperationException("A bike with this model, year, and variant name already exists.");
+        }
 
         var definitionsByCode = await GetDefinitionsByCodeAsync(ct);
         var specs = BikeValidators.ValidateSpecs(request.Specs, definitionsByCode);
@@ -115,14 +131,14 @@ public sealed class BikeAdminService : IBikeAdminService
                 ?? throw new KeyNotFoundException("BikeModel was not found.");
 
         var (variantName, year) = BikeValidators.ValidateCore(request.VariantName, request.Year);
-        if (await _repository.VariantExistsAsync(targetModelId, year, variantName, id, ct))
+        if (await _repository.VariantExistsAsync(targetModelId, year, variantName, id, ct)) {
             throw new InvalidOperationException("A bike with this model, year, and variant name already exists.");
+        }
 
         var definitionsByCode = await GetDefinitionsByCodeAsync(ct);
         var specs = BikeValidators.ValidateSpecs(request.Specs, definitionsByCode);
 
-        if (targetModel is not null)
-        {
+        if (targetModel is not null) {
             bike.ModelId = targetModel.Id;
             bike.Model = targetModel;
         }
@@ -140,8 +156,9 @@ public sealed class BikeAdminService : IBikeAdminService
     public async Task<BikeAdminDetailDto> PublishAsync(int id, CancellationToken ct = default)
     {
         var bike = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Bike was not found.");
-        if (string.IsNullOrWhiteSpace(bike.VariantName) || bike.Year <= 0)
+        if (string.IsNullOrWhiteSpace(bike.VariantName) || bike.Year <= 0) {
             throw new InvalidOperationException("Bike is missing required details (year, variant name) and cannot be published.");
+        }
 
         bike.IsPublished = true;
         bike.UpdatedAt = DateTime.UtcNow;
@@ -162,7 +179,10 @@ public sealed class BikeAdminService : IBikeAdminService
     {
         var bike = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Bike was not found.");
         var dependentCount = await _repository.CountDependentImagesAsync(id, ct);
-        if (dependentCount > 0) throw new BikeReferencedException(dependentCount);
+        if (dependentCount > 0) {
+            throw new BikeReferencedException(dependentCount);
+        }
+
         _repository.Remove(bike);
         await _repository.SaveChangesAsync(ct);
     }
@@ -179,8 +199,7 @@ public sealed class BikeAdminService : IBikeAdminService
 
         var slug = baseSlug;
         var suffix = 2;
-        while (await SlugExistsAsync(slug, ct))
-        {
+        while (await SlugExistsAsync(slug, ct)) {
             slug = $"{baseSlug}-{suffix}";
             suffix++;
         }

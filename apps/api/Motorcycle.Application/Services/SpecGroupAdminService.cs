@@ -31,8 +31,9 @@ public sealed class SpecGroupAdminService : ISpecGroupAdminService
     {
         var code = SpecMetadataValidators.ValidateCode(request.Code, nameof(request.Code));
         var name = SpecMetadataValidators.ValidateRequiredText(request.Name, nameof(request.Name));
-        if (await _repository.CodeExistsAsync(code, null, ct))
+        if (await _repository.CodeExistsAsync(code, null, ct)) {
             throw new SpecGroupCodeExistsException(code);
+        }
 
         var groups = await _repository.GetAllWithDefinitionsAsync(ct);
         var group = new SpecGroup
@@ -52,8 +53,9 @@ public sealed class SpecGroupAdminService : ISpecGroupAdminService
         var group = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Spec group was not found.");
         var code = SpecMetadataValidators.ValidateCode(request.Code, nameof(request.Code));
         var name = SpecMetadataValidators.ValidateRequiredText(request.Name, nameof(request.Name));
-        if (await _repository.CodeExistsAsync(code, id, ct))
+        if (await _repository.CodeExistsAsync(code, id, ct)) {
             throw new SpecGroupCodeExistsException(code);
+        }
 
         group.Code = code;
         group.Name = name;
@@ -66,11 +68,15 @@ public sealed class SpecGroupAdminService : ISpecGroupAdminService
     {
         var groups = await _repository.GetAllWithDefinitionsAsync(ct);
         if (request.GroupIds.Count != groups.Count || request.GroupIds.Distinct().Count() != request.GroupIds.Count ||
-            request.GroupIds.Any(id => groups.All(x => x.Id != id)))
+            request.GroupIds.Any(id => groups.All(x => x.Id != id))) {
             throw new ArgumentException("groupIds must contain every existing spec group exactly once.");
+        }
 
         var positions = request.GroupIds.Select((id, index) => (id, sortOrder: index + 1)).ToDictionary(x => x.id, x => x.sortOrder);
-        foreach (var group in groups) group.SortOrder = positions[group.Id];
+        foreach (var group in groups) {
+            group.SortOrder = positions[group.Id];
+        }
+
         await _repository.SaveChangesAsync(ct);
         return groups.OrderBy(x => x.SortOrder).Select(ToDto).ToList();
     }
@@ -79,7 +85,10 @@ public sealed class SpecGroupAdminService : ISpecGroupAdminService
     {
         var group = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Spec group was not found.");
         var dependentCount = await _repository.CountDefinitionsAsync(id, ct);
-        if (dependentCount > 0) throw new SpecGroupReferencedException(dependentCount);
+        if (dependentCount > 0) {
+            throw new SpecGroupReferencedException(dependentCount);
+        }
+
         _repository.Remove(group);
         await _repository.SaveChangesAsync(ct);
     }

@@ -66,8 +66,7 @@ public static class MotorcycleDataSeeder
     public static async Task SeedAsync(MotorcycleDbContext context)
     {
         var dataPath = Path.Combine(AppContext.BaseDirectory, "Seeding", "Data", "motorcycles.jsonl");
-        if (!File.Exists(dataPath))
-        {
+        if (!File.Exists(dataPath)) {
             return;
         }
 
@@ -96,13 +95,11 @@ public static class MotorcycleDataSeeder
 
         var newBikes = new List<Bike>();
 
-        foreach (var sourceRow in sourceRows)
-        {
+        foreach (var sourceRow in sourceRows) {
             var root = sourceRow.Root;
             var make = sourceRow.Make;
             var sourceModel = sourceRow.SourceModel;
-            if (!brandsByName.TryGetValue(make, out var brand))
-            {
+            if (!brandsByName.TryGetValue(make, out var brand)) {
                 continue; // unknown brand, skip rather than guess
             }
 
@@ -116,8 +113,7 @@ public static class MotorcycleDataSeeder
             var categoryRaw = root.TryGetProperty("Category", out var catEl) ? catEl.GetString() : null;
             var engineType = root.TryGetProperty("Engine Type", out var engEl) ? engEl.GetString() : null;
             var categoryName = ClassifyCategory(categoryRaw, sourceModel, engineType);
-            if (!categoriesByName.TryGetValue(categoryName, out var category))
-            {
+            if (!categoriesByName.TryGetValue(categoryName, out var category)) {
                 continue; // shouldn't happen once categories are seeded, but skip rather than crash
             }
 
@@ -134,10 +130,8 @@ public static class MotorcycleDataSeeder
 
             var modelKey = $"{brand.Id}:{model}";
             BikeModel motorcycleModel;
-            if (existingBike is not null)
-            {
-                if (!modelsByKey.TryGetValue(modelKey, out motorcycleModel!))
-                {
+            if (existingBike is not null) {
+                if (!modelsByKey.TryGetValue(modelKey, out motorcycleModel!)) {
                     motorcycleModel = existingBike.Model;
                     motorcycleModel.Name = model;
                     motorcycleModel.BrandId = brand.Id;
@@ -145,8 +139,7 @@ public static class MotorcycleDataSeeder
                     modelsByKey[modelKey] = motorcycleModel;
                 }
             }
-            else if (!modelsByKey.TryGetValue(modelKey, out motorcycleModel!))
-            {
+            else if (!modelsByKey.TryGetValue(modelKey, out motorcycleModel!)) {
                 motorcycleModel = new BikeModel
                 {
                     BrandId = brand.Id,
@@ -157,14 +150,12 @@ public static class MotorcycleDataSeeder
                 modelsByKey[modelKey] = motorcycleModel;
             }
 
-            if (existingBike is not null)
-            {
+            if (existingBike is not null) {
                 existingBike.Model = motorcycleModel;
                 existingBike.VariantName = variant;
                 existingBike.Year = year ?? 0;
                 existingBike.Slug = slug;
-                if (legacySlug is not null)
-                {
+                if (legacySlug is not null) {
                     existingBikesBySlug.Remove(legacySlug);
                 }
                 existingBikesBySlug[slug] = existingBike;
@@ -172,30 +163,24 @@ public static class MotorcycleDataSeeder
                 continue;
             }
 
-            if (!existingSlugs.Add(slug))
-            {
+            if (!existingSlugs.Add(slug)) {
                 continue; // duplicate source row or already normalized row
             }
 
             var specs = new Dictionary<string, object>();
-            foreach (var prop in root.EnumerateObject())
-            {
-                if (IgnoredKeys.Contains(prop.Name) || !FieldMap.TryGetValue(prop.Name, out var code))
-                {
+            foreach (var prop in root.EnumerateObject()) {
+                if (IgnoredKeys.Contains(prop.Name) || !FieldMap.TryGetValue(prop.Name, out var code)) {
                     continue;
                 }
 
-                if (specs.ContainsKey(code))
-                {
+                if (specs.ContainsKey(code)) {
                     continue; // first mapped occurrence wins
                 }
 
                 var value = prop.Value.GetString() ?? string.Empty;
-                if (NumericCodes.Contains(code))
-                {
+                if (NumericCodes.Contains(code)) {
                     var match = Regex.Match(value, @"[\d,]+(\.\d+)?");
-                    if (!match.Success)
-                    {
+                    if (!match.Success) {
                         continue;
                     }
                     value = match.Value.Replace(",", string.Empty);
@@ -216,10 +201,8 @@ public static class MotorcycleDataSeeder
             });
         }
 
-        if (newBikes.Count > 0 || existingBikes.Any(b => b.Model is not null))
-        {
-            if (newBikes.Count > 0)
-            {
+        if (newBikes.Count > 0 || existingBikes.Any(b => b.Model is not null)) {
+            if (newBikes.Count > 0) {
                 context.Bikes.AddRange(newBikes);
             }
             await context.SaveChangesAsync();
@@ -232,8 +215,7 @@ public static class MotorcycleDataSeeder
         var sourceYear = ExtractYear(value);
         var familyStem = GetFamilyStem(make, sourceModel);
 
-        if (hasFamilyVariants && !string.IsNullOrWhiteSpace(familyStem))
-        {
+        if (hasFamilyVariants && !string.IsNullOrWhiteSpace(familyStem)) {
             return ($"{brandName} {familyStem}", sourceYear);
         }
 
@@ -266,48 +248,39 @@ public static class MotorcycleDataSeeder
     {
         var haystack = $"{categoryRaw} {model} {engineType}".ToLowerInvariant();
 
-        if (categoryRaw is "Scooter" or "Automatic" or "AT Bike")
-        {
+        if (categoryRaw is "Scooter" or "Automatic" or "AT Bike") {
             return "Scooter";
         }
 
-        if (ContainsAny(haystack, "crf", "klx", "kx250", "rm-z", "wr155", "xr150"))
-        {
+        if (ContainsAny(haystack, "crf", "klx", "kx250", "rm-z", "wr155", "xr150")) {
             return "Off-Road";
         }
 
-        if (ContainsAny(haystack, "adv ", "adv160", "adv 160", "adventure", "africa twin", "transalp", "tenere", "tracer", "v-strom", "vstrom", "versys", "x-adv"))
-        {
+        if (ContainsAny(haystack, "adv ", "adv160", "adv 160", "adventure", "africa twin", "transalp", "tenere", "tracer", "v-strom", "vstrom", "versys", "x-adv")) {
             return "Adventure";
         }
 
-        if (ContainsAny(haystack, "vulcan", "w800"))
-        {
+        if (ContainsAny(haystack, "vulcan", "w800")) {
             return "Cruiser";
         }
 
-        if (categoryRaw is "Pang Negosyo" or "Pang Araw-Araw" || ContainsAny(haystack, "wave", "xrm", "tmx", "raider", "smash", "barako", "ytx", "dr160"))
-        {
+        if (categoryRaw is "Pang Negosyo" or "Pang Araw-Araw" || ContainsAny(haystack, "wave", "xrm", "tmx", "raider", "smash", "barako", "ytx", "dr160")) {
             return "Underbone";
         }
 
-        if (ContainsAny(haystack, "click", "beat", "pcx", "nmax", "aerox", "mio", "giorno", "navi", "dio ", " dio", "vision", "address", "skydrive", "burgman", "xmax", "tmax", "agility", "like ", "dink", "xciting", "ak550", "lexi", "fazzio", "gear", "krv", "brusky", "access", "avenis", "ride connect", "pg-1"))
-        {
+        if (ContainsAny(haystack, "click", "beat", "pcx", "nmax", "aerox", "mio", "giorno", "navi", "dio ", " dio", "vision", "address", "skydrive", "burgman", "xmax", "tmax", "agility", "like ", "dink", "xciting", "ak550", "lexi", "fazzio", "gear", "krv", "brusky", "access", "avenis", "ride connect", "pg-1")) {
             return "Scooter";
         }
 
-        if (categoryRaw is "Pang Sports" || ContainsAny(haystack, "ninja", "cbr", "gsx", "yzf", "winner", "duke", "rc 200", "rc 390", "rouser", "dominar", "pulsar", "gixxer", "sniper"))
-        {
+        if (categoryRaw is "Pang Sports" || ContainsAny(haystack, "ninja", "cbr", "gsx", "yzf", "winner", "duke", "rc 200", "rc 390", "rouser", "dominar", "pulsar", "gixxer", "sniper")) {
             return "Sport";
         }
 
-        if (ContainsAny(haystack, "mt-", "z650", "z h2", "z1100", "cb650r", "cb500f", "xsr", "sv650", "gsx-8", "gsx-s"))
-        {
+        if (ContainsAny(haystack, "mt-", "z650", "z h2", "z1100", "cb650r", "cb500f", "xsr", "sv650", "gsx-8", "gsx-s")) {
             return "Naked";
         }
 
-        if (ContainsAny(haystack, "goldwing", "touring"))
-        {
+        if (ContainsAny(haystack, "goldwing", "touring")) {
             return "Touring";
         }
 

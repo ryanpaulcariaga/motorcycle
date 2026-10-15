@@ -19,7 +19,7 @@ public sealed class BikeModelService : IBikeModelService
 
     public async Task<BikeModelDto> CreateAsync(CreateBikeModelRequest request, CancellationToken ct = default)
     {
-            var name = BikeModelValidators.Validate(request.BrandId, request.CategoryId, request.Name);
+        var name = BikeModelValidators.Validate(request.BrandId, request.CategoryId, request.Name);
         await EnsureReferencesAsync(request.BrandId, request.CategoryId, name, null, ct);
         var model = new BikeModel { BrandId = request.BrandId, CategoryId = request.CategoryId, Name = name };
         await _repository.AddAsync(model, ct);
@@ -30,7 +30,7 @@ public sealed class BikeModelService : IBikeModelService
     public async Task<BikeModelDto> UpdateAsync(int id, UpdateBikeModelRequest request, CancellationToken ct = default)
     {
         var model = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("BikeModel was not found.");
-            var name = BikeModelValidators.Validate(request.BrandId, request.CategoryId, request.Name);
+        var name = BikeModelValidators.Validate(request.BrandId, request.CategoryId, request.Name);
         await EnsureReferencesAsync(request.BrandId, request.CategoryId, name, id, ct);
         model.BrandId = request.BrandId;
         model.CategoryId = request.CategoryId;
@@ -43,16 +43,27 @@ public sealed class BikeModelService : IBikeModelService
     {
         var model = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("BikeModel was not found.");
         var dependentCount = await _repository.CountDependentBikesAsync(id, ct);
-        if (dependentCount > 0) throw new BikeModelReferencedException(dependentCount);
+        if (dependentCount > 0) {
+            throw new BikeModelReferencedException(dependentCount);
+        }
+
         _repository.Remove(model);
         await _repository.SaveChangesAsync(ct);
     }
 
     private async Task EnsureReferencesAsync(int brandId, int categoryId, string name, int? excludingId, CancellationToken ct)
     {
-        if (!await _repository.BrandExistsAsync(brandId, ct)) throw new ArgumentException("Brand does not exist.", nameof(brandId));
-        if (!await _repository.CategoryExistsAsync(categoryId, ct)) throw new ArgumentException("Category does not exist.", nameof(categoryId));
-        if (await _repository.NameExistsAsync(brandId, name, excludingId, ct)) throw new InvalidOperationException("A BikeModel with this brand and name already exists.");
+        if (!await _repository.BrandExistsAsync(brandId, ct)) {
+            throw new ArgumentException("Brand does not exist.", nameof(brandId));
+        }
+
+        if (!await _repository.CategoryExistsAsync(categoryId, ct)) {
+            throw new ArgumentException("Category does not exist.", nameof(categoryId));
+        }
+
+        if (await _repository.NameExistsAsync(brandId, name, excludingId, ct)) {
+            throw new InvalidOperationException("A BikeModel with this brand and name already exists.");
+        }
     }
 
     private static BikeModelDto ToDto(BikeModel model) => new(

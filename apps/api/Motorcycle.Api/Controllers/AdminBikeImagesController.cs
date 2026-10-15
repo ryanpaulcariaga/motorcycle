@@ -24,9 +24,11 @@ public sealed class AdminBikeImagesController : ControllerBase
     [RequestSizeLimit(10 * 1024 * 1024)]
     public async Task<ActionResult<BikeImageAdminDto>> Upload(int bikeId, IFormFile file, CancellationToken ct)
     {
-        if (file is null) return BadRequest(new { message = "An image file is required." });
-        try
-        {
+        if (file is null) {
+            return BadRequest(new { message = "An image file is required." });
+        }
+
+        try {
             await using var stream = file.OpenReadStream();
             var result = await _service.UploadAsync(bikeId, stream, file.FileName, file.ContentType, file.Length, ct);
             return Ok(result);

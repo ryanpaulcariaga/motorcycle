@@ -34,16 +34,16 @@ public class BikeService : IBikeService
             query.Search, query.BrandId, query.CategoryId, query.YearMin, query.YearMax,
             query.PriceMin, query.PriceMax, ct);
 
-        if (query.SpecFilters.Count > 0)
-        {
+        if (query.SpecFilters.Count > 0) {
             var specDefinitions = (await _specGroupRepository.GetAllWithDefinitionsAsync(ct))
                 .SelectMany(g => g.Definitions)
                 .ToDictionary(d => d.Code, d => d);
 
             bikes = bikes.Where(bike => query.SpecFilters.All(filter =>
             {
-                if (!specDefinitions.TryGetValue(filter.SpecCode, out var def) || def.FilterType is null)
+                if (!specDefinitions.TryGetValue(filter.SpecCode, out var def) || def.FilterType is null) {
                     return true; // unknown/non-filterable spec code -> ignore filter
+                }
 
                 var strategy = _strategyFactory.Resolve(def.FilterType);
                 bike.Specs.TryGetValue(filter.SpecCode, out var value);
@@ -72,7 +72,9 @@ public class BikeService : IBikeService
     public async Task<BikeDetailDto?> GetBikeDetailAsync(string slug, CancellationToken ct = default)
     {
         var bike = await _bikeRepository.GetBySlugAsync(slug, ct);
-        if (bike is null) return null;
+        if (bike is null) {
+            return null;
+        }
 
         var specGroups = await _specGroupRepository.GetAllWithDefinitionsAsync(ct);
         return ToDetailDto(bike, specGroups);
@@ -97,8 +99,7 @@ public class BikeService : IBikeService
             }).ToList()
         };
 
-        foreach (var group in specGroups.OrderBy(g => g.SortOrder))
-        {
+        foreach (var group in specGroups.OrderBy(g => g.SortOrder)) {
             var groupDto = new CompareSpecGroupDto
             {
                 Code = group.Code,
@@ -106,8 +107,7 @@ public class BikeService : IBikeService
                 SortOrder = group.SortOrder
             };
 
-            foreach (var def in group.Definitions.OrderBy(d => d.SortOrder))
-            {
+            foreach (var def in group.Definitions.OrderBy(d => d.SortOrder)) {
                 var row = new CompareSpecRowDto
                 {
                     Code = def.Code,
@@ -115,8 +115,7 @@ public class BikeService : IBikeService
                     Unit = def.Unit
                 };
 
-                foreach (var bike in bikes)
-                {
+                foreach (var bike in bikes) {
                     bike.Specs.TryGetValue(def.Code, out var value);
                     row.ValuesByBikeId[bike.Id.ToString()] = value;
                 }
@@ -175,8 +174,7 @@ public class BikeService : IBikeService
                 .ToList()
         };
 
-        foreach (var group in specGroups.OrderBy(g => g.SortOrder))
-        {
+        foreach (var group in specGroups.OrderBy(g => g.SortOrder)) {
             var groupDto = new SpecGroupWithValuesDto
             {
                 Code = group.Code,
@@ -184,8 +182,7 @@ public class BikeService : IBikeService
                 SortOrder = group.SortOrder
             };
 
-            foreach (var def in group.Definitions.OrderBy(d => d.SortOrder))
-            {
+            foreach (var def in group.Definitions.OrderBy(d => d.SortOrder)) {
                 bike.Specs.TryGetValue(def.Code, out var value);
                 groupDto.Specs.Add(new SpecValueDto
                 {

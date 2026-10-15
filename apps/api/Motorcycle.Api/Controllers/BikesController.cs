@@ -55,8 +55,7 @@ public class BikesController : ControllerBase
             PriceMax = priceMax
         };
 
-        if (!string.IsNullOrWhiteSpace(specCode))
-        {
+        if (!string.IsNullOrWhiteSpace(specCode)) {
             query.SpecFilters.Add(new SpecFilterRequest
             {
                 SpecCode = specCode,
@@ -83,8 +82,9 @@ public class BikesController : ControllerBase
     [HttpGet("compare")]
     public async Task<IActionResult> Compare([FromQuery] string ids, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(ids))
+        if (string.IsNullOrWhiteSpace(ids)) {
             return BadRequest("Query parameter 'ids' is required (comma-separated bike ids).");
+        }
 
         var bikeIds = ids.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(id => int.TryParse(id, out var n) ? n : (int?)null)
@@ -92,8 +92,9 @@ public class BikesController : ControllerBase
             .Select(n => n!.Value)
             .ToList();
 
-        if (bikeIds.Count == 0)
+        if (bikeIds.Count == 0) {
             return BadRequest("No valid bike ids found in 'ids'.");
+        }
 
         var result = await _bikeService.CompareBikesAsync(bikeIds, ct);
         return Ok(result);

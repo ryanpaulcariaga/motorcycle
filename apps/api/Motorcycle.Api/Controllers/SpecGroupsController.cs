@@ -21,8 +21,9 @@ public class SpecGroupsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetSpecGroups(CancellationToken ct)
     {
-        if (_cache.TryGetValue(CacheKey, out var cached))
+        if (_cache.TryGetValue(CacheKey, out var cached)) {
             return Ok(cached);
+        }
 
         var specGroups = await _lookupService.GetSpecGroupsAsync(ct);
         _cache.Set(CacheKey, specGroups, TimeSpan.FromMinutes(10));

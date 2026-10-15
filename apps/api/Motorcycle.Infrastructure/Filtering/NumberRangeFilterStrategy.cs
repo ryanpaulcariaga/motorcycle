@@ -11,14 +11,21 @@ public class NumberRangeFilterStrategy : ISpecFilterStrategy
 
     public bool IsMatch(object? specValue, SpecFilterRequest filter)
     {
-        if (specValue is null) return false;
-        if (!TryParseDecimal(specValue, out var value)) return false;
-
-        if (filter.Min is not null && decimal.TryParse(filter.Min, NumberStyles.Any, CultureInfo.InvariantCulture, out var min) && value < min)
+        if (specValue is null) {
             return false;
+        }
 
-        if (filter.Max is not null && decimal.TryParse(filter.Max, NumberStyles.Any, CultureInfo.InvariantCulture, out var max) && value > max)
+        if (!TryParseDecimal(specValue, out var value)) {
             return false;
+        }
+
+        if (filter.Min is not null && decimal.TryParse(filter.Min, NumberStyles.Any, CultureInfo.InvariantCulture, out var min) && value < min) {
+            return false;
+        }
+
+        if (filter.Max is not null && decimal.TryParse(filter.Max, NumberStyles.Any, CultureInfo.InvariantCulture, out var max) && value > max) {
+            return false;
+        }
 
         return true;
     }

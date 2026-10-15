@@ -21,8 +21,9 @@ public class CategoriesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetCategories(CancellationToken ct)
     {
-        if (_cache.TryGetValue(CacheKey, out var cached))
+        if (_cache.TryGetValue(CacheKey, out var cached)) {
             return Ok(cached);
+        }
 
         var categories = await _lookupService.GetCategoriesAsync(ct);
         _cache.Set(CacheKey, categories, TimeSpan.FromMinutes(10));

@@ -67,7 +67,9 @@ export default function CompareClient({
 
   function addBike(bike: BikeListItemDto) {
     const id = String(bike.id);
-    if (selected.some((s) => s.id === id)) return;
+    if (selected.some((s) => s.id === id)) {
+      return;
+    }
     updateUrl([
       ...selected,
       { id, label: `${bike.brandName} ${bike.modelName} ${bike.variantName}` },
@@ -262,6 +264,8 @@ export default function CompareClient({
 }
 
 function formatValue(value: unknown, unit: string | null): string {
-  if (value === null || value === undefined) return '—';
+  if (value === null || value === undefined) {
+    return '—';
+  }
   return unit ? `${value} ${unit}` : String(value);
 }

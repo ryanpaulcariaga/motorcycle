@@ -50,6 +50,7 @@ The public app uses Next.js 16, whose APIs and conventions differ from earlier r
 
 ## Repository Conventions
 
+- Use braces for every `if`/`else`, loop, and other control-flow body, even when it contains a single statement. Put the opening brace on the same line as the control statement, with the body and closing brace on separate lines. Keep this convention when editing existing code.
 - Start feature work from `specs/NNN-feature-name/spec.md`, then use its `plan.md` and `tasks.md`. Update the task checklist and applicable `docs/architecture.md`, `docs/api.md`, or `docs/database.md` with the implementation.
 - Keep HTTP DTOs in `Motorcycle.Application` and mirror affected contracts in each frontend's TypeScript types. Frontend requests go through the application's centralized typed API client (`apps/web/lib/api.ts`); do not add component-level `fetch` calls.
 - Register Application interfaces and Infrastructure implementations in `apps/api/Motorcycle.Api/Program.cs`. Controllers delegate to Application services rather than querying EF Core directly.

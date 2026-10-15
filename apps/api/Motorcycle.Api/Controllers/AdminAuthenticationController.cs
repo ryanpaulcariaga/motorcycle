@@ -68,19 +68,20 @@ public sealed class AdminAuthenticationController : ControllerBase
     [HttpGet("facebook/callback")]
     public async Task<IActionResult> CompleteFacebookSignIn([FromQuery] string? code, [FromQuery] string? state, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
+        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state)) {
             return RedirectToAdmin("oauth_cancelled");
+        }
 
         var expectedState = Request.Cookies[StateCookie];
         var verifier = Request.Cookies[VerifierCookie];
         Response.Cookies.Delete(StateCookie);
         Response.Cookies.Delete(VerifierCookie);
         if (string.IsNullOrWhiteSpace(expectedState) || !CryptographicOperations.FixedTimeEquals(
-                System.Text.Encoding.UTF8.GetBytes(expectedState), System.Text.Encoding.UTF8.GetBytes(state)) || string.IsNullOrWhiteSpace(verifier))
+                System.Text.Encoding.UTF8.GetBytes(expectedState), System.Text.Encoding.UTF8.GetBytes(state)) || string.IsNullOrWhiteSpace(verifier)) {
             return RedirectToAdmin("Invalid OAuth state.");
+        }
 
-        try
-        {
+        try {
             EnsureConfigured();
             var client = _httpClientFactory.CreateClient();
             var tokenParameters = new Dictionary<string, string>
@@ -92,14 +93,24 @@ public sealed class AdminAuthenticationController : ControllerBase
                 ["code_verifier"] = verifier,
             };
             var tokenResponse = await client.GetAsync($"{FacebookTokenUrl}?{await new FormUrlEncodedContent(tokenParameters).ReadAsStringAsync(ct)}", ct);
-            if (!tokenResponse.IsSuccessStatusCode) return RedirectToAdmin("Facebook token exchange failed.");
+            if (!tokenResponse.IsSuccessStatusCode) {
+                return RedirectToAdmin("Facebook token exchange failed.");
+            }
+
             var token = await tokenResponse.Content.ReadFromJsonAsync<FacebookTokenResponse>(cancellationToken: ct);
-            if (string.IsNullOrWhiteSpace(token?.AccessToken)) return RedirectToAdmin("Facebook did not return an access token.");
+            if (string.IsNullOrWhiteSpace(token?.AccessToken)) {
+                return RedirectToAdmin("Facebook did not return an access token.");
+            }
 
             var profile = await client.GetFromJsonAsync<FacebookProfile>($"{FacebookProfileUrl}?fields=id,email,name&access_token={Uri.EscapeDataString(token.AccessToken)}", ct);
-            if (string.IsNullOrWhiteSpace(profile?.Id)) return RedirectToAdmin("Facebook profile lookup failed.");
+            if (string.IsNullOrWhiteSpace(profile?.Id)) {
+                return RedirectToAdmin("Facebook profile lookup failed.");
+            }
+
             var role = await _roles.GetByFacebookUserIdAsync(profile.Id, ct);
-            if (role?.IsActive != true) return RedirectToAdmin("This Facebook identity is not an active administrator.");
+            if (role?.IsActive != true) {
+                return RedirectToAdmin("This Facebook identity is not an active administrator.");
+            }
 
             var claims = new[]
             {
@@ -113,8 +124,7 @@ public sealed class AdminAuthenticationController : ControllerBase
             });
             return Redirect(_options.AdminAppUrl);
         }
-        catch (HttpRequestException)
-        {
+        catch (HttpRequestException) {
             return RedirectToAdmin("Facebook sign-in is temporarily unavailable.");
         }
     }
@@ -135,8 +145,9 @@ public sealed class AdminAuthenticationController : ControllerBase
     private void EnsureConfigured()
     {
         if (string.IsNullOrWhiteSpace(_options.FacebookClientId) || string.IsNullOrWhiteSpace(_options.FacebookClientSecret) ||
-            string.IsNullOrWhiteSpace(_options.FacebookRedirectUri) || string.IsNullOrWhiteSpace(_options.AdminAppUrl))
+            string.IsNullOrWhiteSpace(_options.FacebookRedirectUri) || string.IsNullOrWhiteSpace(_options.AdminAppUrl)) {
             throw new InvalidOperationException("Admin Facebook authentication is not configured.");
+        }
     }
 
     private static string Base64Url(byte[] value) => Convert.ToBase64String(value).TrimEnd('=').Replace('+', '-').Replace('/', '_');

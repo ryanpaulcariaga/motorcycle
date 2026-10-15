@@ -167,18 +167,19 @@ export default function App() {
     void getAdminSession()
       .then(setSession)
       .catch((cause: unknown) => {
-        if (!(cause instanceof AdminApiError) || cause.status !== 401)
+        if (!(cause instanceof AdminApiError) || cause.status !== 401) {
           console.error(cause);
+        }
       })
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading)
+  if (loading) {
     return (
       <main className="min-h-screen bg-brand-page p-6 text-brand-black">
         Loading administration...
       </main>
     );
+  }
   return session ? <AdminShell session={session} /> : <SignIn error={error} />;
 }
-

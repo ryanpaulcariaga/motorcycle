@@ -13,7 +13,10 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
     public async Task<List<Bike>> GetAllAsync(int? modelId, CancellationToken ct = default)
     {
         var query = _context.Bikes.AsNoTracking().Include(x => x.Model).ThenInclude(m => m.Brand).AsQueryable();
-        if (modelId.HasValue) query = query.Where(x => x.ModelId == modelId.Value);
+        if (modelId.HasValue) {
+            query = query.Where(x => x.ModelId == modelId.Value);
+        }
+
         return await query.OrderBy(x => x.Model.Name).ThenBy(x => x.Year).ThenBy(x => x.VariantName).ToListAsync(ct);
     }
 
@@ -23,9 +26,18 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
             .Include(x => x.Model).ThenInclude(m => m.Brand)
             .Include(x => x.Model).ThenInclude(m => m.Category)
             .Where(x => x.Model.BrandId == brandId);
-        if (categoryId.HasValue) query = query.Where(x => x.Model.CategoryId == categoryId.Value);
-        if (minPrice.HasValue) query = query.Where(x => x.MsrpPrice >= minPrice.Value);
-        if (maxPrice.HasValue) query = query.Where(x => x.MsrpPrice <= maxPrice.Value);
+        if (categoryId.HasValue) {
+            query = query.Where(x => x.Model.CategoryId == categoryId.Value);
+        }
+
+        if (minPrice.HasValue) {
+            query = query.Where(x => x.MsrpPrice >= minPrice.Value);
+        }
+
+        if (maxPrice.HasValue) {
+            query = query.Where(x => x.MsrpPrice <= maxPrice.Value);
+        }
+
         return await query.OrderBy(x => x.Model.Name).ThenBy(x => x.Year).ThenBy(x => x.VariantName).ToListAsync(ct);
     }
 

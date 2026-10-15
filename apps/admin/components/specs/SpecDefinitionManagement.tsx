@@ -94,7 +94,9 @@ export default function SpecDefinitionManagement({
       const confirmed = window.confirm(
         `Renaming the code from "${existing.code}" to "${form.code}" will update this value on every bike that currently stores it. Continue?`
       );
-      if (!confirmed) return;
+      if (!confirmed) {
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -109,8 +111,11 @@ export default function SpecDefinitionManagement({
         isFilterable: form.isFilterable,
         filterType: form.isFilterable ? form.filterType || null : null,
       };
-      if (editingId === null) await createAdminSpecDefinition(request);
-      else await updateAdminSpecDefinition(editingId, request);
+      if (editingId === null) {
+        await createAdminSpecDefinition(request);
+      } else {
+        await updateAdminSpecDefinition(editingId, request);
+      }
       reset();
       await load();
       onDefinitionCountChanged();
@@ -118,24 +123,25 @@ export default function SpecDefinitionManagement({
       if (
         cause instanceof AdminApiError &&
         cause.details?.code === 'spec_definition_code_exists'
-      )
+      ) {
         setError(`A spec definition with code "${form.code}" already exists.`);
-      else if (
+      } else if (
         cause instanceof AdminApiError &&
         cause.details?.code === 'spec_definition_datatype_incompatible'
-      )
+      ) {
         setError(
           `${cause.details.affectedBikeCount ?? 'Some'} bike(s) have a value that cannot be converted to "${form.dataType}", so the data type was not changed:\n` +
             (cause.details.failures ?? [])
               .map((f) => `• Bike #${f.bikeId}: ${f.reason}`)
               .join('\n')
         );
-      else
+      } else {
         setError(
           cause instanceof AdminApiError
             ? cause.message
             : 'Unable to save spec definition.'
         );
+      }
     } finally {
       setSubmitting(false);
     }
@@ -145,7 +151,9 @@ export default function SpecDefinitionManagement({
     const ordered = [...definitions].sort((a, b) => a.sortOrder - b.sortOrder);
     const index = ordered.findIndex((d) => d.id === definition.id);
     const swapIndex = index + direction;
-    if (swapIndex < 0 || swapIndex >= ordered.length) return;
+    if (swapIndex < 0 || swapIndex >= ordered.length) {
+      return;
+    }
     [ordered[index], ordered[swapIndex]] = [ordered[swapIndex], ordered[index]];
     setError(null);
     try {
@@ -163,8 +171,9 @@ export default function SpecDefinitionManagement({
   async function remove(definition: SpecDefinitionAdmin) {
     if (
       !window.confirm(`Delete spec "${definition.label}" (${definition.code})?`)
-    )
+    ) {
       return;
+    }
     setError(null);
     try {
       await deleteAdminSpecDefinition(definition.id);

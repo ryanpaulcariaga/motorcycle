@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 interface PageShellProps {
   children: ReactNode;
@@ -14,7 +14,9 @@ export default function PageShell({ children, bare = false }: PageShellProps) {
         {bare ? (
           children
         ) : (
-          <div className="rounded-md bg-brand-content p-4 sm:p-6 shadow-sm">{children}</div>
+          <div className="rounded-md bg-brand-content p-4 sm:p-6 shadow-sm">
+            {children}
+          </div>
         )}
       </div>
     </div>

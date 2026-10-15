@@ -75,20 +75,21 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
 
         // A dataType change converts every stored value; if any cannot be converted, nothing changes.
         Dictionary<int, object?>? convertedValues = null;
-        if (isDataTypeChange)
-        {
+        if (isDataTypeChange) {
             var values = await _repository.GetBikeValuesForCodeAsync(oldCode, ct);
             var failures = new List<SpecValueConversionFailure>();
             convertedValues = new Dictionary<int, object?>();
-            foreach (var v in values)
-            {
-                if (!SpecValueConverter.TryConvert(v.Value, dataType, out var converted, out var reason))
+            foreach (var v in values) {
+                if (!SpecValueConverter.TryConvert(v.Value, dataType, out var converted, out var reason)) {
                     failures.Add(new SpecValueConversionFailure(v.BikeId, v.Value?.ToString() ?? string.Empty, reason!));
-                else if (!ReferenceEquals(converted, v.Value))
+                }
+                else if (!ReferenceEquals(converted, v.Value)) {
                     convertedValues[v.BikeId] = converted;
+                }
             }
-            if (failures.Count > 0)
+            if (failures.Count > 0) {
                 throw new SpecDefinitionDataTypeIncompatibleException(failures);
+            }
         }
 
         definition.Code = code;
@@ -97,8 +98,7 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
         definition.Unit = unit;
         definition.IsFilterable = request.IsFilterable;
         definition.FilterType = filterType;
-        if (isGroupMove)
-        {
+        if (isGroupMove) {
             definition.GroupId = request.GroupId;
             var newSiblings = await _repository.GetAllAsync(request.GroupId, ct);
             definition.SortOrder = newSiblings.Count == 0 ? 1 : newSiblings.Max(x => x.SortOrder) + 1;
@@ -113,11 +113,15 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
     {
         var definitions = await _repository.GetAllAsync(groupId, ct);
         if (request.DefinitionIds.Count != definitions.Count || request.DefinitionIds.Distinct().Count() != request.DefinitionIds.Count ||
-            request.DefinitionIds.Any(id => definitions.All(x => x.Id != id)))
+            request.DefinitionIds.Any(id => definitions.All(x => x.Id != id))) {
             throw new ArgumentException("definitionIds must contain every spec definition currently in this group, exactly once.");
+        }
 
         var positions = request.DefinitionIds.Select((id, index) => (id, sortOrder: index + 1)).ToDictionary(x => x.id, x => x.sortOrder);
-        foreach (var definition in definitions) definition.SortOrder = positions[definition.Id];
+        foreach (var definition in definitions) {
+            definition.SortOrder = positions[definition.Id];
+        }
+
         await _repository.SaveChangesAsync(ct);
 
         var counts = await _repository.CountBikesWithValueByCodeAsync(ct);
@@ -128,7 +132,10 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
     {
         var definition = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Spec definition was not found.");
         var affectedBikes = await _repository.GetBikeValuesForCodeAsync(definition.Code, ct);
-        if (affectedBikes.Count > 0) throw new SpecDefinitionReferencedException(affectedBikes.Count);
+        if (affectedBikes.Count > 0) {
+            throw new SpecDefinitionReferencedException(affectedBikes.Count);
+        }
+
         _repository.Remove(definition);
         await _repository.SaveChangesAsync(ct);
     }
@@ -136,8 +143,9 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
     private async Task<(string Code, string Label, string DataType, string? Unit, string? FilterType)> ValidateFieldsAsync(
         int groupId, string? code, string? label, string? dataType, string? unit, bool isFilterable, string? filterType, int? excludingId, CancellationToken ct)
     {
-        if (!await _repository.GroupExistsAsync(groupId, ct))
+        if (!await _repository.GroupExistsAsync(groupId, ct)) {
             throw new ArgumentException("Spec group does not exist.", nameof(groupId));
+        }
 
         var validatedCode = SpecMetadataValidators.ValidateCode(code, nameof(code));
         var validatedLabel = SpecMetadataValidators.ValidateRequiredText(label, nameof(label));
@@ -145,8 +153,9 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
         var validatedFilterType = SpecMetadataValidators.ValidateFilterType(isFilterable, filterType, _filterStrategyFactory.SupportedFilterTypes);
         var normalizedUnit = string.IsNullOrWhiteSpace(unit) ? null : unit.Trim();
 
-        if (await _repository.CodeExistsAsync(validatedCode, excludingId, ct))
+        if (await _repository.CodeExistsAsync(validatedCode, excludingId, ct)) {
             throw new SpecDefinitionCodeExistsException(validatedCode);
+        }
 
         return (validatedCode, validatedLabel, validatedDataType, normalizedUnit, validatedFilterType);
     }

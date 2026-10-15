@@ -82,22 +82,22 @@ public class MotorcycleDbContext : DbContext
             b.Property(x => x.Year).IsRequired().HasDefaultValue(0);
             b.Property(x => x.Slug).IsRequired().HasMaxLength(512);
             b.Property(x => x.MsrpPrice).HasPrecision(10, 2);
-            
+
             // JSONB mapping for specs with value comparer
             b.Property(x => x.Specs)
                 .HasColumnType("jsonb")
                 .HasConversion(dictConverter)
                 .Metadata.SetValueComparer(dictComparer);
-            
+
             b.HasIndex(x => x.ModelId);
             b.HasIndex(x => x.Year);
             b.HasIndex(x => x.MsrpPrice);
             b.HasIndex(x => x.Slug).IsUnique();
             b.HasIndex(x => new { x.ModelId, x.Year, x.VariantName }).IsUnique();
-            
+
             // GIN index for JSONB specs (raw SQL in migration)
             // CREATE INDEX idx_bikes_specs GIN (specs);
-            
+
             b.HasMany(x => x.Images).WithOne(x => x.Bike).HasForeignKey(x => x.BikeId).OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -216,27 +216,22 @@ public class MotorcycleDbContext : DbContext
     // so tables/columns/keys/indexes are renamed here after all entity configuration is applied.
     private static void ApplySnakeCaseNames(ModelBuilder modelBuilder)
     {
-        foreach (var entity in modelBuilder.Model.GetEntityTypes())
-        {
+        foreach (var entity in modelBuilder.Model.GetEntityTypes()) {
             entity.SetTableName(ToSnakeCase(entity.GetTableName()!));
 
-            foreach (var property in entity.GetProperties())
-            {
+            foreach (var property in entity.GetProperties()) {
                 property.SetColumnName(ToSnakeCase(property.GetColumnName()));
             }
 
-            foreach (var key in entity.GetKeys())
-            {
+            foreach (var key in entity.GetKeys()) {
                 key.SetName(ToSnakeCase(key.GetName()!));
             }
 
-            foreach (var foreignKey in entity.GetForeignKeys())
-            {
+            foreach (var foreignKey in entity.GetForeignKeys()) {
                 foreignKey.SetConstraintName(ToSnakeCase(foreignKey.GetConstraintName()!));
             }
 
-            foreach (var index in entity.GetIndexes())
-            {
+            foreach (var index in entity.GetIndexes()) {
                 index.SetDatabaseName(ToSnakeCase(index.GetDatabaseName()!));
             }
         }

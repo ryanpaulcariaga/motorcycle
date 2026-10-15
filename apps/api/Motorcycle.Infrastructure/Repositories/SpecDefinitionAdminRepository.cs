@@ -46,12 +46,16 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
     {
         var bikes = await _context.Bikes.AsNoTracking().Select(b => b.Specs).ToListAsync(ct);
         var counts = new Dictionary<string, int>();
-        foreach (var specs in bikes)
-        foreach (var (code, value) in specs)
-        {
-            if (value is null) continue;
-            counts[code] = counts.GetValueOrDefault(code) + 1;
+        foreach (var specs in bikes) {
+            foreach (var (code, value) in specs) {
+                if (value is null) {
+                    continue;
+                }
+
+                counts[code] = counts.GetValueOrDefault(code) + 1;
+            }
         }
+
         return counts;
     }
 
@@ -62,20 +66,17 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
     public async Task SaveWithOptionalRenameAsync(SpecDefinition definition, string? renamedFromCode,
         IReadOnlyDictionary<int, object?>? convertedValues, string valueCode, CancellationToken ct = default)
     {
-        if (convertedValues is { Count: > 0 })
-        {
+        if (convertedValues is { Count: > 0 }) {
             var ids = convertedValues.Keys.ToList();
             var bikes = await _context.Bikes.Where(b => ids.Contains(b.Id)).ToListAsync(ct);
-            foreach (var bike in bikes)
-            {
+            foreach (var bike in bikes) {
                 // Replace the dictionary so EF detects the JSONB change.
                 var specs = new Dictionary<string, object?>(bike.Specs) { [valueCode] = convertedValues[bike.Id] };
                 bike.Specs = specs;
             }
         }
 
-        if (string.IsNullOrEmpty(renamedFromCode) || renamedFromCode == definition.Code)
-        {
+        if (string.IsNullOrEmpty(renamedFromCode) || renamedFromCode == definition.Code) {
             await _context.SaveChangesAsync(ct);
             return;
         }

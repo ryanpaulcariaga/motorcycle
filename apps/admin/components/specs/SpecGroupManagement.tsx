@@ -29,8 +29,9 @@ export default function SpecGroupManagement() {
     try {
       const result = await getAdminSpecGroups();
       setGroups(result);
-      if (selectedGroupId === null && result.length > 0)
+      if (selectedGroupId === null && result.length > 0) {
         setSelectedGroupId(result[0].id);
+      }
     } catch (cause) {
       setError(
         cause instanceof AdminApiError
@@ -70,8 +71,11 @@ export default function SpecGroupManagement() {
         name: form.name,
         iconName: form.iconName || null,
       };
-      if (editingId === null) await createAdminSpecGroup(request);
-      else await updateAdminSpecGroup(editingId, request);
+      if (editingId === null) {
+        await createAdminSpecGroup(request);
+      } else {
+        await updateAdminSpecGroup(editingId, request);
+      }
       reset();
       await load();
     } catch (cause) {
@@ -92,7 +96,9 @@ export default function SpecGroupManagement() {
     const ordered = [...groups].sort((a, b) => a.sortOrder - b.sortOrder);
     const index = ordered.findIndex((g) => g.id === group.id);
     const swapIndex = index + direction;
-    if (swapIndex < 0 || swapIndex >= ordered.length) return;
+    if (swapIndex < 0 || swapIndex >= ordered.length) {
+      return;
+    }
     [ordered[index], ordered[swapIndex]] = [ordered[swapIndex], ordered[index]];
     setError(null);
     try {
@@ -108,12 +114,15 @@ export default function SpecGroupManagement() {
       !window.confirm(
         `Delete group "${group.name}"? It must have no spec definitions.`
       )
-    )
+    ) {
       return;
+    }
     setError(null);
     try {
       await deleteAdminSpecGroup(group.id);
-      if (selectedGroupId === group.id) setSelectedGroupId(null);
+      if (selectedGroupId === group.id) {
+        setSelectedGroupId(null);
+      }
       await load();
     } catch (cause) {
       setError(

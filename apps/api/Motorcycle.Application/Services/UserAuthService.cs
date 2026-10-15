@@ -11,12 +11,12 @@ public sealed class UserAuthService : IUserAuthService
 
     public async Task<User> FindOrCreateUserAsync(string provider, ExternalAuthProfile profile, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(profile.ProviderUserId))
+        if (string.IsNullOrWhiteSpace(profile.ProviderUserId)) {
             throw new ArgumentException("Provider user ID is required.", nameof(profile));
+        }
 
         var existingLogin = await _repository.GetExternalLoginAsync(provider, profile.ProviderUserId, ct);
-        if (existingLogin is not null)
-        {
+        if (existingLogin is not null) {
             var linkedUser = existingLogin.User ?? await _repository.GetByIdAsync(existingLogin.UserId, ct)
                 ?? throw new InvalidOperationException("External login is missing its linked user.");
             ApplyProfileSnapshot(linkedUser, profile);
@@ -28,11 +28,11 @@ public sealed class UserAuthService : IUserAuthService
         // an unverified email could let anyone claim someone else's address across providers.
         var normalizedEmail = profile.Email?.Trim().ToLowerInvariant();
         User? user = null;
-        if (profile.EmailVerified && !string.IsNullOrWhiteSpace(normalizedEmail))
+        if (profile.EmailVerified && !string.IsNullOrWhiteSpace(normalizedEmail)) {
             user = await _repository.GetByEmailAsync(normalizedEmail, ct);
+        }
 
-        if (user is null)
-        {
+        if (user is null) {
             user = new User
             {
                 Email = normalizedEmail,
@@ -41,8 +41,7 @@ public sealed class UserAuthService : IUserAuthService
             };
             await _repository.AddAsync(user, ct);
         }
-        else
-        {
+        else {
             ApplyProfileSnapshot(user, profile);
         }
 
@@ -62,10 +61,11 @@ public sealed class UserAuthService : IUserAuthService
 
     private static void ApplyProfileSnapshot(User user, ExternalAuthProfile profile)
     {
-        if (string.IsNullOrWhiteSpace(user.DisplayName) && !string.IsNullOrWhiteSpace(profile.DisplayName))
+        if (string.IsNullOrWhiteSpace(user.DisplayName) && !string.IsNullOrWhiteSpace(profile.DisplayName)) {
             user.DisplayName = profile.DisplayName;
-        if (string.IsNullOrWhiteSpace(user.Email) && profile.EmailVerified && !string.IsNullOrWhiteSpace(profile.Email))
-        {
+        }
+
+        if (string.IsNullOrWhiteSpace(user.Email) && profile.EmailVerified && !string.IsNullOrWhiteSpace(profile.Email)) {
             user.Email = profile.Email!.Trim().ToLowerInvariant();
             user.EmailVerified = true;
         }

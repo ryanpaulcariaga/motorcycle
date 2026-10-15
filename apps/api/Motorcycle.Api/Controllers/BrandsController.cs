@@ -21,8 +21,9 @@ public class BrandsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetBrands(CancellationToken ct)
     {
-        if (_cache.TryGetValue(CacheKey, out var cached))
+        if (_cache.TryGetValue(CacheKey, out var cached)) {
             return Ok(cached);
+        }
 
         var brands = await _lookupService.GetBrandsAsync(ct);
         _cache.Set(CacheKey, brands, TimeSpan.FromMinutes(10));

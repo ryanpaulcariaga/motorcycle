@@ -12,7 +12,9 @@ public static class SpecValueConverter
     {
         converted = value;
         reason = null;
-        if (BikeValidators.ValidateValueForType(value, dataType)) return true;
+        if (BikeValidators.ValidateValueForType(value, dataType)) {
+            return true;
+        }
 
         var text = value switch
         {
@@ -24,19 +26,16 @@ public static class SpecValueConverter
         } ?? string.Empty;
         var isString = value is string || value is JsonElement { ValueKind: JsonValueKind.String };
 
-        switch (dataType)
-        {
+        switch (dataType) {
             case "number":
-                if (isString && decimal.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
-                {
+                if (isString && decimal.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var number)) {
                     converted = number;
                     return true;
                 }
                 reason = $"\"{text}\" is not a valid number.";
                 return false;
             case "boolean":
-                if (isString && bool.TryParse(text.Trim(), out var flag))
-                {
+                if (isString && bool.TryParse(text.Trim(), out var flag)) {
                     converted = flag;
                     return true;
                 }

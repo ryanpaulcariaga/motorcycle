@@ -82,9 +82,9 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
     });
 
   function sortBy(field: SortField) {
-    if (sortField === field)
+    if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    else {
+    } else {
       setSortField(field);
       setSortDirection('asc');
     }
@@ -150,9 +150,10 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
     try {
       const detail = await getAdminBike(bike.id);
       const specs: Record<string, string> = {};
-      for (const [code, value] of Object.entries(detail.specs))
+      for (const [code, value] of Object.entries(detail.specs)) {
         specs[code] =
           value === null || value === undefined ? '' : String(value);
+      }
       setEditingId(bike.id);
       setForm({
         modelId: String(detail.modelId),
@@ -171,7 +172,9 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
     for (const group of specGroups) {
       for (const def of group.definitions) {
         const raw = form.specs[def.code];
-        if (raw === undefined || raw === '') continue;
+        if (raw === undefined || raw === '') {
+          continue;
+        }
         specs[def.code] =
           def.dataType === 'number'
             ? Number(raw)
@@ -196,13 +199,16 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
       };
       if (editingId === null) {
         const targetModelId = modelId ?? Number(form.modelId);
-        if (!targetModelId) throw new Error('model_required');
+        if (!targetModelId) {
+          throw new Error('model_required');
+        }
         await createAdminBike({ modelId: targetModelId, ...request });
-      } else
+      } else {
         await updateAdminBike(editingId, {
           ...request,
           modelId: Number(form.modelId) || undefined,
         });
+      }
       reset();
       await load();
     } catch (cause) {
@@ -221,8 +227,11 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
   async function togglePublish(bike: BikeAdminListItem) {
     setError(null);
     try {
-      if (bike.isPublished) await unpublishAdminBike(bike.id);
-      else await publishAdminBike(bike.id);
+      if (bike.isPublished) {
+        await unpublishAdminBike(bike.id);
+      } else {
+        await publishAdminBike(bike.id);
+      }
       await load();
     } catch (cause) {
       setError(
@@ -235,7 +244,9 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
   }
 
   async function remove(bike: BikeAdminListItem) {
-    if (!window.confirm(`Delete ${bike.variantName} (${bike.year})?`)) return;
+    if (!window.confirm(`Delete ${bike.variantName} (${bike.year})?`)) {
+      return;
+    }
     setError(null);
     try {
       await deleteAdminBike(bike.id);

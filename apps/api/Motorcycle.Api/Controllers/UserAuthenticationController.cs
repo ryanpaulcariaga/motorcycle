@@ -62,8 +62,9 @@ public sealed class UserAuthenticationController : ControllerBase
     [HttpGet("{provider}/callback")]
     public async Task<IActionResult> CompleteSignIn(string provider, [FromQuery] string? code, [FromQuery] string? state, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
+        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state)) {
             return RedirectToWeb("oauth_cancelled");
+        }
 
         var expectedState = Request.Cookies[StateCookiePrefix + provider];
         var verifier = Request.Cookies[VerifierCookiePrefix + provider];
@@ -71,19 +72,26 @@ public sealed class UserAuthenticationController : ControllerBase
         Response.Cookies.Delete(VerifierCookiePrefix + provider);
         if (string.IsNullOrWhiteSpace(expectedState) || string.IsNullOrWhiteSpace(verifier) ||
             !CryptographicOperations.FixedTimeEquals(
-                System.Text.Encoding.UTF8.GetBytes(expectedState), System.Text.Encoding.UTF8.GetBytes(state)))
+                System.Text.Encoding.UTF8.GetBytes(expectedState), System.Text.Encoding.UTF8.GetBytes(state))) {
             return RedirectToWeb("Invalid OAuth state.");
+        }
 
-        try
-        {
+        try {
             var (authProvider, config) = Resolve(provider);
             var profile = await authProvider.ExchangeCodeAsync(config, code, verifier, ct);
             var user = await _userAuthService.FindOrCreateUserAsync(authProvider.Provider, profile, ct);
-            if (!user.IsActive) return RedirectToWeb("This account has been disabled.");
+            if (!user.IsActive) {
+                return RedirectToWeb("This account has been disabled.");
+            }
 
             var claims = new List<Claim> { new("sub", user.Id.ToString()) };
-            if (!string.IsNullOrWhiteSpace(user.Email)) claims.Add(new Claim(ClaimTypes.Email, user.Email));
-            if (!string.IsNullOrWhiteSpace(user.DisplayName)) claims.Add(new Claim(ClaimTypes.Name, user.DisplayName));
+            if (!string.IsNullOrWhiteSpace(user.Email)) {
+                claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            }
+
+            if (!string.IsNullOrWhiteSpace(user.DisplayName)) {
+                claims.Add(new Claim(ClaimTypes.Name, user.DisplayName));
+            }
 
             await HttpContext.SignInAsync(SchemeName, new ClaimsPrincipal(new ClaimsIdentity(claims, SchemeName)), new AuthenticationProperties
             {
@@ -92,16 +100,13 @@ public sealed class UserAuthenticationController : ControllerBase
             });
             return Redirect(_options.WebAppUrl);
         }
-        catch (InvalidOperationException)
-        {
+        catch (InvalidOperationException) {
             return RedirectToWeb("Sign-in is temporarily unavailable.");
         }
-        catch (NotSupportedException)
-        {
+        catch (NotSupportedException) {
             return RedirectToWeb("Unsupported sign-in provider.");
         }
-        catch (HttpRequestException)
-        {
+        catch (HttpRequestException) {
             return RedirectToWeb("Sign-in is temporarily unavailable.");
         }
     }
@@ -110,9 +115,15 @@ public sealed class UserAuthenticationController : ControllerBase
     [Authorize(Policy = "AuthenticatedUser")]
     public async Task<IActionResult> GetSession(CancellationToken ct)
     {
-        if (!int.TryParse(User.FindFirstValue("sub"), out var userId)) return Unauthorized();
+        if (!int.TryParse(User.FindFirstValue("sub"), out var userId)) {
+            return Unauthorized();
+        }
+
         var user = await _userAuthService.GetActiveUserAsync(userId, ct);
-        if (user is null || !user.IsActive) return Unauthorized();
+        if (user is null || !user.IsActive) {
+            return Unauthorized();
+        }
+
         return Ok(new UserSessionDto(user.Id, user.Email, user.DisplayName));
     }
 
@@ -130,8 +141,10 @@ public sealed class UserAuthenticationController : ControllerBase
             ? _options.Facebook
             : _options.Google;
         if (string.IsNullOrWhiteSpace(credentials.ClientId) || string.IsNullOrWhiteSpace(credentials.ClientSecret) ||
-            string.IsNullOrWhiteSpace(credentials.RedirectUri) || string.IsNullOrWhiteSpace(_options.WebAppUrl))
+            string.IsNullOrWhiteSpace(credentials.RedirectUri) || string.IsNullOrWhiteSpace(_options.WebAppUrl)) {
             throw new InvalidOperationException($"User authentication for '{provider}' is not configured.");
+        }
+
         return (authProvider, new ExternalAuthProviderConfig(credentials.ClientId, credentials.ClientSecret, credentials.RedirectUri));
     }
 

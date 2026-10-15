@@ -44,7 +44,9 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
     const next = new URLSearchParams();
     const merged = { ...params, ...overrides };
     for (const [key, value] of Object.entries(merged)) {
-      if (value) next.set(key, String(value));
+      if (value) {
+        next.set(key, String(value));
+      }
     }
     return `/bikes?${next.toString()}`;
   };

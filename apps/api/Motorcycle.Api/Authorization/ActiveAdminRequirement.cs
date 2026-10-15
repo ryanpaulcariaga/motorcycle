@@ -15,12 +15,15 @@ public sealed class ActiveAdminHandler : AuthorizationHandler<ActiveAdminRequire
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ActiveAdminRequirement requirement)
     {
         var facebookUserId = context.User.FindFirstValue("sub");
-        if (string.IsNullOrWhiteSpace(facebookUserId)) return;
+        if (string.IsNullOrWhiteSpace(facebookUserId)) {
+            return;
+        }
 
         var role = await _repository.GetByFacebookUserIdAsync(facebookUserId, context.Resource is HttpContext httpContext
             ? httpContext.RequestAborted
             : CancellationToken.None);
-        if (role?.IsActive == true && role.Role == Motorcycle.Domain.AdminRoles.Administrator)
+        if (role?.IsActive == true && role.Role == Motorcycle.Domain.AdminRoles.Administrator) {
             context.Succeed(requirement);
+        }
     }
 }

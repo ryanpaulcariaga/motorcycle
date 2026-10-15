@@ -10,7 +10,10 @@ public class ExactMatchFilterStrategy : ISpecFilterStrategy
 
     public bool IsMatch(object? specValue, SpecFilterRequest filter)
     {
-        if (specValue is null || filter.Value is null) return false;
+        if (specValue is null || filter.Value is null) {
+            return false;
+        }
+
         return string.Equals(specValue.ToString(), filter.Value, StringComparison.OrdinalIgnoreCase);
     }
 }

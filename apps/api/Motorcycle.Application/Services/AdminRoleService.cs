@@ -34,12 +34,13 @@ public sealed class AdminRoleService : IAdminRoleService
 
     private async Task<AdminRole> ProvisionInternalAsync(string facebookUserId, string? email, string? displayName, string role, bool allowExistingActive, CancellationToken ct)
     {
-            AdminRoleValidators.Validate(facebookUserId, role);
+        AdminRoleValidators.Validate(facebookUserId, role);
         var existing = await _repository.GetByFacebookUserIdAsync(facebookUserId, ct);
-        if (existing is not null)
-        {
-            if (allowExistingActive && existing.IsActive && existing.Role == AdminRoles.Administrator)
+        if (existing is not null) {
+            if (allowExistingActive && existing.IsActive && existing.Role == AdminRoles.Administrator) {
                 return existing;
+            }
+
             throw new InvalidOperationException("An administrator role already exists for this Facebook user.");
         }
 
@@ -58,7 +59,8 @@ public sealed class AdminRoleService : IAdminRoleService
 
     private static void ValidateRole(string role)
     {
-        if (!string.Equals(role, AdminRoles.Administrator, StringComparison.Ordinal))
+        if (!string.Equals(role, AdminRoles.Administrator, StringComparison.Ordinal)) {
             throw new ArgumentException("Only the Administrator role is supported.", nameof(role));
+        }
     }
 }

@@ -26,8 +26,7 @@ public class BikeRepository : IBikeRepository
             .Include(b => b.Images)
             .Where(b => b.IsPublished);
 
-        if (!string.IsNullOrWhiteSpace(search))
-        {
+        if (!string.IsNullOrWhiteSpace(search)) {
             var pattern = $"%{search.Trim()}%";
             query = query.Where(b =>
                 EF.Functions.ILike(b.Model.Name, pattern) ||
@@ -35,12 +34,29 @@ public class BikeRepository : IBikeRepository
                 EF.Functions.ILike(b.Model.Brand.Name, pattern));
         }
 
-        if (brandId.HasValue) query = query.Where(b => b.Model.BrandId == brandId.Value);
-        if (categoryId.HasValue) query = query.Where(b => b.Model.CategoryId == categoryId.Value);
-        if (yearMin.HasValue) query = query.Where(b => b.Year >= yearMin.Value);
-        if (yearMax.HasValue) query = query.Where(b => b.Year <= yearMax.Value);
-        if (priceMin.HasValue) query = query.Where(b => b.MsrpPrice >= priceMin.Value);
-        if (priceMax.HasValue) query = query.Where(b => b.MsrpPrice <= priceMax.Value);
+        if (brandId.HasValue) {
+            query = query.Where(b => b.Model.BrandId == brandId.Value);
+        }
+
+        if (categoryId.HasValue) {
+            query = query.Where(b => b.Model.CategoryId == categoryId.Value);
+        }
+
+        if (yearMin.HasValue) {
+            query = query.Where(b => b.Year >= yearMin.Value);
+        }
+
+        if (yearMax.HasValue) {
+            query = query.Where(b => b.Year <= yearMax.Value);
+        }
+
+        if (priceMin.HasValue) {
+            query = query.Where(b => b.MsrpPrice >= priceMin.Value);
+        }
+
+        if (priceMax.HasValue) {
+            query = query.Where(b => b.MsrpPrice <= priceMax.Value);
+        }
 
         return await query.ToListAsync(ct);
     }

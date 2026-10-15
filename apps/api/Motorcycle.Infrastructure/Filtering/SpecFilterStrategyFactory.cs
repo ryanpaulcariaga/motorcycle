@@ -13,8 +13,10 @@ public class SpecFilterStrategyFactory : ISpecFilterStrategyFactory
 
     public ISpecFilterStrategy Resolve(string filterType)
     {
-        if (!_strategies.TryGetValue(filterType, out var strategy))
+        if (!_strategies.TryGetValue(filterType, out var strategy)) {
             throw new NotSupportedException($"No ISpecFilterStrategy registered for filter type '{filterType}'.");
+        }
+
         return strategy;
     }
 

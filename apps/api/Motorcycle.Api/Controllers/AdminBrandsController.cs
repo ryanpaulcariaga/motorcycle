@@ -34,8 +34,7 @@ public sealed class AdminBrandsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<BrandAdminDto>> Create(BrandRequest request, CancellationToken ct)
     {
-        try
-        {
+        try {
             var result = await _service.CreateAsync(request, ct);
             _cache.Remove(BrandsController.CacheKey);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -47,8 +46,7 @@ public sealed class AdminBrandsController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<BrandAdminDto>> Update(int id, BrandRequest request, CancellationToken ct)
     {
-        try
-        {
+        try {
             var result = await _service.UpdateAsync(id, request, ct);
             _cache.Remove(BrandsController.CacheKey);
             return Ok(result);
@@ -61,15 +59,13 @@ public sealed class AdminBrandsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
-        try
-        {
+        try {
             await _service.DeleteAsync(id, ct);
             _cache.Remove(BrandsController.CacheKey);
             return NoContent();
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (BrandReferencedException ex)
-        {
+        catch (BrandReferencedException ex) {
             return Conflict(new { code = "brand_referenced", message = ex.Message, dependentCount = ex.BikeCount, modelCount = ex.ModelCount });
         }
     }

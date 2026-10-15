@@ -33,9 +33,17 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
     public async Task<BikeImageAdminDto> UploadAsync(int bikeId, Stream content, string fileName, string contentType, long length, CancellationToken ct = default)
     {
         await EnsureBikeExistsAsync(bikeId, ct);
-        if (length <= 0) throw new ArgumentException("Image file is empty.");
-        if (length > MaxFileSize) throw new ArgumentException("Image file must be 10 MB or smaller.");
-        if (!AllowedContentTypes.TryGetValue(contentType, out var extension)) throw new ArgumentException("Only JPEG, PNG, WebP, and GIF images are supported.");
+        if (length <= 0) {
+            throw new ArgumentException("Image file is empty.");
+        }
+
+        if (length > MaxFileSize) {
+            throw new ArgumentException("Image file must be 10 MB or smaller.");
+        }
+
+        if (!AllowedContentTypes.TryGetValue(contentType, out var extension)) {
+            throw new ArgumentException("Only JPEG, PNG, WebP, and GIF images are supported.");
+        }
 
         var images = await _repository.GetAllAsync(bikeId, ct);
         var blobName = $"bikes/{bikeId}/{Guid.NewGuid():N}{extension}";
@@ -58,7 +66,10 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
         await EnsureBikeExistsAsync(bikeId, ct);
         var image = await _repository.GetByIdAsync(bikeId, imageId, ct) ?? throw new KeyNotFoundException("Image was not found.");
         var images = await _repository.GetAllAsync(bikeId, ct);
-        foreach (var candidate in images) candidate.IsPrimary = candidate.Id == image.Id;
+        foreach (var candidate in images) {
+            candidate.IsPrimary = candidate.Id == image.Id;
+        }
+
         await _repository.SaveChangesAsync(ct);
         return ToDto(image);
     }
@@ -67,11 +78,15 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
     {
         await EnsureBikeExistsAsync(bikeId, ct);
         var images = await _repository.GetAllAsync(bikeId, ct);
-        if (request.ImageIds.Count != images.Count || request.ImageIds.Distinct().Count() != request.ImageIds.Count || request.ImageIds.Any(id => images.All(x => x.Id != id)))
+        if (request.ImageIds.Count != images.Count || request.ImageIds.Distinct().Count() != request.ImageIds.Count || request.ImageIds.Any(id => images.All(x => x.Id != id))) {
             throw new ArgumentException("ImageIds must contain every assigned image exactly once.");
+        }
 
         var positions = request.ImageIds.Select((id, index) => (id, sortOrder: index + 1)).ToDictionary(x => x.id, x => x.sortOrder);
-        foreach (var image in images) image.SortOrder = positions[image.Id];
+        foreach (var image in images) {
+            image.SortOrder = positions[image.Id];
+        }
+
         await _repository.SaveChangesAsync(ct);
         return images.OrderBy(x => x.SortOrder).Select(ToDto).ToList();
     }
@@ -87,7 +102,9 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
 
     private async Task EnsureBikeExistsAsync(int bikeId, CancellationToken ct)
     {
-        if (!await _repository.BikeExistsAsync(bikeId, ct)) throw new KeyNotFoundException("Bike was not found.");
+        if (!await _repository.BikeExistsAsync(bikeId, ct)) {
+            throw new KeyNotFoundException("Bike was not found.");
+        }
     }
 
     private static BikeImageAdminDto ToDto(BikeImage image) => new(image.Id, image.BlobUrl, image.SortOrder, image.IsPrimary);

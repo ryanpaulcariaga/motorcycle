@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { facebookSignInUrl, getUserSession, signOutUser } from "@/lib/api";
-import type { UserSessionDto } from "@/lib/types";
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { facebookSignInUrl, getUserSession, signOutUser } from '@/lib/api';
+import type { UserSessionDto } from '@/lib/types';
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/bikes", label: "Browse Bikes" },
-  { href: "/compare", label: "Compare" },
+  { href: '/', label: 'Home' },
+  { href: '/bikes', label: 'Browse Bikes' },
+  { href: '/compare', label: 'Compare' },
 ];
 
 export default function Header() {
@@ -19,10 +19,24 @@ export default function Header() {
   useEffect(() => {
     let cancelled = false;
     getUserSession()
-      .then((result) => { if (!cancelled) setSession(result); })
-      .catch(() => { if (!cancelled) setSession(null); })
-      .finally(() => { if (!cancelled) setLoadingSession(false); });
-    return () => { cancelled = true; };
+      .then((result) => {
+        if (!cancelled) {
+          setSession(result);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSession(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingSession(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleSignOut() {
@@ -30,20 +44,29 @@ export default function Header() {
     setSession(null);
   }
 
-  function AccountControl({ className = "" }: { className?: string }) {
-    if (loadingSession) return null;
+  function AccountControl({ className = '' }: { className?: string }) {
+    if (loadingSession) {
+      return null;
+    }
     if (session) {
       return (
         <div className={`flex items-center gap-3 text-sm ${className}`}>
-          <span>{session.displayName ?? session.email ?? "Signed in"}</span>
-          <button type="button" onClick={() => void handleSignOut()} className="font-semibold hover:text-brand-gold">
+          <span>{session.displayName ?? session.email ?? 'Signed in'}</span>
+          <button
+            type="button"
+            onClick={() => void handleSignOut()}
+            className="font-semibold hover:text-brand-gold"
+          >
             Sign out
           </button>
         </div>
       );
     }
     return (
-      <a href={facebookSignInUrl()} className={`text-sm font-semibold hover:text-brand-gold ${className}`}>
+      <a
+        href={facebookSignInUrl()}
+        className={`text-sm font-semibold hover:text-brand-gold ${className}`}
+      >
         Sign in with Facebook
       </a>
     );
@@ -59,7 +82,11 @@ export default function Header() {
         {/* Desktop nav */}
         <nav className="hidden md:flex md:items-center md:gap-6">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="text-sm font-medium hover:text-brand-gold">
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-sm font-medium hover:text-brand-gold"
+            >
               {link.label}
             </Link>
           ))}
@@ -99,4 +126,3 @@ export default function Header() {
     </header>
   );
 }
-

@@ -34,8 +34,7 @@ public sealed class AdminCategoriesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<CategoryAdminDto>> Create(CategoryRequest request, CancellationToken ct)
     {
-        try
-        {
+        try {
             var result = await _service.CreateAsync(request, ct);
             _cache.Remove(CategoriesController.CacheKey);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -47,8 +46,7 @@ public sealed class AdminCategoriesController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<CategoryAdminDto>> Update(int id, CategoryRequest request, CancellationToken ct)
     {
-        try
-        {
+        try {
             var result = await _service.UpdateAsync(id, request, ct);
             _cache.Remove(CategoriesController.CacheKey);
             return Ok(result);
@@ -61,15 +59,13 @@ public sealed class AdminCategoriesController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
-        try
-        {
+        try {
             await _service.DeleteAsync(id, ct);
             _cache.Remove(CategoriesController.CacheKey);
             return NoContent();
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (CategoryReferencedException ex)
-        {
+        catch (CategoryReferencedException ex) {
             return Conflict(new { code = "category_referenced", message = ex.Message, dependentCount = ex.BikeCount, modelCount = ex.ModelCount });
         }
     }

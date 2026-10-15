@@ -21,7 +21,10 @@ public sealed class AdminBikesController : ControllerBase
     [HttpGet("spec-values")]
     public async Task<ActionResult<IReadOnlyList<BikeSpecValueItemDto>>> GetSpecValues([FromQuery] int brandId, [FromQuery] int? categoryId, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, [FromQuery] string specCode, CancellationToken ct)
     {
-        if (brandId <= 0) return BadRequest(new { message = "A brand is required." });
+        if (brandId <= 0) {
+            return BadRequest(new { message = "A brand is required." });
+        }
+
         try { return Ok(await _service.GetSpecValuesAsync(brandId, categoryId, minPrice, maxPrice, specCode, ct)); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
     }

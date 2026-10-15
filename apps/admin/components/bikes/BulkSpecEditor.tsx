@@ -65,8 +65,9 @@ export default function BulkSpecEditor() {
 
   async function load(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (dirtyIds.length > 0 && !window.confirm('Discard unsaved changes?'))
+    if (dirtyIds.length > 0 && !window.confirm('Discard unsaved changes?')) {
       return;
+    }
     setLoading(true);
     setError(null);
     setNotice(null);
@@ -95,14 +96,22 @@ export default function BulkSpecEditor() {
 
   function toValue(raw: string, def: SpecDefinition): unknown {
     const trimmed = raw.trim();
-    if (trimmed === '') return null;
-    if (def.dataType === 'number') return Number(trimmed);
-    if (def.dataType === 'boolean') return trimmed === 'true';
+    if (trimmed === '') {
+      return null;
+    }
+    if (def.dataType === 'number') {
+      return Number(trimmed);
+    }
+    if (def.dataType === 'boolean') {
+      return trimmed === 'true';
+    }
     return trimmed;
   }
 
   async function save() {
-    if (!definition || dirtyIds.length === 0) return;
+    if (!definition || dirtyIds.length === 0) {
+      return;
+    }
     const values = dirtyIds.map((id) => ({
       bikeId: id,
       value: toValue(edits[id], definition),

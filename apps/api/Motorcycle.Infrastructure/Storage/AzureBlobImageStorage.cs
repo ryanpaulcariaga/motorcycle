@@ -31,9 +31,15 @@ public sealed class AzureBlobImageStorage : IImageStorage
 
     public async Task DeleteAsync(string blobUrl, CancellationToken ct = default)
     {
-        if (!Uri.TryCreate(blobUrl, UriKind.Absolute, out var uri)) return;
+        if (!Uri.TryCreate(blobUrl, UriKind.Absolute, out var uri)) {
+            return;
+        }
+
         var segments = uri.AbsolutePath.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (segments.Length < 2 || !string.Equals(segments[0], _containerName, StringComparison.OrdinalIgnoreCase)) return;
+        if (segments.Length < 2 || !string.Equals(segments[0], _containerName, StringComparison.OrdinalIgnoreCase)) {
+            return;
+        }
+
         var blobName = string.Join('/', segments.Skip(1).Select(Uri.UnescapeDataString));
         await _container.DeleteBlobIfExistsAsync(blobName, DeleteSnapshotsOption.IncludeSnapshots, cancellationToken: ct);
     }

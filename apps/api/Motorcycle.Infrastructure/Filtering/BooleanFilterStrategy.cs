@@ -10,9 +10,18 @@ public class BooleanFilterStrategy : ISpecFilterStrategy
 
     public bool IsMatch(object? specValue, SpecFilterRequest filter)
     {
-        if (specValue is null || filter.Value is null) return false;
-        if (!bool.TryParse(filter.Value, out var expected)) return false;
-        if (!bool.TryParse(specValue.ToString(), out var actual)) return false;
+        if (specValue is null || filter.Value is null) {
+            return false;
+        }
+
+        if (!bool.TryParse(filter.Value, out var expected)) {
+            return false;
+        }
+
+        if (!bool.TryParse(specValue.ToString(), out var actual)) {
+            return false;
+        }
+
         return expected == actual;
     }
 }
