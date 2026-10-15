@@ -11,6 +11,7 @@ import {
   getBikeModels,
   getSpecGroups,
   publishAdminBike,
+  reassignAdminBikeModel,
   unpublishAdminBike,
   updateAdminBike,
 } from '@/lib/api';
@@ -37,9 +38,14 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [reassignTargetBike, setReassignTargetBike] =
+    useState<BikeAdminListItem | null>(null);
+  const [targetModelId, setTargetModelId] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [reassigning, setReassigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [brandFilter, setBrandFilter] = useState('');
   const [modelFilter, setModelFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -272,6 +278,53 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
     }
   }
 
+  function startReassign(bike: BikeAdminListItem) {
+    setError(null);
+    setNotice(null);
+    setTargetModelId(String(bike.modelId));
+    setReassignTargetBike(bike);
+  }
+
+  function closeReassign() {
+    if (reassigning) {
+      return;
+    }
+    setReassignTargetBike(null);
+    setTargetModelId('');
+    setError(null);
+  }
+
+  async function reassignModel(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!reassignTargetBike || !targetModelId) {
+      return;
+    }
+    setReassigning(true);
+    setError(null);
+    try {
+      const targetModel = models.find(
+        (model) => model.id === Number(targetModelId)
+      );
+      await reassignAdminBikeModel(reassignTargetBike.id, {
+        modelId: Number(targetModelId),
+      });
+      setReassignTargetBike(null);
+      setTargetModelId('');
+      setNotice(
+        `${reassignTargetBike.variantName} (${reassignTargetBike.year}) was reassigned to ${targetModel ? `${targetModel.brandName} ${targetModel.name}` : 'the selected BikeModel'}.`
+      );
+      await load();
+    } catch (cause) {
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to reassign the bike model.'
+      );
+    } finally {
+      setReassigning(false);
+    }
+  }
+
   return (
     <div>
       <section className="bg-brand-content p-6 shadow-lg">
@@ -303,12 +356,20 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
             </button>
           </div>
         </div>
-        {error && !modalOpen && (
+        {error && !modalOpen && !reassignTargetBike && (
           <p
             className="mt-4 border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
             role="alert"
           >
             {error}
+          </p>
+        )}
+        {notice && !modalOpen && !reassignTargetBike && (
+          <p
+            className="mt-4 border-l-4 border-green-700 bg-green-50 p-3 text-sm text-green-800"
+            role="status"
+          >
+            {notice}
           </p>
         )}
         <div className="mt-4 flex flex-wrap items-end gap-3">
@@ -427,6 +488,12 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
                       )}
                     </td>
                     <td className="whitespace-nowrap p-3 text-right">
+                      <button
+                        className="mr-3 font-semibold text-brand-button underline"
+                        onClick={() => startReassign(bike)}
+                      >
+                        Reassign BikeModel
+                      </button>
                       <button
                         className="mr-3 font-semibold text-brand-button underline"
                         onClick={() => void edit(bike)}
@@ -611,6 +678,65 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
               </button>
             </ModalFooter>
             {editingId !== null && <BikeImageManagement bikeId={editingId} />}
+          </form>
+        </Modal>
+      )}
+      {reassignTargetBike && (
+        <Modal
+          title="Reassign Bike Model"
+          error={error}
+          onClose={closeReassign}
+        >
+          <form onSubmit={reassignModel}>
+            <p className="mt-5 text-sm text-white/80">
+              {reassignTargetBike.year} {reassignTargetBike.brandName}{' '}
+              {reassignTargetBike.modelName} {reassignTargetBike.variantName}
+            </p>
+            <p className="mt-2 text-sm text-white/80">
+              Only the BikeModel assignment will change.
+            </p>
+            <label
+              className="mt-5 block text-sm font-semibold"
+              htmlFor="reassignBikeModel"
+            >
+              BikeModel
+            </label>
+            <select
+              className="mt-2 w-full px-3 py-2 text-brand-black"
+              id="reassignBikeModel"
+              required
+              value={targetModelId}
+              disabled={reassigning}
+              onChange={(event) => setTargetModelId(event.target.value)}
+            >
+              {models.map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.brandName} {model.name}
+                  {model.id === reassignTargetBike.modelId ? ' (current)' : ''}
+                </option>
+              ))}
+            </select>
+            <ModalFooter>
+              <button
+                className="flex-1 border border-white/40 px-5 py-3 font-semibold disabled:opacity-50"
+                type="button"
+                disabled={reassigning}
+                onClick={closeReassign}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 bg-brand-gold px-5 py-3 font-bold text-brand-black disabled:opacity-50"
+                type="submit"
+                disabled={
+                  reassigning ||
+                  !targetModelId ||
+                  Number(targetModelId) === reassignTargetBike.modelId
+                }
+              >
+                {reassigning ? 'Reassigning...' : 'Reassign'}
+              </button>
+            </ModalFooter>
           </form>
         </Modal>
       )}

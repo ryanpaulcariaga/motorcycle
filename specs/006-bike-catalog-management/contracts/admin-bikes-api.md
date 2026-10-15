@@ -71,6 +71,28 @@ Edit an existing variant's core fields and/or specs. Allowed regardless of curre
 
 **Response `400`/`404`/`409`**: same conditions as `POST`.
 
+## PATCH /api/admin/bikes/{id}/model
+
+Reassign only the BikeModel association of an existing variant.
+
+**Request**:
+
+```json
+{
+  "modelId": 23
+}
+```
+
+**Response `204`**: reassignment succeeded or the bike was already assigned to that model.
+
+**Response `400`**: invalid (non-positive) model ID.
+
+**Response `404`**: bike or BikeModel was not found.
+
+**Response `409`**: `bike_exists` when the target model already has a variant with the same year and variant name. No fields are changed on failure.
+
+Only `ModelId` and `UpdatedAt` are changed; variant name, year, MSRP, specs, publication status, slug, and assigned images are preserved.
+
 ## PATCH /api/admin/bikes/{id}/publish
 
 Publish a variant.

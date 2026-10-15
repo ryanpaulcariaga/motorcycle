@@ -8,9 +8,12 @@ public sealed class FakeBikeModelRepository : IBikeModelRepository
     public Task<List<BikeModel>> GetAllAsync(CancellationToken ct = default) => Task.FromResult(new List<BikeModel>());
 
     public Task<BikeModel?> GetByIdAsync(int id, CancellationToken ct = default) =>
-        Task.FromResult<BikeModel?>(id == 1
-            ? new BikeModel { Id = 1, Name = "Ninja 400", Brand = new Brand { Id = 1, Name = "Kawasaki" } }
-            : null);
+        Task.FromResult<BikeModel?>(id switch
+        {
+            1 => new BikeModel { Id = 1, Name = "Ninja 400", Brand = new Brand { Id = 1, Name = "Kawasaki" } },
+            2 => new BikeModel { Id = 2, Name = "Ninja 650", Brand = new Brand { Id = 1, Name = "Kawasaki" } },
+            _ => null
+        });
 
     public Task<bool> BrandExistsAsync(int id, CancellationToken ct = default) => Task.FromResult(true);
     public Task<bool> CategoryExistsAsync(int id, CancellationToken ct = default) => Task.FromResult(true);

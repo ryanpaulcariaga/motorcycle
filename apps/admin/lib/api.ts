@@ -1,4 +1,4 @@
-import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest } from "./types";
+import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, ReassignBikeModelRequest, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
@@ -31,7 +31,9 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     throw new AdminApiError(response.status, details);
   }
 
-  if (response.status === 204) return undefined as T;
+  if (response.status === 204) {
+    return undefined as T;
+  }
   return response.json() as Promise<T>;
 }
 
@@ -56,7 +58,9 @@ export function deleteBikeModel(id: number): Promise<void> { return apiFetch(`/a
 
 async function publicApiFetch<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}/api${path}`, { cache: "no-store" });
-  if (!response.ok) throw new Error(`Lookup request failed: ${response.status}`);
+  if (!response.ok) {
+    throw new Error(`Lookup request failed: ${response.status}`);
+  }
   return response.json() as Promise<T>;
 }
 
@@ -94,6 +98,9 @@ export function createAdminBike(request: CreateBikeRequest): Promise<BikeAdminDe
 }
 export function updateAdminBike(id: number, request: UpdateBikeRequest): Promise<BikeAdminDetail> {
   return apiFetch(`/api/admin/bikes/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+}
+export function reassignAdminBikeModel(id: number, request: ReassignBikeModelRequest): Promise<void> {
+  return apiFetch(`/api/admin/bikes/${id}/model`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
 }
 export function publishAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}/publish`, { method: "PATCH" }); }
 export function unpublishAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}/unpublish`, { method: "PATCH" }); }

@@ -45,6 +45,105 @@ public class BikeAdminServiceTests
             service.CreateAsync(new CreateBikeRequest(1, "SE", 2024, null, null)));
     }
 
+    [Fact]
+    public async Task ReassignModelAsync_ChangesOnlyModelAssociation()
+    {
+        var (service, repository) = CreateService();
+        var images = new List<BikeImage>();
+        var bike = new Bike
+        {
+            ModelId = 1,
+            VariantName = "SE",
+            Year = 2024,
+            MsrpPrice = 6199m,
+            Slug = "kawasaki-ninja-400-se-2024",
+            Specs = new() { ["engine_displacement_cc"] = 399 },
+            IsPublished = true,
+            Images = images
+        };
+        await repository.AddAsync(bike);
+        var originalSpecs = bike.Specs;
+        var originalCreatedAt = bike.CreatedAt;
+        var originalUpdatedAt = bike.UpdatedAt;
+
+        await service.ReassignModelAsync(bike.Id, new ReassignBikeModelRequest(2));
+
+        Assert.Equal(2, bike.ModelId);
+        Assert.Equal(2, bike.Model.Id);
+        Assert.Equal("SE", bike.VariantName);
+        Assert.Equal(2024, bike.Year);
+        Assert.Equal(6199m, bike.MsrpPrice);
+        Assert.Equal("kawasaki-ninja-400-se-2024", bike.Slug);
+        Assert.Same(originalSpecs, bike.Specs);
+        Assert.Equal(399, bike.Specs["engine_displacement_cc"]);
+        Assert.True(bike.IsPublished);
+        Assert.Same(images, bike.Images);
+        Assert.Equal(originalCreatedAt, bike.CreatedAt);
+        Assert.NotEqual(originalUpdatedAt, bike.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task ReassignModelAsync_WithUnknownBike_ThrowsKeyNotFound()
+    {
+        var (service, _) = CreateService();
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => service.ReassignModelAsync(999, new ReassignBikeModelRequest(2)));
+    }
+
+    [Fact]
+    public async Task ReassignModelAsync_WithUnknownModel_LeavesBikeUnchanged()
+    {
+        var (service, repository) = CreateService();
+        var bike = new Bike { ModelId = 1, VariantName = "SE", Year = 2024 };
+        await repository.AddAsync(bike);
+        var originalUpdatedAt = bike.UpdatedAt;
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => service.ReassignModelAsync(bike.Id, new ReassignBikeModelRequest(999)));
+
+        Assert.Equal(1, bike.ModelId);
+        Assert.Equal(originalUpdatedAt, bike.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task ReassignModelAsync_WithDuplicateTargetVariant_LeavesBikeUnchanged()
+    {
+        var (service, repository) = CreateService();
+        var bike = new Bike { ModelId = 1, VariantName = "SE", Year = 2024 };
+        var duplicate = new Bike { ModelId = 2, VariantName = "SE", Year = 2024 };
+        await repository.AddAsync(bike);
+        await repository.AddAsync(duplicate);
+        var originalUpdatedAt = bike.UpdatedAt;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ReassignModelAsync(bike.Id, new ReassignBikeModelRequest(2)));
+
+        Assert.Equal(1, bike.ModelId);
+        Assert.Equal(originalUpdatedAt, bike.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task ReassignModelAsync_ToCurrentModel_DoesNotChangeUpdatedAt()
+    {
+        var (service, repository) = CreateService();
+        var bike = new Bike { ModelId = 1, VariantName = "SE", Year = 2024 };
+        await repository.AddAsync(bike);
+        var originalUpdatedAt = bike.UpdatedAt;
+
+        await service.ReassignModelAsync(bike.Id, new ReassignBikeModelRequest(1));
+
+        Assert.Equal(1, bike.ModelId);
+        Assert.Equal(originalUpdatedAt, bike.UpdatedAt);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task ReassignModelAsync_WithInvalidModelId_ThrowsArgumentException(int modelId)
+    {
+        var (service, _) = CreateService();
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.ReassignModelAsync(1, new ReassignBikeModelRequest(modelId)));
+    }
+
     [Theory]
     [InlineData("", 2024)]
     [InlineData("SE", 0)]

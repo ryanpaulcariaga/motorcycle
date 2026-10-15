@@ -153,6 +153,30 @@ public sealed class BikeAdminService : IBikeAdminService
         return ToDetailDto(bike);
     }
 
+    public async Task ReassignModelAsync(int id, ReassignBikeModelRequest request, CancellationToken ct = default)
+    {
+        if (request.ModelId <= 0) {
+            throw new ArgumentException("A valid BikeModel ID is required.", nameof(request.ModelId));
+        }
+
+        var bike = await _repository.GetByIdAsync(id, ct)
+            ?? throw new KeyNotFoundException("Bike was not found.");
+        if (bike.ModelId == request.ModelId) {
+            return;
+        }
+
+        var targetModel = await _bikeModelRepository.GetByIdAsync(request.ModelId, ct)
+            ?? throw new KeyNotFoundException("BikeModel was not found.");
+        if (await _repository.VariantExistsAsync(request.ModelId, bike.Year, bike.VariantName, id, ct)) {
+            throw new InvalidOperationException("A bike with this model, year, and variant name already exists.");
+        }
+
+        bike.ModelId = targetModel.Id;
+        bike.Model = targetModel;
+        bike.UpdatedAt = DateTime.UtcNow;
+        await _repository.SaveChangesAsync(ct);
+    }
+
     public async Task<BikeAdminDetailDto> PublishAsync(int id, CancellationToken ct = default)
     {
         var bike = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Bike was not found.");

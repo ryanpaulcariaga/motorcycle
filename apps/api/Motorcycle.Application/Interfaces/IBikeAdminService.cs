@@ -10,6 +10,7 @@ public interface IBikeAdminService
     Task<BikeAdminDetailDto> GetByIdAsync(int id, CancellationToken ct = default);
     Task<BikeAdminDetailDto> CreateAsync(CreateBikeRequest request, CancellationToken ct = default);
     Task<BikeAdminDetailDto> UpdateAsync(int id, UpdateBikeRequest request, CancellationToken ct = default);
+    Task ReassignModelAsync(int id, ReassignBikeModelRequest request, CancellationToken ct = default);
     Task<BikeAdminDetailDto> PublishAsync(int id, CancellationToken ct = default);
     Task<BikeAdminDetailDto> UnpublishAsync(int id, CancellationToken ct = default);
     Task DeleteAsync(int id, CancellationToken ct = default);

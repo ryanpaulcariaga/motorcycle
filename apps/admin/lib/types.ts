@@ -84,6 +84,8 @@ export type UpdateBikeRequest = {
   specs: Record<string, unknown>;
 };
 
+export type ReassignBikeModelRequest = { modelId: number };
+
 export type BikeSpecValueItem = {
   id: number;
   modelName: string;

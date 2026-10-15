@@ -82,6 +82,21 @@ public sealed class AdminBikesController : ControllerBase
         }
     }
 
+    [HttpPatch("{id:int}/model")]
+    public async Task<IActionResult> ReassignModel(int id, ReassignBikeModelRequest request, CancellationToken ct)
+    {
+        try {
+            await _service.ReassignModelAsync(id, request, ct);
+            return NoContent();
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        } catch (InvalidOperationException ex) {
+            return Conflict(new { code = "bike_exists", message = ex.Message });
+        }
+    }
+
     [HttpPatch("{id:int}/publish")]
     public async Task<ActionResult<BikeAdminDetailDto>> Publish(int id, CancellationToken ct)
     {

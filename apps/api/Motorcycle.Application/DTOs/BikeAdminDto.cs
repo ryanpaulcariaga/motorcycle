@@ -54,3 +54,5 @@ public sealed record UpdateBikeRequest(
     decimal? MsrpPrice,
     Dictionary<string, object?>? Specs,
     int? ModelId = null);
+
+public sealed record ReassignBikeModelRequest(int ModelId);
