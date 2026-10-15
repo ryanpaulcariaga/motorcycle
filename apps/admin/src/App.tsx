@@ -103,7 +103,7 @@ function AdminShell({ session }: { session: AdminSession }) {
             className={`mt-2 block px-3 py-2 font-semibold ${isBikesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
             href="/admin/bike-models"
           >
-            Bikes
+            Bikes Model
           </a>
           <a
             aria-current={isSpecificationsActive ? 'page' : undefined}

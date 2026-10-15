@@ -22,7 +22,7 @@ export default function Sidebar({ children }: SidebarProps) {
       </button>
 
       <aside
-        className={`${isOpen ? 'block' : 'hidden'} md:block w-full md:w-64 shrink-0 -mx-4 sm:-mx-6 md:mx-0 md:-ml-6 overflow-hidden rounded-r-md bg-brand-sidebar text-white`}
+        className={`${isOpen ? 'block' : 'hidden'} md:block w-full md:w-64 shrink-0 bg-brand-sidebar text-white`}
       >
         <div className="divide-y divide-white/10">{children}</div>
       </aside>

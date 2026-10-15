@@ -52,8 +52,8 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
     .slice(0, 6);
 
   return (
-    <PageShell>
-      <div className="flex flex-col md:flex-row gap-6">
+    <PageShell bare>
+      <div className="flex flex-col md:flex-row md:items-start gap-6">
         <Sidebar>
           <SidebarSection title="Brands">
             <div className="flex flex-col">
@@ -67,7 +67,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
           </SidebarSection>
         </Sidebar>
 
-        <div className="flex-1">
+        <div className="min-w-0 flex-1 rounded-md bg-brand-content p-4 sm:p-6 shadow-sm">
           <p className="text-sm text-zinc-500">
             {bike.brandName} · {bike.categoryName}
           </p>

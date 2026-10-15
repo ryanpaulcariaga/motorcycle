@@ -191,7 +191,7 @@ export default function BikeModelManagement() {
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-button">
               Catalog
             </p>
-            <h1 className="text-2xl font-bold">Bikes</h1>
+            <h1 className="text-2xl font-bold">Bikes Model</h1>
           </div>
           <button
             className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
@@ -351,7 +351,7 @@ export default function BikeModelManagement() {
                           onClick={() => sortBy('name')}
                           type="button"
                         >
-                          Model line
+                          Model
                           {sortField === 'name' && (
                             <span aria-hidden="true">
                               {sortDirection === 'asc' ? '↑' : '↓'}
@@ -360,7 +360,7 @@ export default function BikeModelManagement() {
                           <span className="sr-only">
                             {sortField === 'name'
                               ? `, sorted ${sortDirection === 'asc' ? 'ascending' : 'descending'}`
-                              : ', sort by model line'}
+                              : ', sort by model'}
                           </span>
                         </button>
                       </th>
@@ -453,7 +453,7 @@ export default function BikeModelManagement() {
           ))}
         </select>
         <label className="mt-4 block text-sm font-semibold" htmlFor="modelName">
-          Model-line name
+          Model
         </label>
         <input
           className="mt-2 w-full px-3 py-2 text-brand-black"

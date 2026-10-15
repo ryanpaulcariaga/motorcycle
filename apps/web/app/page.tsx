@@ -17,8 +17,8 @@ export default async function Home() {
   ]);
 
   return (
-    <PageShell>
-      <div className="flex flex-col md:flex-row gap-6">
+    <PageShell bare>
+      <div className="flex flex-col md:flex-row md:items-start gap-6">
         <Sidebar>
           <SidebarSection title="Brands">
             <div className="flex flex-col">
@@ -54,7 +54,7 @@ export default async function Home() {
           </SidebarSection>
         </Sidebar>
 
-        <div className="flex-1">
+        <div className="min-w-0 flex-1 rounded-md bg-brand-content p-4 sm:p-6 shadow-sm">
           <h1 className="text-2xl font-bold mb-4">Latest Bikes</h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {latestBikes.map((bike) => (

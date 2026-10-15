@@ -50,8 +50,8 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
   };
 
   return (
-    <PageShell>
-      <div className="flex flex-col md:flex-row gap-6">
+    <PageShell bare>
+      <div className="flex flex-col md:flex-row md:items-start gap-6">
         <Sidebar>
           <SidebarSection title="Brand">
             <div className="flex flex-col">
@@ -96,7 +96,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
           </SidebarSection>
         </Sidebar>
 
-        <div className="flex-1">
+        <div className="min-w-0 flex-1 rounded-md bg-brand-content p-4 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">Browse Bikes</h1>
             <p className="text-sm text-zinc-500">{totalCount} bikes</p>
