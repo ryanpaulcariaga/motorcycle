@@ -184,26 +184,40 @@ export default function BikeManagement({
     setModalOpen(true);
   }
 
-  async function edit(bike: BikeAdminListItem) {
+  async function loadBikeForm(bike: BikeAdminListItem) {
+    const detail = await getAdminBike(bike.id);
+    const specs: Record<string, string> = {};
+    for (const [code, value] of Object.entries(detail.specs)) {
+      specs[code] = value === null || value === undefined ? '' : String(value);
+    }
+    return {
+      modelId: String(detail.modelId),
+      variantName: detail.variantName,
+      year: String(detail.year),
+      msrpPrice: detail.msrpPrice ? String(detail.msrpPrice) : '',
+      specs,
+    };
+  }
+
+  async function startEdit(bike: BikeAdminListItem) {
     setError(null);
     try {
-      const detail = await getAdminBike(bike.id);
-      const specs: Record<string, string> = {};
-      for (const [code, value] of Object.entries(detail.specs)) {
-        specs[code] =
-          value === null || value === undefined ? '' : String(value);
-      }
+      setForm(await loadBikeForm(bike));
       setEditingId(bike.id);
       setModalOpen(true);
-      setForm({
-        modelId: String(detail.modelId),
-        variantName: detail.variantName,
-        year: String(detail.year),
-        msrpPrice: detail.msrpPrice ? String(detail.msrpPrice) : '',
-        specs,
-      });
     } catch {
       setError('Unable to load bike details for editing.');
+    }
+  }
+
+  async function startClone(bike: BikeAdminListItem) {
+    setError(null);
+    try {
+      setForm(await loadBikeForm(bike));
+      setEditingId(null);
+      setModalOpen(true);
+    } catch {
+      setError('Unable to load bike details for cloning.');
     }
   }
 
@@ -577,7 +591,12 @@ export default function BikeManagement({
                         <IconButton
                           icon="edit"
                           label="Edit"
-                          onClick={() => void edit(bike)}
+                          onClick={() => void startEdit(bike)}
+                        />
+                        <IconButton
+                          icon="clone"
+                          label="Clone"
+                          onClick={() => void startClone(bike)}
                         />
                         <IconButton
                           icon={bike.isPublished ? 'unpublish' : 'publish'}

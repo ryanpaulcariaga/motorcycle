@@ -103,6 +103,13 @@ export default function BrandManagement() {
     setModalOpen(true);
   }
 
+  function startClone(brand: BrandAdmin) {
+    setEditingId(null);
+    setForm({ name: brand.name, logoBlobUrl: brand.logoBlobUrl ?? '' });
+    setError(null);
+    setModalOpen(true);
+  }
+
   return (
     <div>
       <section className="bg-brand-content p-6 shadow-lg">
@@ -166,6 +173,11 @@ export default function BrandManagement() {
                           icon="edit"
                           label="Edit"
                           onClick={() => startEdit(brand)}
+                        />
+                        <IconButton
+                          icon="clone"
+                          label="Clone"
+                          onClick={() => startClone(brand)}
                         />
                         <IconButton
                           icon="delete"

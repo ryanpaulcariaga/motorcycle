@@ -63,8 +63,19 @@ export default function SpecGroupManagement() {
     setModalOpen(true);
   }
 
-  function edit(group: SpecGroupAdmin) {
+  function startEdit(group: SpecGroupAdmin) {
     setEditingId(group.id);
+    setForm({
+      code: group.code,
+      name: group.name,
+      iconName: group.iconName ?? '',
+    });
+    setError(null);
+    setModalOpen(true);
+  }
+
+  function startClone(group: SpecGroupAdmin) {
+    setEditingId(null);
     setForm({
       code: group.code,
       name: group.name,
@@ -243,7 +254,12 @@ export default function SpecGroupManagement() {
                           <IconButton
                             icon="edit"
                             label="Edit"
-                            onClick={() => edit(group)}
+                            onClick={() => startEdit(group)}
+                          />
+                          <IconButton
+                            icon="clone"
+                            label="Clone"
+                            onClick={() => startClone(group)}
                           />
                           <IconButton
                             icon="delete"

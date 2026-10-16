@@ -54,10 +54,21 @@ export default function RoleManagement() {
     setModalOpen(false);
   }, []);
 
-  function openEditModal(role: AdminRole) {
+  function startEdit(role: AdminRole) {
     setEditingRole(role);
     setForm({
       facebookUserId: role.facebookUserId,
+      emailSnapshot: role.emailSnapshot ?? '',
+      displayNameSnapshot: role.displayNameSnapshot ?? '',
+    });
+    setError(null);
+    setModalOpen(true);
+  }
+
+  function startClone(role: AdminRole) {
+    setEditingRole(null);
+    setForm({
+      facebookUserId: '',
       emailSnapshot: role.emailSnapshot ?? '',
       displayNameSnapshot: role.displayNameSnapshot ?? '',
     });
@@ -215,7 +226,12 @@ export default function RoleManagement() {
                         <IconButton
                           icon="edit"
                           label="Edit"
-                          onClick={() => openEditModal(role)}
+                          onClick={() => startEdit(role)}
+                        />
+                        <IconButton
+                          icon="clone"
+                          label="Clone"
+                          onClick={() => startClone(role)}
                         />
                         <IconButton
                           icon={role.isActive ? 'deactivate' : 'activate'}

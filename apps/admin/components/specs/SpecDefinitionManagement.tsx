@@ -83,8 +83,23 @@ export default function SpecDefinitionManagement({
     setModalOpen(true);
   }
 
-  function edit(definition: SpecDefinitionAdmin) {
+  function startEdit(definition: SpecDefinitionAdmin) {
     setEditingId(definition.id);
+    setForm({
+      groupId: definition.groupId,
+      code: definition.code,
+      label: definition.label,
+      dataType: definition.dataType,
+      unit: definition.unit ?? '',
+      isFilterable: definition.isFilterable,
+      filterType: definition.filterType ?? '',
+    });
+    setError(null);
+    setModalOpen(true);
+  }
+
+  function startClone(definition: SpecDefinitionAdmin) {
+    setEditingId(null);
     setForm({
       groupId: definition.groupId,
       code: definition.code,
@@ -299,7 +314,12 @@ export default function SpecDefinitionManagement({
                         <IconButton
                           icon="edit"
                           label="Edit"
-                          onClick={() => edit(definition)}
+                          onClick={() => startEdit(definition)}
+                        />
+                        <IconButton
+                          icon="clone"
+                          label="Clone"
+                          onClick={() => startClone(definition)}
                         />
                         <IconButton
                           icon="delete"

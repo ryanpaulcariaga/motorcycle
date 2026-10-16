@@ -102,6 +102,13 @@ export default function CategoryManagement() {
     setModalOpen(true);
   }
 
+  function startClone(category: CategoryAdmin) {
+    setEditingId(null);
+    setForm({ name: category.name });
+    setError(null);
+    setModalOpen(true);
+  }
+
   return (
     <div>
       <section className="bg-brand-content p-6 shadow-lg">
@@ -167,6 +174,11 @@ export default function CategoryManagement() {
                           icon="edit"
                           label="Edit"
                           onClick={() => startEdit(category)}
+                        />
+                        <IconButton
+                          icon="clone"
+                          label="Clone"
+                          onClick={() => startClone(category)}
                         />
                         <IconButton
                           icon="delete"

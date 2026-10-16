@@ -144,8 +144,19 @@ export default function BikeModelManagement() {
     setModalOpen(true);
   }
 
-  function edit(model: BikeModel) {
+  function startEdit(model: BikeModel) {
     setEditingId(model.id);
+    setForm({
+      brandId: String(model.brandId),
+      categoryId: String(model.categoryId),
+      name: model.name,
+    });
+    setError(null);
+    setModalOpen(true);
+  }
+
+  function startClone(model: BikeModel) {
+    setEditingId(null);
     setForm({
       brandId: String(model.brandId),
       categoryId: String(model.categoryId),
@@ -408,12 +419,17 @@ export default function BikeModelManagement() {
                             <IconButton
                               icon="edit"
                               label="Edit"
-                              onClick={() => edit(model)}
+                              onClick={() => startEdit(model)}
                             />
                             <IconButton
                               icon="variants"
                               label="Variants"
                               onClick={() => setVariantsModel(model)}
+                            />
+                            <IconButton
+                              icon="clone"
+                              label="Clone"
+                              onClick={() => startClone(model)}
                             />
                             <IconButton
                               icon="delete"
