@@ -302,7 +302,8 @@ export default function BikeModelManagement() {
                       </th>
                       <th aria-sort={ariaSort('name')} className="p-3">
                         Model
-                      </th>{' '}
+                      </th>
+                      <th className="p-3 text-right">Bikes</th>
                       <th className="p-3">
                         <span className="sr-only">Actions</span>
                       </th>
@@ -314,6 +315,7 @@ export default function BikeModelManagement() {
                         <td className="p-3">{model.brandName}</td>
                         <td className="p-3">{model.categoryName}</td>
                         <td className="p-3 font-semibold">{model.name}</td>
+                        <td className="p-3 text-right">{model.bikeCount}</td>
                         <td className="p-3">
                           <div className="flex items-center justify-end gap-1">
                             <IconButton

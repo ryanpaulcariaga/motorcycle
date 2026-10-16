@@ -18,6 +18,7 @@ public sealed class FakeBikeModelRepository : IBikeModelRepository
     public Task<bool> BrandExistsAsync(int id, CancellationToken ct = default) => Task.FromResult(true);
     public Task<bool> CategoryExistsAsync(int id, CancellationToken ct = default) => Task.FromResult(true);
     public Task<bool> NameExistsAsync(int brandId, string name, int? excludingId = null, CancellationToken ct = default) => Task.FromResult(false);
+    public Task<Dictionary<int, int>> GetBikeCountsAsync(CancellationToken ct = default) => Task.FromResult(new Dictionary<int, int>());
     public Task<int> CountDependentBikesAsync(int modelId, CancellationToken ct = default) => Task.FromResult(0);
     public Task AddAsync(BikeModel model, CancellationToken ct = default) => Task.CompletedTask;
     public void Remove(BikeModel model) { }

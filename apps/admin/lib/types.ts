@@ -45,6 +45,7 @@ export type BikeModel = {
   categoryName: string;
   name: string;
   createdAt: string;
+  bikeCount: number;
 };
 
 export type LookupOption = { id: number; name: string };

@@ -23,6 +23,8 @@ public sealed class BikeModelRepository : IBikeModelRepository
     public Task<bool> CategoryExistsAsync(int id, CancellationToken ct = default) => _context.Categories.AnyAsync(x => x.Id == id, ct);
     public Task<bool> NameExistsAsync(int brandId, string name, int? excludingId = null, CancellationToken ct = default) =>
         _context.BikeModels.AnyAsync(x => x.BrandId == brandId && x.Name == name && (!excludingId.HasValue || x.Id != excludingId.Value), ct);
+    public Task<Dictionary<int, int>> GetBikeCountsAsync(CancellationToken ct = default) =>
+        _context.Bikes.GroupBy(x => x.ModelId).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
     public Task<int> CountDependentBikesAsync(int modelId, CancellationToken ct = default) => _context.Bikes.CountAsync(x => x.ModelId == modelId, ct);
     public async Task AddAsync(BikeModel model, CancellationToken ct = default) => await _context.BikeModels.AddAsync(model, ct);
     public void Remove(BikeModel model) => _context.BikeModels.Remove(model);

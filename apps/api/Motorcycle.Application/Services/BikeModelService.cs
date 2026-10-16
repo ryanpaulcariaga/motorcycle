@@ -11,11 +11,18 @@ public sealed class BikeModelService : IBikeModelService
 
     public BikeModelService(IBikeModelRepository repository) => _repository = repository;
 
-    public async Task<IReadOnlyList<BikeModelDto>> GetAllAsync(CancellationToken ct = default) =>
-        (await _repository.GetAllAsync(ct)).Select(ToDto).ToList();
+    public async Task<IReadOnlyList<BikeModelDto>> GetAllAsync(CancellationToken ct = default)
+    {
+        var models = await _repository.GetAllAsync(ct);
+        var counts = await _repository.GetBikeCountsAsync(ct);
+        return models.Select(m => ToDto(m, counts.GetValueOrDefault(m.Id))).ToList();
+    }
 
-    public async Task<BikeModelDto> GetByIdAsync(int id, CancellationToken ct = default) =>
-        ToDto(await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("BikeModel was not found."));
+    public async Task<BikeModelDto> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        var model = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("BikeModel was not found.");
+        return ToDto(model, await _repository.CountDependentBikesAsync(id, ct));
+    }
 
     public async Task<BikeModelDto> CreateAsync(CreateBikeModelRequest request, CancellationToken ct = default)
     {
@@ -24,7 +31,7 @@ public sealed class BikeModelService : IBikeModelService
         var model = new BikeModel { BrandId = request.BrandId, CategoryId = request.CategoryId, Name = name };
         await _repository.AddAsync(model, ct);
         await _repository.SaveChangesAsync(ct);
-        return ToDto(await _repository.GetByIdAsync(model.Id, ct) ?? model);
+        return ToDto(await _repository.GetByIdAsync(model.Id, ct) ?? model, 0);
     }
 
     public async Task<BikeModelDto> UpdateAsync(int id, UpdateBikeModelRequest request, CancellationToken ct = default)
@@ -36,7 +43,7 @@ public sealed class BikeModelService : IBikeModelService
         model.CategoryId = request.CategoryId;
         model.Name = name;
         await _repository.SaveChangesAsync(ct);
-        return ToDto(model);
+        return ToDto(model, await _repository.CountDependentBikesAsync(id, ct));
     }
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
@@ -66,14 +73,15 @@ public sealed class BikeModelService : IBikeModelService
         }
     }
 
-    private static BikeModelDto ToDto(BikeModel model) => new(
+    private static BikeModelDto ToDto(BikeModel model, int bikeCount) => new(
         model.Id,
         model.BrandId,
         model.Brand?.Name ?? string.Empty,
         model.CategoryId,
         model.Category?.Name ?? string.Empty,
         model.Name,
-        model.CreatedAt);
+        model.CreatedAt,
+        bikeCount);
 }
 
 public sealed class BikeModelReferencedException : Exception

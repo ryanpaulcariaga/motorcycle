@@ -7,7 +7,8 @@ public sealed record BikeModelDto(
     int CategoryId,
     string CategoryName,
     string Name,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    int BikeCount);
 
 public sealed record CreateBikeModelRequest(int BrandId, int CategoryId, string Name);
 public sealed record UpdateBikeModelRequest(int BrandId, int CategoryId, string Name);
