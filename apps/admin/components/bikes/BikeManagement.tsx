@@ -55,9 +55,11 @@ const sortFieldOptions: { key: SortField; label: string }[] = [
 export default function BikeManagement({
   modelId,
   embedded = false,
+  onModelsChanged,
 }: {
   modelId?: number;
   embedded?: boolean;
+  onModelsChanged?: () => void;
 }) {
   const [bikes, setBikes] = useState<BikeAdminListItem[]>([]);
   const [specGroups, setSpecGroups] = useState<SpecGroup[]>([]);
@@ -384,6 +386,7 @@ export default function BikeManagement({
       setNotice(
         `${reassignTargetBike.brandName} - ${reassignTargetBike.variantName} (${reassignTargetBike.year}) was reassigned to ${targetModel ? `${targetModel.brandName} - ${targetModel.name}` : 'the selected BikeModel'}.`
       );
+      onModelsChanged?.();
       await load();
     } catch (cause) {
       setError(

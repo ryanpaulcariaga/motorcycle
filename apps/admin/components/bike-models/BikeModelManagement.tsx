@@ -357,7 +357,11 @@ export default function BikeModelManagement() {
           onClose={closeVariants}
         >
           <div className="my-4 text-brand-black">
-            <BikeManagement modelId={variantsModel.id} embedded />
+            <BikeManagement
+              modelId={variantsModel.id}
+              embedded
+              onModelsChanged={() => void load()}
+            />
           </div>
         </Modal>
       )}
