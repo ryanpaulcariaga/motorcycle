@@ -50,6 +50,7 @@ export default function BikeManagement({
   const [modalOpen, setModalOpen] = useState(false);
   const [reassignTargetBike, setReassignTargetBike] =
     useState<BikeAdminListItem | null>(null);
+  const [imagesBike, setImagesBike] = useState<BikeAdminListItem | null>(null);
   const [targetModelId, setTargetModelId] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -343,6 +344,11 @@ export default function BikeManagement({
     }
   }
 
+  function closeImages() {
+    setImagesBike(null);
+    void load();
+  }
+
   function closeReassign() {
     if (reassigning) {
       return;
@@ -594,6 +600,11 @@ export default function BikeManagement({
                           onClick={() => void startEdit(bike)}
                         />
                         <IconButton
+                          icon="images"
+                          label="Images"
+                          onClick={() => setImagesBike(bike)}
+                        />
+                        <IconButton
                           icon="clone"
                           label="Clone"
                           onClick={() => void startClone(bike)}
@@ -776,8 +787,25 @@ export default function BikeManagement({
                 Cancel
               </button>
             </ModalFooter>
-            {editingId !== null && <BikeImageManagement bikeId={editingId} />}
           </form>
+        </Modal>
+      )}
+      {imagesBike && (
+        <Modal
+          title={`Images - ${imagesBike.year} ${imagesBike.brandName} ${imagesBike.variantName}`}
+          wide
+          onClose={closeImages}
+        >
+          <BikeImageManagement bikeId={imagesBike.id} />
+          <ModalFooter>
+            <button
+              className="border border-white px-4 py-3 font-semibold"
+              type="button"
+              onClick={closeImages}
+            >
+              Close
+            </button>
+          </ModalFooter>
         </Modal>
       )}
       {reassignTargetBike && (

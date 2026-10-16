@@ -10,7 +10,8 @@ export type IconName =
   | 'activate'
   | 'deactivate'
   | 'up'
-  | 'down';
+  | 'down'
+  | 'images';
 
 const paths: Record<IconName, ReactNode> = {
   edit: (
@@ -63,6 +64,13 @@ const paths: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="10" />
       <path d="m4.9 4.9 14.2 14.2" />
+    </>
+  ),
+  images: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="9" cy="9" r="2" />
+      <path d="m21 15-5-5L5 21" />
     </>
   ),
   up: <path d="m18 15-6-6-6 6" />,
