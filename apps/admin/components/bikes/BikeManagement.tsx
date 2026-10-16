@@ -21,6 +21,14 @@ import {
 } from '@/lib/api';
 import type { BikeAdminListItem, BikeModel, LookupOption } from '@/lib/types';
 import { getBikeModelListSearch } from '@/lib/bikeModelListState';
+import {
+  ClearFiltersButton,
+  GridSidebar,
+  SidebarGroup,
+  SidebarSelect,
+  SortGroup,
+} from '@/components/GridSidebar';
+import { compareText, sortRows, type SortRule } from '@/lib/multiSort';
 import BikeImageManagement from './BikeImageManagement';
 
 type SpecGroup = Awaited<ReturnType<typeof getSpecGroups>>[number];
@@ -33,7 +41,16 @@ const emptyForm = {
   specs: {} as Record<string, string>,
 };
 
-type SortField = 'variant' | 'model' | 'year' | 'msrp' | 'status';
+type SortField = 'variant' | 'model' | 'brand' | 'year' | 'msrp' | 'status';
+
+const sortFieldOptions: { key: SortField; label: string }[] = [
+  { key: 'year', label: 'Year' },
+  { key: 'brand', label: 'Brand' },
+  { key: 'variant', label: 'Motorcycle' },
+  { key: 'model', label: 'Bike Model' },
+  { key: 'msrp', label: 'MSRP' },
+  { key: 'status', label: 'Status' },
+];
 
 export default function BikeManagement({
   modelId,
@@ -74,11 +91,10 @@ export default function BikeManagement({
   );
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
-  const [sortField, setSortField] = useState<SortField>(
-    modelId ? 'year' : 'variant'
-  );
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
-    modelId ? 'desc' : 'asc'
+  const [sortRules, setSortRules] = useState<SortRule<SortField>[]>(
+    modelId
+      ? [{ field: 'year', direction: 'desc' }]
+      : [{ field: 'variant', direction: 'asc' }]
   );
   const showModel = modelId === undefined;
   const brandNames = [...new Set(models.map((model) => model.brandName))].sort(
@@ -87,8 +103,8 @@ export default function BikeManagement({
   const filterModels = models.filter(
     (model) => !brandFilter || model.brandName === brandFilter
   );
-  const visibleBikes = bikes
-    .filter(
+  const visibleBikes = sortRows(
+    bikes.filter(
       (bike) =>
         (!brandFilter || bike.brandName === brandFilter) &&
         (!modelFilter || String(bike.modelId) === modelFilter) &&
@@ -98,55 +114,35 @@ export default function BikeManagement({
           ` ${bike.variantName} ${bike.year}`
             .toLowerCase()
             .includes(search.trim().toLowerCase()))
-    )
-    .sort((a, b) => {
-      const comparison =
-        sortField === 'variant'
-          ? a.variantName.localeCompare(b.variantName)
-          : sortField === 'model'
-            ? a.modelName.localeCompare(b.modelName)
-            : sortField === 'year'
-              ? a.year - b.year
-              : sortField === 'msrp'
-                ? (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1)
-                : Number(a.isPublished) - Number(b.isPublished);
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-
-  function sortBy(field: SortField) {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
+    ),
+    sortRules,
+    {
+      variant: (a, b) => compareText(a.variantName, b.variantName),
+      model: (a, b) => compareText(a.modelName, b.modelName),
+      brand: (a, b) => compareText(a.brandName, b.brandName),
+      year: (a, b) => a.year - b.year,
+      msrp: (a, b) => (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1),
+      status: (a, b) => Number(a.isPublished) - Number(b.isPublished),
     }
-  }
+  );
+  const primarySort = sortRules[0];
 
   function sortHeader(field: SortField, label: string) {
-    const active = sortField === field;
     return (
       <th
         className="p-3"
         aria-sort={
-          active
-            ? sortDirection === 'asc'
+          primarySort?.field !== field
+            ? undefined
+            : primarySort.direction === 'asc'
               ? 'ascending'
               : 'descending'
-            : undefined
         }
       >
-        <button
-          className="font-semibold"
-          type="button"
-          onClick={() => sortBy(field)}
-        >
-          {label}
-          {active && (sortDirection === 'asc' ? ' ↑' : ' ↓')}
-        </button>
+        {label}
       </th>
     );
   }
-
   async function load() {
     setLoading(true);
     setError(null);
@@ -451,72 +447,81 @@ export default function BikeManagement({
             {notice}
           </p>
         )}
-        <div className="mt-4 flex flex-wrap items-end gap-3">
-          <input
-            aria-label="Search variants"
-            className="border border-black/20 px-3 py-2 text-sm"
-            placeholder="Search variants"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          {showModel && (
-            <select
-              aria-label="Filter by brand"
-              className="border border-black/20 px-3 py-2 text-sm"
-              value={brandFilter}
-              onChange={(event) => {
-                setBrandFilter(event.target.value);
-                setModelFilter('');
-              }}
-            >
-              <option value="">All brands</option>
-              {brandNames.map((brand) => (
-                <option key={brand} value={brand}>
-                  {brand}
-                </option>
-              ))}
-            </select>
-          )}
-          {showModel && (
-            <select
-              aria-label="Filter by model"
-              className="border border-black/20 px-3 py-2 text-sm"
-              value={modelFilter}
-              onChange={(event) => setModelFilter(event.target.value)}
-            >
-              <option value="">All models</option>
-              {filterModels.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.brandName} - {model.name}
-                </option>
-              ))}
-            </select>
-          )}
-          <select
-            aria-label="Filter by status"
-            className="border border-black/20 px-3 py-2 text-sm"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
+        {!embedded && (
+        <GridSidebar>
+          <SidebarGroup
+            title="Filters"
+            action={
+              <ClearFiltersButton
+                disabled={
+                  !search && !brandFilter && !modelFilter && !statusFilter
+                }
+                onClick={() => {
+                  setSearch('');
+                  setBrandFilter('');
+                  setModelFilter('');
+                  setStatusFilter('');
+                }}
+              />
+            }
           >
-            <option value="">All statuses</option>
-            <option value="published">Published</option>
-            <option value="unpublished">Unpublished</option>
-          </select>
-          {(search || brandFilter || modelFilter || statusFilter) && (
-            <button
-              className="text-sm font-semibold text-brand-button underline"
-              type="button"
-              onClick={() => {
-                setSearch('');
-                setBrandFilter('');
-                setModelFilter('');
-                setStatusFilter('');
-              }}
+            <label className="block text-sm font-semibold">
+              Search
+              <input
+                className="mt-1 block w-full px-2 py-2 text-sm font-normal text-brand-black"
+                placeholder="Search variants"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </label>
+            {showModel && (
+              <SidebarSelect
+                label="Brand"
+                value={brandFilter}
+                onChange={(value) => {
+                  setBrandFilter(value);
+                  setModelFilter('');
+                }}
+              >
+                <option value="">All brands</option>
+                {brandNames.map((brand) => (
+                  <option key={brand} value={brand}>
+                    {brand}
+                  </option>
+                ))}
+              </SidebarSelect>
+            )}
+            {showModel && (
+              <SidebarSelect
+                label="Model"
+                value={modelFilter}
+                onChange={setModelFilter}
+              >
+                <option value="">All models</option>
+                {filterModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.brandName} - {model.name}
+                  </option>
+                ))}
+              </SidebarSelect>
+            )}
+            <SidebarSelect
+              label="Status"
+              value={statusFilter}
+              onChange={setStatusFilter}
             >
-              Clear filters
-            </button>
-          )}
-        </div>
+              <option value="">All statuses</option>
+              <option value="published">Published</option>
+              <option value="unpublished">Unpublished</option>
+            </SidebarSelect>
+          </SidebarGroup>
+          <SortGroup
+            fields={sortFieldOptions}
+            rules={sortRules}
+            onChange={setSortRules}
+          />
+        </GridSidebar>
+        )}
         {loading ? (
           <p className="mt-8 text-brand-grey">Loading bikes...</p>
         ) : bikes.length === 0 ? (

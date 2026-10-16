@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
+import { GridSidebarSlot } from '@/components/GridSidebar';
 import BikeModelManagement from '@/components/bike-models/BikeModelManagement';
 import CategoryManagement from '@/components/categories/CategoryManagement';
 import BrandManagement from '@/components/brands/BrandManagement';
@@ -46,6 +47,7 @@ function SignIn({ error }: { error: string | null }) {
 
 function AdminShell({ session }: { session: AdminSession }) {
   const pathname = window.location.pathname;
+  const [sidebarSlot, setSidebarSlot] = useState<HTMLElement | null>(null);
   const match = pathname.match(/^\/admin\/bike-models\/(\d+)\/bikes$/);
   const isAdministratorsActive =
     pathname === '/admin' || pathname === '/admin/roles';
@@ -98,61 +100,68 @@ function AdminShell({ session }: { session: AdminSession }) {
         </div>
       </header>
       <div className="mx-auto grid max-w-7xl gap-6 p-4 md:grid-cols-[14rem_minmax(0,1fr)] md:p-8">
-        <nav className="h-fit self-start bg-brand-sidebar p-4 text-white md:sticky md:top-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-gold">
-            Catalog
-          </p>
-          <a
-            aria-current={isAdministratorsActive ? 'page' : undefined}
-            className={`block px-3 py-2 font-semibold ${isAdministratorsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-            href="/admin/roles"
-          >
-            Administrators
-          </a>
-          <a
-            aria-current={isBrandsActive ? 'page' : undefined}
-            className={`mt-2 block px-3 py-2 font-semibold ${isBrandsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-            href="/admin/brands"
-          >
-            Brands
-          </a>
-          <a
-            aria-current={isCategoriesActive ? 'page' : undefined}
-            className={`mt-2 block px-3 py-2 font-semibold ${isCategoriesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-            href="/admin/categories"
-          >
-            Categories
-          </a>
-          <a
-            aria-current={isBikesActive ? 'page' : undefined}
-            className={`mt-2 block px-3 py-2 font-semibold ${isBikesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-            href="/admin/bike-models"
-          >
-            Bikes Model
-          </a>
-          <a
-            aria-current={isVariantsActive ? 'page' : undefined}
-            className={`mt-2 block px-3 py-2 font-semibold ${isVariantsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-            href="/admin/bike-variants"
-          >
-            Bikes Variants
-          </a>
-          <a
-            aria-current={isSpecificationsActive ? 'page' : undefined}
-            className={`mt-2 block px-3 py-2 font-semibold ${isSpecificationsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-            href="/admin/specs"
-          >
-            Specifications
-          </a>
-          <a
-            aria-current={isBulkSpecActive ? 'page' : undefined}
-            className={`mt-2 block px-3 py-2 font-semibold ${isBulkSpecActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-            href="/admin/bulk-spec"
-          >
-            Bulk Spec Edit
-          </a>
-        </nav>
-        <main>{content}</main>
+        <aside className="h-fit space-y-4 self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
+          <nav className="bg-brand-sidebar p-4 text-white">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-gold">
+              Catalog
+            </p>
+            <a
+              aria-current={isAdministratorsActive ? 'page' : undefined}
+              className={`block px-3 py-2 font-semibold ${isAdministratorsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/roles"
+            >
+              Administrators
+            </a>
+            <a
+              aria-current={isBrandsActive ? 'page' : undefined}
+              className={`mt-2 block px-3 py-2 font-semibold ${isBrandsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/brands"
+            >
+              Brands
+            </a>
+            <a
+              aria-current={isCategoriesActive ? 'page' : undefined}
+              className={`mt-2 block px-3 py-2 font-semibold ${isCategoriesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/categories"
+            >
+              Categories
+            </a>
+            <a
+              aria-current={isBikesActive ? 'page' : undefined}
+              className={`mt-2 block px-3 py-2 font-semibold ${isBikesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/bike-models"
+            >
+              Bikes Model
+            </a>
+            <a
+              aria-current={isVariantsActive ? 'page' : undefined}
+              className={`mt-2 block px-3 py-2 font-semibold ${isVariantsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/bike-variants"
+            >
+              Bikes Variants
+            </a>
+            <a
+              aria-current={isSpecificationsActive ? 'page' : undefined}
+              className={`mt-2 block px-3 py-2 font-semibold ${isSpecificationsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/specs"
+            >
+              Specifications
+            </a>
+            <a
+              aria-current={isBulkSpecActive ? 'page' : undefined}
+              className={`mt-2 block px-3 py-2 font-semibold ${isBulkSpecActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/bulk-spec"
+            >
+              Bulk Spec Edit
+            </a>
+          </nav>
+          <div className="space-y-4" ref={setSidebarSlot} />
+        </aside>
+        <main>
+          <GridSidebarSlot.Provider value={sidebarSlot}>
+            {content}
+          </GridSidebarSlot.Provider>
+        </main>
       </div>
     </div>
   );
