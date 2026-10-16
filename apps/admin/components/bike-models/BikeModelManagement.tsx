@@ -12,6 +12,7 @@ import {
   getCategories,
   updateBikeModel,
 } from '@/lib/api';
+import BikeManagement from '@/components/bikes/BikeManagement';
 import type { BikeModel, LookupOption } from '@/lib/types';
 import { parseBikeModelListState } from '@/lib/bikeModelListState';
 
@@ -37,6 +38,8 @@ export default function BikeModelManagement() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [variantsModel, setVariantsModel] = useState<BikeModel | null>(null);
+  const closeVariants = useCallback(() => setVariantsModel(null), []);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -410,7 +413,7 @@ export default function BikeModelManagement() {
                             <IconButton
                               icon="variants"
                               label="Variants"
-                              href={`/admin/bike-variants?modelId=${model.id}`}
+                              onClick={() => setVariantsModel(model)}
                             />
                             <IconButton
                               icon="delete"
@@ -429,6 +432,17 @@ export default function BikeModelManagement() {
           </div>
         )}
       </section>
+      {variantsModel && (
+        <Modal
+          title={`${variantsModel.brandName} ${variantsModel.name} Variants`}
+          extraWide
+          onClose={closeVariants}
+        >
+          <div className="my-4 text-brand-black">
+            <BikeManagement modelId={variantsModel.id} embedded />
+          </div>
+        </Modal>
+      )}
       {modalOpen && (
         <Modal
           title={editingId === null ? 'Add BikeModel' : 'Edit BikeModel'}

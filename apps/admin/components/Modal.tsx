@@ -9,6 +9,8 @@ interface ModalProps {
   children: ReactNode;
 }
 
+const modalStack: symbol[] = [];
+
 export default function Modal({
   title,
   error,
@@ -18,13 +20,18 @@ export default function Modal({
   children,
 }: ModalProps) {
   useEffect(() => {
+    const id = Symbol('modal');
+    modalStack.push(id);
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && modalStack[modalStack.length - 1] === id) {
         onClose();
       }
     }
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      modalStack.splice(modalStack.indexOf(id), 1);
+    };
   }, [onClose]);
 
   return (

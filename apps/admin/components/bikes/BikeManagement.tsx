@@ -35,7 +35,13 @@ const emptyForm = {
 
 type SortField = 'variant' | 'model' | 'year' | 'msrp' | 'status';
 
-export default function BikeManagement({ modelId }: { modelId?: number }) {
+export default function BikeManagement({
+  modelId,
+  embedded = false,
+}: {
+  modelId?: number;
+  embedded?: boolean;
+}) {
   const [bikes, setBikes] = useState<BikeAdminListItem[]>([]);
   const [specGroups, setSpecGroups] = useState<SpecGroup[]>([]);
   const [models, setModels] = useState<BikeModel[]>([]);
@@ -379,7 +385,7 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
-            {modelId !== undefined && (
+            {modelId !== undefined && !embedded && (
               <a
                 className="text-sm font-semibold text-brand-button underline"
                 href={`/admin/bike-models${getBikeModelListSearch(window.location.search)}`}
@@ -387,7 +393,11 @@ export default function BikeManagement({ modelId }: { modelId?: number }) {
                 ← Bikes Model
               </a>
             )}
-            <h1 className="mt-2 text-2xl font-bold">Bike Variants</h1>
+            {embedded ? (
+              <h3 className="text-xl font-bold">Bike Variants</h3>
+            ) : (
+              <h1 className="mt-2 text-2xl font-bold">Bike Variants</h1>
+            )}
           </div>
           <div className="flex gap-3">
             <button
