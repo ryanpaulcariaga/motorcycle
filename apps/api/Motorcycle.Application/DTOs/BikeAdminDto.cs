@@ -11,7 +11,8 @@ public sealed record BikeAdminListItemDto(
     bool IsPublished,
     bool IsReviewed,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    int ImageCount = 0);
 
 public sealed record BikeAdminDetailDto(
     int Id,

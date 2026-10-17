@@ -63,6 +63,7 @@ export type BikeAdminListItem = {
   isReviewed: boolean;
   createdAt: string;
   updatedAt: string;
+  imageCount: number;
 };
 
 export type BikeAdminDetail = BikeAdminListItem & {

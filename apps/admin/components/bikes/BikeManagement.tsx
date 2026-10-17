@@ -373,6 +373,7 @@ export default function BikeManagement({
   }
 
   function closeImages() {
+    void load();
     setImagesBike(null);
     void load();
   }
@@ -655,9 +656,6 @@ export default function BikeManagement({
                           className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${bike.isReviewed ? 'translate-x-5' : 'translate-x-0.5'}`}
                         />
                       </button>
-                      <span className="ml-2 align-middle text-xs text-brand-grey">
-                        {bike.isReviewed ? 'Reviewed' : 'Not reviewed'}
-                      </span>
                     </td>
                     <td className="p-3">
                       <div className="flex items-center justify-end gap-1">
@@ -671,7 +669,13 @@ export default function BikeManagement({
                         />
                         <IconButton
                           icon="images"
-                          label="Images"
+                          label={
+                            bike.imageCount > 0
+                              ? `Images (${bike.imageCount})`
+                              : 'Images'
+                          }
+                          variant={bike.imageCount > 0 ? 'success' : 'default'}
+                          badge={bike.imageCount}
                           onClick={() => {
                             setLastTouchedId(bike.id);
                             setImagesBike(bike);

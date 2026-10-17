@@ -47,7 +47,7 @@ export default function BikeModelManagement() {
   const [modalOpen, setModalOpen] = useState(false);
   const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [variantsModel, setVariantsModel] = useState<BikeModel | null>(null);
-  const closeVariants = useCallback(() => setVariantsModel(null), []);
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +76,7 @@ export default function BikeModelManagement() {
       : primarySort.direction === 'asc'
         ? 'ascending'
         : 'descending';
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -97,11 +97,16 @@ export default function BikeModelManagement() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  const closeVariants = useCallback(() => {
+    setVariantsModel(null);
+    void load();
+  }, [load]);
 
   useEffect(() => {
     queueMicrotask(() => void load());
-  }, []);
+  }, [load]);
 
   useEffect(() => {
     const search = serializeBikeModelListState({
@@ -300,7 +305,6 @@ export default function BikeModelManagement() {
                       <th aria-sort={ariaSort('name')} className="p-3">
                         Model
                       </th>
-                      <th className="p-3 text-right">Bikes</th>
                       <th className="p-3">
                         <span className="sr-only">Actions</span>
                       </th>
@@ -316,7 +320,6 @@ export default function BikeModelManagement() {
                         <td className="p-3">{model.brandName}</td>
                         <td className="p-3">{model.categoryName}</td>
                         <td className="p-3 font-semibold">{model.name}</td>
-                        <td className="p-3 text-right">{model.bikeCount}</td>
                         <td className="p-3">
                           <div className="flex items-center justify-end gap-1">
                             <IconButton
@@ -329,7 +332,13 @@ export default function BikeModelManagement() {
                             />
                             <IconButton
                               icon="variants"
-                              label="Variants"
+                              label={
+                                model.bikeCount > 0
+                                  ? `Variants (${model.bikeCount})`
+                                  : 'Variants'
+                              }
+                              variant={model.bikeCount > 0 ? 'success' : 'default'}
+                              badge={model.bikeCount}
                               onClick={() => {
                                 setLastTouchedId(model.id);
                                 setVariantsModel(model);

@@ -12,7 +12,7 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
 
     public async Task<List<Bike>> GetAllAsync(int? modelId, CancellationToken ct = default)
     {
-        var query = _context.Bikes.AsNoTracking().Include(x => x.Model).ThenInclude(m => m.Brand).AsQueryable();
+        var query = _context.Bikes.AsNoTracking().Include(x => x.Model).ThenInclude(m => m.Brand).Include(x => x.Images).AsQueryable();
         if (modelId.HasValue) {
             query = query.Where(x => x.ModelId == modelId.Value);
         }

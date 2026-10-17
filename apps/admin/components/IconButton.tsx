@@ -94,7 +94,7 @@ const paths: Record<IconName, ReactNode> = {
   down: <path d="m6 9 6 6 6-6" />,
 };
 
-type Variant = 'default' | 'danger' | 'gold' | 'primary';
+type Variant = 'default' | 'danger' | 'gold' | 'primary' | 'success';
 
 type Props = {
   icon: IconName;
@@ -103,6 +103,7 @@ type Props = {
   href?: string;
   onClick?: () => void;
   disabled?: boolean;
+  badge?: number;
 };
 
 export function IconButton({
@@ -112,12 +113,15 @@ export function IconButton({
   href,
   onClick,
   disabled,
+  badge,
 }: Props) {
   const className = `inline-flex h-8 w-8 items-center justify-center rounded hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-30 ${
     variant === 'danger'
       ? 'text-red-700'
       : variant === 'primary'
         ? 'bg-brand-gold text-brand-black hover:brightness-95'
+      : variant === 'success'
+        ? 'text-green-700'
       : variant === 'gold'
         ? 'text-brand-gold hover:bg-white/10'
         : 'text-brand-button'
@@ -154,6 +158,11 @@ export function IconButton({
           {svg}
         </button>
       )}
+      {badge ? (
+        <span className="pointer-events-none absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-green-700 px-1 text-center text-[10px] font-semibold leading-4 text-white">
+          {badge}
+        </span>
+      ) : null}
       <span
         className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1 -translate-x-1/2 whitespace-nowrap rounded bg-black px-2 py-1 text-xs font-normal text-white opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
         role="tooltip"

@@ -259,7 +259,8 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.IsPublished,
         bike.IsReviewed,
         bike.CreatedAt,
-        bike.UpdatedAt);
+        bike.UpdatedAt,
+        bike.Images.Count);
 
     private static BikeAdminDetailDto ToDetailDto(Bike bike) => new(
         bike.Id,
