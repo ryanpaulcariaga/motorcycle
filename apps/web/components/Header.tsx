@@ -55,7 +55,7 @@ export default function Header() {
           <button
             type="button"
             onClick={() => void handleSignOut()}
-            className="font-semibold hover:text-brand-gold"
+            className="underline"
           >
             Sign out
           </button>
@@ -65,7 +65,7 @@ export default function Header() {
     return (
       <a
         href={facebookSignInUrl()}
-        className={`text-sm font-semibold hover:text-brand-gold ${className}`}
+        className={`text-sm underline ${className}`}
       >
         Sign in with Facebook
       </a>
@@ -74,8 +74,8 @@ export default function Header() {
 
   return (
     <header className="bg-brand-header text-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link href="/" className="text-lg font-bold tracking-tight">
+      <div className="flex min-h-16 items-center justify-between gap-4 px-6 py-4">
+        <Link href="/" className="font-bold tracking-wide">
           MotoCompare
         </Link>
 
@@ -85,7 +85,7 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium hover:text-brand-gold"
+              className="text-sm hover:text-brand-gold"
             >
               {link.label}
             </Link>
@@ -109,12 +109,12 @@ export default function Header() {
 
       {/* Mobile drawer */}
       {isMenuOpen && (
-        <nav className="md:hidden border-t border-white/10 px-4 py-3 flex flex-col gap-3">
+        <nav className="md:hidden border-t border-white/10 px-6 py-3 flex flex-col gap-3">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium hover:text-brand-gold"
+              className="text-sm hover:text-brand-gold"
               onClick={() => setIsMenuOpen(false)}
             >
               {link.label}

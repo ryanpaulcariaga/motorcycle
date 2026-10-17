@@ -32,7 +32,7 @@ export default async function Home() {
           </SidebarSection>
 
           <SidebarSection title="Latest Devices">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col">
               {latestBikes.slice(0, 5).map((bike) => (
                 <SidebarLink key={bike.id} href={`/bikes/${bike.slug}`}>
                   {bike.brandName} - {bike.variantName}
@@ -54,14 +54,14 @@ export default async function Home() {
           </SidebarSection>
         </Sidebar>
 
-        <div className="min-w-0 flex-1 rounded-md bg-brand-content p-4 sm:p-6 shadow-sm">
+        <div className="min-w-0 flex-1 bg-brand-content p-6 shadow-lg">
           <h1 className="text-2xl font-bold mb-4">Latest Bikes</h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {latestBikes.map((bike) => (
               <Link
                 key={bike.id}
                 href={`/bikes/${bike.slug}`}
-                className="rounded-md border border-zinc-200 overflow-hidden hover:shadow-md transition-shadow"
+                className=" border border-zinc-200 overflow-hidden hover:shadow-md transition-shadow"
               >
                 <div className="relative aspect-[4/3] bg-zinc-100">
                   {bike.primaryImageUrl && (
@@ -77,7 +77,7 @@ export default async function Home() {
                   <p className="font-semibold">
                     {bike.brandName} - {bike.variantName}
                   </p>
-                  <p className="text-sm text-zinc-600">
+                  <p className="text-sm text-brand-grey">
                     {bike.year}{' '}
                     {bike.msrpPrice
                       ? `· $${bike.msrpPrice.toLocaleString()}`

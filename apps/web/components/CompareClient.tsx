@@ -98,7 +98,7 @@ export default function CompareClient({
             {selected.map((bike) => (
               <span
                 key={bike.id}
-                className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full bg-brand-button text-white"
+                className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-brand-button text-white"
               >
                 {bike.label}
                 <button
@@ -120,15 +120,15 @@ export default function CompareClient({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search bikes by model or brand..."
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-button"
+            className="w-full border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-button"
           />
           {searchTerm.trim().length >= 2 && (
-            <div className="absolute z-10 mt-1 w-full max-h-64 overflow-y-auto rounded-md border border-zinc-200 bg-white shadow-md">
+            <div className="absolute z-10 mt-1 w-full max-h-64 overflow-y-auto border border-zinc-200 bg-white shadow-md">
               {isSearching && (
-                <p className="p-2 text-xs text-zinc-500">Searching...</p>
+                <p className="p-2 text-xs text-brand-grey">Searching...</p>
               )}
               {!isSearching && searchResults.length === 0 && (
-                <p className="p-2 text-xs text-zinc-500">No bikes found.</p>
+                <p className="p-2 text-xs text-brand-grey">No bikes found.</p>
               )}
               {searchResults.map((bike) => (
                 <button
@@ -138,7 +138,7 @@ export default function CompareClient({
                   disabled={selected.some((s) => s.id === String(bike.id))}
                   className="flex w-full items-center gap-2 p-2 text-left text-sm hover:bg-zinc-50 disabled:opacity-50"
                 >
-                  <span className="relative h-8 w-10 shrink-0 rounded bg-zinc-100 overflow-hidden">
+                  <span className="relative h-8 w-10 shrink-0 bg-zinc-100 overflow-hidden">
                     {bike.primaryImageUrl && (
                       <Image
                         src={bike.primaryImageUrl}
@@ -160,7 +160,7 @@ export default function CompareClient({
       </div>
 
       {!compareResult || compareResult.bikes.length === 0 ? (
-        <p className="text-zinc-500">
+        <p className="text-brand-grey">
           Search and add two or more bikes above to compare specs.
         </p>
       ) : useTableLayout ? (
@@ -194,7 +194,7 @@ export default function CompareClient({
                   </tr>
                   {group.rows.map((row) => (
                     <tr key={row.code} className="border-b border-zinc-100">
-                      <td className="sticky left-0 bg-white p-2 text-zinc-500">
+                      <td className="sticky left-0 bg-white p-2 text-brand-grey">
                         {row.label}
                       </td>
                       {compareResult.bikes.map((bike) => (
@@ -214,7 +214,7 @@ export default function CompareClient({
           {compareResult.bikes.map((bike) => (
             <div
               key={bike.id}
-              className="rounded-md border border-zinc-200 overflow-hidden"
+              className=" border border-zinc-200 overflow-hidden"
             >
               <div className="relative aspect-[4/3] bg-zinc-100">
                 {bike.primaryImageUrl && (
@@ -240,7 +240,7 @@ export default function CompareClient({
                         key={row.code}
                         className="flex justify-between text-xs py-0.5"
                       >
-                        <span className="text-zinc-500">{row.label}</span>
+                        <span className="text-brand-grey">{row.label}</span>
                         <span className="font-medium">
                           {formatValue(row.valuesByBikeId[bike.id], row.unit)}
                         </span>

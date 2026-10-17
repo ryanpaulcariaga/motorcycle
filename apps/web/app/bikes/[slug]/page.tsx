@@ -67,19 +67,19 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
           </SidebarSection>
         </Sidebar>
 
-        <div className="min-w-0 flex-1 rounded-md bg-brand-content p-4 sm:p-6 shadow-sm">
-          <p className="text-sm text-zinc-500">{bike.categoryName}</p>
+        <div className="min-w-0 flex-1 bg-brand-content p-6 shadow-lg">
+          <p className="text-sm text-brand-grey">{bike.categoryName}</p>
           <h1 className="text-2xl sm:text-3xl font-bold">
             {bike.brandName} - {bike.variantName}
           </h1>
-          <p className="mt-1 text-lg text-zinc-700">
+          <p className="mt-1 text-lg text-brand-grey">
             {bike.year}{' '}
             {bike.msrpPrice ? `· $${bike.msrpPrice.toLocaleString()}` : ''}
           </p>
 
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div id="pictures">
-              <div className="relative aspect-[4/3] bg-zinc-100 rounded-md overflow-hidden">
+              <div className="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
                 {bike.images[0] && (
                   <Image
                     src={bike.images[0].blobUrl}
@@ -95,7 +95,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                   {bike.images.slice(1).map((image) => (
                     <div
                       key={image.id}
-                      className="relative aspect-square bg-zinc-100 rounded overflow-hidden"
+                      className="relative aspect-square bg-zinc-100 overflow-hidden"
                     >
                       <Image
                         src={image.blobUrl}
@@ -119,9 +119,9 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                     {highlightSpecs.map((spec) => (
                       <div
                         key={spec.code}
-                        className="rounded-md border border-zinc-200 p-3"
+                        className=" border border-zinc-200 p-3"
                       >
-                        <p className="text-xs text-zinc-500">{spec.label}</p>
+                        <p className="text-xs text-brand-grey">{spec.label}</p>
                         <p className="font-semibold">
                           {spec.value !== null && spec.value !== undefined
                             ? `${spec.value}${spec.unit ? ` ${spec.unit}` : ''}`
@@ -155,7 +155,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                   <tbody>
                     {group.specs.map((spec) => (
                       <tr key={spec.code} className="border-b border-zinc-100">
-                        <td className="py-1.5 text-zinc-500">{spec.label}</td>
+                        <td className="py-1.5 text-brand-grey">{spec.label}</td>
                         <td className="py-1.5 text-right font-medium">
                           {spec.value !== null && spec.value !== undefined
                             ? `${spec.value}${spec.unit ? ` ${spec.unit}` : ''}`
@@ -171,7 +171,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
 
           <div className="mt-8">
             <h2 className="text-xl font-bold mb-2">Reviews</h2>
-            <p className="text-sm text-zinc-500 italic">
+            <p className="text-sm text-brand-grey italic">
               Coming soon — user reviews and opinions.
             </p>
           </div>

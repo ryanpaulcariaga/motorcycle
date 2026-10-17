@@ -90,6 +90,7 @@ Dealer information should be modeled separately from `brands`: a brand identifie
 3. **Database as Code**: EF Core migrations define schema in C#; all SQL visible in version control.
 4. **Monorepo**: Single repo, shared backend with public and admin frontends, and shared specs/docs.
 5. **Mobile-First**: Tailwind CSS utilities, responsive breakpoints from ground up.
+6. **Aligned Styling**: The admin and public web apps share the same look (header, sidebar, content area, spacing, colors, fonts, square corners). A style change requested for either app is always applied to both.
 6. **SEO-Ready Public Catalog**: The public Next.js catalog uses server rendering, metadata, and structured data; the private admin SPA intentionally does not require SEO.
 
 See [database.md](database.md) and [api.md](api.md) for detailed design.
