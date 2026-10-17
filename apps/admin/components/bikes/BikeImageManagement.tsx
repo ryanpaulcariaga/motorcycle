@@ -106,7 +106,7 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
 
   return (
     <section className="mt-8 border-t border-white/20 pt-6">
-      <h2 className="text-xl font-bold">Images</h2>
+      <h2 className="text-lg font-bold">Images</h2>
       <label
         className="mt-4 block text-sm font-semibold"
         htmlFor="bike-image-upload"

@@ -22,7 +22,7 @@ function SignIn({ error }: { error: string | null }) {
         <p className="text-sm font-semibold uppercase tracking-wide text-brand-button">
           MotoCompare Admin
         </p>
-        <h1 className="mt-2 text-3xl font-bold">Catalog administration</h1>
+        <h1 className="mt-2 text-2xl font-bold">Catalog administration</h1>
         <p className="mt-4 max-w-xl text-brand-grey">
           Sign in with an authorized Facebook administrator account to continue.
         </p>

@@ -116,10 +116,7 @@ export default function BrandManagement() {
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-brand-button">
-              Catalog
-            </p>
-            <h1 className="text-2xl font-bold">Brands</h1>
+            <h1 className="text-xl font-bold">Brands</h1>
           </div>
           <div className="flex gap-3">
             <IconButton

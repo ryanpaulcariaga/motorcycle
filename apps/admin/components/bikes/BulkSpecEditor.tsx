@@ -197,7 +197,7 @@ export default function BulkSpecEditor() {
 
   return (
     <section className="bg-brand-content p-6 shadow-lg">
-      <h1 className="text-2xl font-bold">Bulk Spec Edit</h1>
+      <h1 className="text-xl font-bold">Bulk Spec Edit</h1>
       <p className="mt-1 text-sm text-brand-grey">
         Choose one specification and optionally filter motorcycles before
         editing its value across them.

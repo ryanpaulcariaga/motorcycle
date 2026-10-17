@@ -50,7 +50,7 @@ export default function Modal({
         aria-label={title}
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/20 px-6 py-4">
-          <h2 className="text-xl font-bold">{title}</h2>
+          <h2 className="text-lg font-bold">{title}</h2>
           <button
             className="text-2xl leading-none"
             type="button"

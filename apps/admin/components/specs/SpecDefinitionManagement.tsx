@@ -225,10 +225,7 @@ export default function SpecDefinitionManagement({
       <section className="bg-brand-content p-6 shadow-lg">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-brand-button">
-              Spec Definitions
-            </p>
-            <h2 className="text-xl font-bold">
+            <h2 className="text-lg font-bold">
               {groups.find((g) => g.id === groupId)?.name ?? 'Group'}
             </h2>
           </div>

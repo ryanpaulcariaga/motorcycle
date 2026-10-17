@@ -433,9 +433,9 @@ export default function BikeManagement({
               </a>
             )}
             {embedded ? (
-              <h3 className="text-xl font-bold">Bike Variants</h3>
+              <h3 className="text-base font-bold">Bike Variants</h3>
             ) : (
-              <h1 className="mt-2 text-2xl font-bold">Bike Variants</h1>
+              <h1 className="mt-2 text-xl font-bold">Bike Variants</h1>
             )}
           </div>
           <div className="flex gap-3">
