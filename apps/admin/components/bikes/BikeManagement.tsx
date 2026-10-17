@@ -439,19 +439,18 @@ export default function BikeManagement({
             )}
           </div>
           <div className="flex gap-3">
-            <button
-              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+            <IconButton
+              icon="refresh"
+              label="Refresh"
               onClick={() => void load()}
               disabled={loading}
-            >
-              Refresh
-            </button>
-            <button
-              className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+            />
+            <IconButton
+              icon="add"
+              label="Add variant"
+              variant="primary"
               onClick={startCreate}
-            >
-              Add variant
-            </button>
+            />
           </div>
         </div>
         {error && !modalOpen && !reassignTargetBike && (

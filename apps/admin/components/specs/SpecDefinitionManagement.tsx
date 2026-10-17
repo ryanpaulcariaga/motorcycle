@@ -233,19 +233,18 @@ export default function SpecDefinitionManagement({
             </h2>
           </div>
           <div className="flex gap-3">
-            <button
-              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+            <IconButton
+              icon="refresh"
+              label="Refresh"
               onClick={() => void load()}
               disabled={loading}
-            >
-              Refresh
-            </button>
-            <button
-              className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+            />
+            <IconButton
+              icon="add"
+              label="Add spec"
+              variant="primary"
               onClick={startCreate}
-            >
-              Add spec
-            </button>
+            />
           </div>
         </div>
         {error && !modalOpen && (

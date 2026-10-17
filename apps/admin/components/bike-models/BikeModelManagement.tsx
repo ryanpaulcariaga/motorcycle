@@ -209,19 +209,18 @@ export default function BikeModelManagement() {
             <h1 className="text-2xl font-bold">Bikes Model</h1>
           </div>
           <div className="flex gap-3">
-            <button
-              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+            <IconButton
+              icon="refresh"
+              label="Refresh"
               onClick={() => void load()}
               disabled={loading}
-            >
-              Refresh
-            </button>
-            <button
-              className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+            />
+            <IconButton
+              icon="add"
+              label="Add BikeModel"
+              variant="primary"
               onClick={startCreate}
-            >
-              Add BikeModel
-            </button>
+            />
           </div>
         </div>
         {error && !modalOpen && (

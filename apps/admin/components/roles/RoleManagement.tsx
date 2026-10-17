@@ -165,19 +165,18 @@ export default function RoleManagement() {
             <h1 className="text-2xl font-bold">Administrators</h1>
           </div>
           <div className="flex gap-3">
-            <button
-              className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button"
+            <IconButton
+              icon="refresh"
+              label="Refresh"
               onClick={() => void loadRoles()}
               disabled={loading}
-            >
-              Refresh
-            </button>
-            <button
-              className="bg-brand-gold px-3 py-2 text-sm font-bold text-brand-black"
+            />
+            <IconButton
+              icon="add"
+              label="Provision administrator"
+              variant="primary"
               onClick={() => setModalOpen(true)}
-            >
-              Provision administrator
-            </button>
+            />
           </div>
         </div>
         {error && !modalOpen && (

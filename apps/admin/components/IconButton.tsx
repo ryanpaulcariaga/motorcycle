@@ -13,6 +13,7 @@ export type IconName =
   | 'down'
   | 'images'
   | 'add'
+  | 'refresh'
   | 'list';
 
 const paths: Record<IconName, ReactNode> = {
@@ -76,6 +77,13 @@ const paths: Record<IconName, ReactNode> = {
     </>
   ),
   add: <path d="M12 5v14M5 12h14" />,
+  refresh: (
+    <>
+      <path d="M20 7v5h-5" />
+      <path d="M4.9 19a9 9 0 0 0 14.2-2M4 17v-5h5" />
+      <path d="M19.1 5A9 9 0 0 0 4.9 7" />
+    </>
+  ),
   list: (
     <>
       <path d="M8 6h13M8 12h13M8 18h13" />
@@ -86,7 +94,7 @@ const paths: Record<IconName, ReactNode> = {
   down: <path d="m6 9 6 6 6-6" />,
 };
 
-type Variant = 'default' | 'danger' | 'gold';
+type Variant = 'default' | 'danger' | 'gold' | 'primary';
 
 type Props = {
   icon: IconName;
@@ -108,6 +116,8 @@ export function IconButton({
   const className = `inline-flex h-8 w-8 items-center justify-center rounded hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-30 ${
     variant === 'danger'
       ? 'text-red-700'
+      : variant === 'primary'
+        ? 'bg-brand-gold text-brand-black hover:brightness-95'
       : variant === 'gold'
         ? 'text-brand-gold hover:bg-white/10'
         : 'text-brand-button'
