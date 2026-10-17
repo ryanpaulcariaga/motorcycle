@@ -11,7 +11,9 @@ export type IconName =
   | 'deactivate'
   | 'up'
   | 'down'
-  | 'images';
+  | 'images'
+  | 'add'
+  | 'list';
 
 const paths: Record<IconName, ReactNode> = {
   edit: (
@@ -73,11 +75,18 @@ const paths: Record<IconName, ReactNode> = {
       <path d="m21 15-5-5L5 21" />
     </>
   ),
+  add: <path d="M12 5v14M5 12h14" />,
+  list: (
+    <>
+      <path d="M8 6h13M8 12h13M8 18h13" />
+      <path d="M3 6h.01M3 12h.01M3 18h.01" />
+    </>
+  ),
   up: <path d="m18 15-6-6-6 6" />,
   down: <path d="m6 9 6 6 6-6" />,
 };
 
-type Variant = 'default' | 'danger';
+type Variant = 'default' | 'danger' | 'gold';
 
 type Props = {
   icon: IconName;
@@ -97,7 +106,11 @@ export function IconButton({
   disabled,
 }: Props) {
   const className = `inline-flex h-8 w-8 items-center justify-center rounded hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-30 ${
-    variant === 'danger' ? 'text-red-700' : 'text-brand-button'
+    variant === 'danger'
+      ? 'text-red-700'
+      : variant === 'gold'
+        ? 'text-brand-gold hover:bg-white/10'
+        : 'text-brand-button'
   }`;
   const svg = (
     <svg

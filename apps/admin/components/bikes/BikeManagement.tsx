@@ -7,6 +7,7 @@ import {
   AdminApiError,
   createAdminBike,
   createBikeModel,
+  updateBikeModel,
   deleteAdminBike,
   getAdminBike,
   getAdminBikes,
@@ -75,6 +76,7 @@ export default function BikeManagement({
   const [submitting, setSubmitting] = useState(false);
   const [reassigning, setReassigning] = useState(false);
   const [creatingModel, setCreatingModel] = useState(false);
+  const [modelFormMode, setModelFormMode] = useState<'new' | 'edit' | 'clone'>('new');
   const [newModel, setNewModel] = useState({
     brandId: '',
     categoryId: '',
@@ -326,9 +328,22 @@ export default function BikeManagement({
     setReassignTargetBike(bike);
   }
 
-  async function startCreateModel() {
+  async function startCreateModel(mode: 'new' | 'edit' | 'clone' = 'new') {
     setError(null);
-    setNewModel({ brandId: '', categoryId: '', name: '' });
+    const source =
+      mode === 'new'
+        ? undefined
+        : models.find((model) => model.id === Number(targetModelId));
+    setNewModel(
+      source
+        ? {
+            brandId: String(source.brandId),
+            categoryId: String(source.categoryId),
+            name: mode === 'clone' ? `${source.name} (Copy)` : source.name,
+          }
+        : { brandId: '', categoryId: '', name: '' }
+    );
+    setModelFormMode(source ? mode : 'new');
     setCreatingModel(true);
     try {
       const [brandResult, categoryResult] = await Promise.all([
@@ -370,11 +385,15 @@ export default function BikeManagement({
       );
       let newModelId = Number(targetModelId);
       if (creatingModel) {
-        targetModel = await createBikeModel({
+        const request = {
           brandId: Number(newModel.brandId),
           categoryId: Number(newModel.categoryId),
           name: newModel.name.trim(),
-        });
+        };
+        targetModel =
+          modelFormMode === 'edit'
+            ? await updateBikeModel(Number(targetModelId), request)
+            : await createBikeModel(request);
         newModelId = targetModel.id;
       }
       await reassignAdminBikeModel(reassignTargetBike.id, {
@@ -837,18 +856,37 @@ export default function BikeManagement({
               >
                 BikeModel
               </label>
-              <button
-                className="text-sm font-semibold text-brand-gold disabled:opacity-50"
-                type="button"
-                disabled={reassigning}
-                onClick={() =>
-                  creatingModel
-                    ? setCreatingModel(false)
-                    : void startCreateModel()
-                }
-              >
-                {creatingModel ? 'Choose existing' : '+ New BikeModel'}
-              </button>
+              <div className="flex items-center">
+                {!creatingModel && (
+                  <>
+                    <IconButton
+                      icon="edit"
+                      label="Edit selected BikeModel"
+                      variant="gold"
+                      disabled={reassigning || !targetModelId}
+                      onClick={() => void startCreateModel('edit')}
+                    />
+                    <IconButton
+                      icon="clone"
+                      label="Clone selected BikeModel"
+                      variant="gold"
+                      disabled={reassigning || !targetModelId}
+                      onClick={() => void startCreateModel('clone')}
+                    />
+                  </>
+                )}
+                <IconButton
+                  icon={creatingModel ? 'list' : 'add'}
+                  label={creatingModel ? 'Choose existing' : 'New BikeModel'}
+                  variant="gold"
+                  disabled={reassigning}
+                  onClick={() =>
+                    creatingModel
+                      ? setCreatingModel(false)
+                      : void startCreateModel()
+                  }
+                />
+              </div>
             </div>
             {creatingModel ? (
               <div className="mt-2 grid gap-3">
@@ -943,7 +981,9 @@ export default function BikeManagement({
                 {reassigning
                   ? 'Saving...'
                   : creatingModel
-                    ? 'Create & Reassign'
+                    ? modelFormMode === 'edit'
+                      ? 'Save & Reassign'
+                      : 'Create & Reassign'
                     : 'Reassign'}
               </button>
             </ModalFooter>
