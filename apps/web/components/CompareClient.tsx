@@ -17,8 +17,8 @@ interface SelectedBike {
   label: string;
 }
 
-const TABLE_LAYOUT_THRESHOLD = 4;
 const SEARCH_DEBOUNCE_MS = 300;
+const MAX_COLUMN_BIKES = 3;
 
 function toSelected(
   compareResult: CompareResultDto | null,
@@ -85,8 +85,10 @@ export default function CompareClient({
     updateUrl(selected.filter((s) => s.id !== id));
   }
 
-  const useTableLayout =
-    (compareResult?.bikes.length ?? 0) > TABLE_LAYOUT_THRESHOLD;
+  const columnSlots = Array.from(
+    { length: MAX_COLUMN_BIKES },
+    (_, i) => compareResult?.bikes[i] ?? null,
+  );
 
   return (
     <div>
@@ -163,20 +165,20 @@ export default function CompareClient({
         <p className="text-brand-grey">
           Search and add two or more bikes above to compare specs.
         </p>
-      ) : useTableLayout ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm border-collapse">
+      ) : (
+        compareResult.bikes.length <= MAX_COLUMN_BIKES ? (
+          <table className="w-full table-fixed text-sm border-collapse">
             <thead>
               <tr>
-                <th className="sticky left-0 bg-white text-left p-2 border-b border-zinc-200">
+                <th className="w-1/4 text-left p-2 border-b border-zinc-200 align-bottom">
                   Spec
                 </th>
-                {compareResult.bikes.map((bike) => (
+                {columnSlots.map((bike, index) => (
                   <th
-                    key={bike.id}
-                    className="p-2 border-b border-zinc-200 text-left min-w-[140px]"
+                    key={bike?.id ?? `empty-${index}`}
+                    className="w-1/4 p-2 border-b border-zinc-200 text-left align-top"
                   >
-                    {bike.brandName} - {bike.variantName}
+                    {bike && <BikeHeader bike={bike} />}
                   </th>
                 ))}
               </tr>
@@ -186,7 +188,7 @@ export default function CompareClient({
                 <Fragment key={group.code}>
                   <tr>
                     <td
-                      colSpan={compareResult.bikes.length + 1}
+                      colSpan={MAX_COLUMN_BIKES + 1}
                       className="pt-4 pb-1 font-semibold text-brand-button"
                     >
                       {group.name}
@@ -194,12 +196,12 @@ export default function CompareClient({
                   </tr>
                   {group.rows.map((row) => (
                     <tr key={row.code} className="border-b border-zinc-100">
-                      <td className="sticky left-0 bg-white p-2 text-brand-grey">
-                        {row.label}
-                      </td>
-                      {compareResult.bikes.map((bike) => (
-                        <td key={bike.id} className="p-2">
-                          {formatValue(row.valuesByBikeId[bike.id], row.unit)}
+                      <td className="p-2 text-brand-grey">{row.label}</td>
+                      {columnSlots.map((bike, index) => (
+                        <td key={bike?.id ?? `empty-${index}`} className="p-2">
+                          {bike
+                            ? formatValue(row.valuesByBikeId[bike.id], row.unit)
+                            : null}
                         </td>
                       ))}
                     </tr>
@@ -208,50 +210,62 @@ export default function CompareClient({
               ))}
             </tbody>
           </table>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {compareResult.bikes.map((bike) => (
-            <div
-              key={bike.id}
-              className=" border border-zinc-200 overflow-hidden"
-            >
-              <div className="relative aspect-[4/3] bg-zinc-100">
-                {bike.primaryImageUrl && (
-                  <Image
-                    src={bike.primaryImageUrl}
-                    alt={`${bike.brandName} - ${bike.variantName}`}
-                    fill
-                    className="object-cover"
-                  />
-                )}
-              </div>
-              <div className="p-3">
-                <p className="font-semibold mb-2">
-                  {bike.brandName} - {bike.variantName}
-                </p>
-                {compareResult.specGroups.map((group) => (
-                  <div key={group.code} className="mb-2">
-                    <p className="text-xs font-semibold text-brand-button">
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="text-sm border-collapse">
+              <thead>
+                <tr>
+                  <th
+                    rowSpan={2}
+                    className="sticky left-0 z-10 bg-white w-56 min-w-56 p-2 border-b border-zinc-200 text-left align-bottom"
+                  >
+                    Bike
+                  </th>
+                  {compareResult.specGroups.map((group) => (
+                    <th
+                      key={group.code}
+                      colSpan={group.rows.length}
+                      className="p-2 border-b border-zinc-200 text-left text-brand-button"
+                    >
                       {group.name}
-                    </p>
-                    {group.rows.map((row) => (
-                      <div
-                        key={row.code}
-                        className="flex justify-between text-xs py-0.5"
+                    </th>
+                  ))}
+                </tr>
+                <tr>
+                  {compareResult.specGroups.flatMap((group) =>
+                    group.rows.map((row) => (
+                      <th
+                        key={`${group.code}-${row.code}`}
+                        className="p-2 border-b border-zinc-200 text-left font-normal text-brand-grey min-w-40 align-bottom"
                       >
-                        <span className="text-brand-grey">{row.label}</span>
-                        <span className="font-medium">
+                        {row.label}
+                      </th>
+                    )),
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {compareResult.bikes.map((bike) => (
+                  <tr key={bike.id} className="border-b border-zinc-100">
+                    <th className="sticky left-0 z-10 bg-white w-56 min-w-56 p-2 text-left align-top">
+                      <BikeHeader bike={bike} />
+                    </th>
+                    {compareResult.specGroups.flatMap((group) =>
+                      group.rows.map((row) => (
+                        <td
+                          key={`${group.code}-${row.code}`}
+                          className="p-2 align-top"
+                        >
                           {formatValue(row.valuesByBikeId[bike.id], row.unit)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                        </td>
+                      )),
+                    )}
+                  </tr>
                 ))}
-              </div>
-            </div>
-          ))}
-        </div>
+              </tbody>
+            </table>
+          </div>
+        )
       )}
 
       {selected.length > 0 && (
@@ -270,4 +284,22 @@ function formatValue(value: unknown, unit: string | null): string {
     return '—';
   }
   return unit ? `${value} ${unit}` : String(value);
+}
+
+function BikeHeader({ bike }: { bike: CompareResultDto['bikes'][number] }) {
+  return (
+    <>
+      <div className="relative aspect-[4/3] mb-2 bg-zinc-100 overflow-hidden">
+        {bike.primaryImageUrl && (
+          <Image
+            src={bike.primaryImageUrl}
+            alt={`${bike.brandName} - ${bike.variantName}`}
+            fill
+            className="object-cover"
+          />
+        )}
+      </div>
+      {bike.brandName} - {bike.variantName}
+    </>
+  );
 }
