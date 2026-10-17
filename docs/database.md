@@ -31,6 +31,7 @@ CREATE TABLE bikes (
   slug VARCHAR(512) NOT NULL UNIQUE,
   specs JSONB NOT NULL DEFAULT '{}',  -- { "cc": "399", "horsepower": "45", ... }
   is_published BOOLEAN DEFAULT false,
+  is_reviewed BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );

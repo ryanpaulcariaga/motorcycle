@@ -199,6 +199,15 @@ public sealed class BikeAdminService : IBikeAdminService
         return ToDetailDto(bike);
     }
 
+    public async Task<BikeAdminDetailDto> SetReviewedAsync(int id, bool isReviewed, CancellationToken ct = default)
+    {
+        var bike = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Bike was not found.");
+        bike.IsReviewed = isReviewed;
+        bike.UpdatedAt = DateTime.UtcNow;
+        await _repository.SaveChangesAsync(ct);
+        return ToDetailDto(bike);
+    }
+
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
         var bike = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Bike was not found.");
@@ -248,6 +257,7 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.Year,
         bike.MsrpPrice,
         bike.IsPublished,
+        bike.IsReviewed,
         bike.CreatedAt,
         bike.UpdatedAt);
 
@@ -261,6 +271,7 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.MsrpPrice,
         bike.Slug,
         bike.IsPublished,
+        bike.IsReviewed,
         bike.Specs.ToDictionary(kv => kv.Key, kv => (object?)kv.Value),
         bike.CreatedAt,
         bike.UpdatedAt);

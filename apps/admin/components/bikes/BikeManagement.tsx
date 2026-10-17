@@ -17,6 +17,7 @@ import {
   getSpecGroups,
   publishAdminBike,
   reassignAdminBikeModel,
+  setAdminBikeReviewed,
   unpublishAdminBike,
   updateAdminBike,
 } from '@/lib/api';
@@ -42,7 +43,7 @@ const emptyForm = {
   specs: {} as Record<string, string>,
 };
 
-type SortField = 'variant' | 'model' | 'brand' | 'year' | 'msrp' | 'status';
+type SortField = 'variant' | 'model' | 'brand' | 'year' | 'msrp' | 'status' | 'reviewed';
 
 const sortFieldOptions: { key: SortField; label: string }[] = [
   { key: 'year', label: 'Year' },
@@ -51,6 +52,7 @@ const sortFieldOptions: { key: SortField; label: string }[] = [
   { key: 'model', label: 'Bike Model' },
   { key: 'msrp', label: 'MSRP' },
   { key: 'status', label: 'Status' },
+  { key: 'reviewed', label: 'Reviewed' },
 ];
 
 export default function BikeManagement({
@@ -128,6 +130,7 @@ export default function BikeManagement({
       year: (a, b) => a.year - b.year,
       msrp: (a, b) => (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1),
       status: (a, b) => Number(a.isPublished) - Number(b.isPublished),
+      reviewed: (a, b) => Number(a.isReviewed) - Number(b.isReviewed),
     }
   );
   const primarySort = sortRules[0];
@@ -296,6 +299,17 @@ export default function BikeManagement({
           ? 'This bike is missing required details and cannot be published.'
           : 'Unable to update publication state.'
       );
+    }
+  }
+
+  async function toggleReviewed(bike: BikeAdminListItem) {
+    setError(null);
+    setLastTouchedId(bike.id);
+    try {
+      await setAdminBikeReviewed(bike.id, !bike.isReviewed);
+      await load();
+    } catch {
+      setError('Unable to update reviewed state.');
     }
   }
 
@@ -565,6 +579,7 @@ export default function BikeManagement({
                   {sortHeader('model', 'Bike Model')}
                   {sortHeader('msrp', 'MSRP')}
                   {sortHeader('status', 'Status')}
+                  {sortHeader('reviewed', 'Reviewed')}
                   <th className="p-3">
                     <span className="sr-only">Actions</span>
                   </th>
@@ -624,6 +639,24 @@ export default function BikeManagement({
                       ) : (
                         <span className="text-brand-grey">Unpublished</span>
                       )}
+                    </td>
+                    <td className="p-3">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={bike.isReviewed}
+                        aria-label={`Specs reviewed for ${bike.brandName} - ${bike.variantName} (${bike.year})`}
+                        title={bike.isReviewed ? 'Reviewed - click to unmark' : 'Not reviewed - click to mark reviewed'}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${bike.isReviewed ? 'bg-green-600' : 'bg-black/20'}`}
+                        onClick={() => void toggleReviewed(bike)}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${bike.isReviewed ? 'translate-x-5' : 'translate-x-0.5'}`}
+                        />
+                      </button>
+                      <span className="ml-2 align-middle text-xs text-brand-grey">
+                        {bike.isReviewed ? 'Reviewed' : 'Not reviewed'}
+                      </span>
                     </td>
                     <td className="p-3">
                       <div className="flex items-center justify-end gap-1">

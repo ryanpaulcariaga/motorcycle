@@ -10,6 +10,7 @@ public class Bike
     public string Slug { get; set; } = string.Empty;
     public Dictionary<string, object> Specs { get; set; } = new();
     public bool IsPublished { get; set; } = false;
+    public bool IsReviewed { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

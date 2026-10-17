@@ -119,6 +119,16 @@ public sealed class AdminBikesController : ControllerBase
         }
     }
 
+    [HttpPatch("{id:int}/reviewed")]
+    public async Task<ActionResult<BikeAdminDetailDto>> SetReviewed(int id, SetBikeReviewedRequest request, CancellationToken ct)
+    {
+        try {
+            return Ok(await _service.SetReviewedAsync(id, request.IsReviewed, ct));
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {

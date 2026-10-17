@@ -92,6 +92,10 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_published");
 
+                    b.Property<bool>("IsReviewed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_reviewed");
+
                     b.Property<int>("ModelId")
                         .HasColumnType("integer")
                         .HasColumnName("model_id");

@@ -60,6 +60,7 @@ export type BikeAdminListItem = {
   year: number;
   msrpPrice: number | null;
   isPublished: boolean;
+  isReviewed: boolean;
   createdAt: string;
   updatedAt: string;
 };

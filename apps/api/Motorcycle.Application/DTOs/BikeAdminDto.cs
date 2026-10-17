@@ -9,6 +9,7 @@ public sealed record BikeAdminListItemDto(
     int Year,
     decimal? MsrpPrice,
     bool IsPublished,
+    bool IsReviewed,
     DateTime CreatedAt,
     DateTime UpdatedAt);
 
@@ -22,6 +23,7 @@ public sealed record BikeAdminDetailDto(
     decimal? MsrpPrice,
     string Slug,
     bool IsPublished,
+    bool IsReviewed,
     Dictionary<string, object?> Specs,
     DateTime CreatedAt,
     DateTime UpdatedAt);
@@ -56,3 +58,5 @@ public sealed record UpdateBikeRequest(
     int? ModelId = null);
 
 public sealed record ReassignBikeModelRequest(int ModelId);
+
+public sealed record SetBikeReviewedRequest(bool IsReviewed);

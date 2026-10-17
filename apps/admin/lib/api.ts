@@ -107,6 +107,9 @@ export function reassignAdminBikeModel(id: number, request: ReassignBikeModelReq
 }
 export function publishAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}/publish`, { method: "PATCH" }); }
 export function unpublishAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}/unpublish`, { method: "PATCH" }); }
+export function setAdminBikeReviewed(id: number, isReviewed: boolean): Promise<BikeAdminDetail> {
+  return apiFetch(`/api/admin/bikes/${id}/reviewed`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isReviewed }) });
+}
 export function deleteAdminBike(id: number): Promise<void> { return apiFetch(`/api/admin/bikes/${id}`, { method: "DELETE" }); }
 
 export function getAdminBikeImages(bikeId: number): Promise<BikeImage[]> {
