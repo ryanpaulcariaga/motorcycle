@@ -47,7 +47,7 @@ type SortField = 'variant' | 'model' | 'brand' | 'year' | 'msrp' | 'status';
 const sortFieldOptions: { key: SortField; label: string }[] = [
   { key: 'year', label: 'Year' },
   { key: 'brand', label: 'Brand' },
-  { key: 'variant', label: 'Motorcycle' },
+  { key: 'variant', label: 'Variant' },
   { key: 'model', label: 'Bike Model' },
   { key: 'msrp', label: 'MSRP' },
   { key: 'status', label: 'Status' },
@@ -556,11 +556,12 @@ export default function BikeManagement({
           </p>
         ) : (
           <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[48rem] text-left text-sm">
+            <table className="w-full min-w-[52rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
                   {sortHeader('year', 'Year')}
-                  {sortHeader('variant', 'Motorcycle')}
+                  {sortHeader('brand', 'Brand')}
+                  {sortHeader('variant', 'Variant')}
                   {sortHeader('model', 'Bike Model')}
                   {sortHeader('msrp', 'MSRP')}
                   {sortHeader('status', 'Status')}
@@ -576,9 +577,8 @@ export default function BikeManagement({
                     key={bike.id}
                   >
                     <td className="p-3">{bike.year}</td>
-                    <td className="p-3 font-semibold">
-                      {bike.brandName} - {bike.variantName}
-                    </td>
+                    <td className="p-3">{bike.brandName}</td>
+                    <td className="p-3 font-semibold">{bike.variantName}</td>
                     <td className="p-3">
                       <span className="inline-flex items-center gap-2">
                         {bike.modelName}
