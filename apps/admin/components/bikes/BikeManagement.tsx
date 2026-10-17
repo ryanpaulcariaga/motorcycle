@@ -590,6 +590,7 @@ export default function BikeManagement({
                   <tr
                     className={`border-b border-black/10 ${bike.id === lastTouchedId ? 'bg-brand-button/10' : ''}`}
                     key={bike.id}
+                    onClick={() => setLastTouchedId(bike.id)}
                   >
                     <td className="p-3">{bike.year}</td>
                     <td className="p-3">{bike.brandName}</td>

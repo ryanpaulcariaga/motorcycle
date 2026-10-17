@@ -163,6 +163,7 @@ export default function BrandManagement() {
                   <tr
                     className={`border-b border-black/10 ${lastTouchedId === brand.id ? 'bg-brand-button/10' : ''}`}
                     key={brand.id}
+                    onClick={() => setLastTouchedId(brand.id)}
                   >
                     <td className="p-3 font-semibold">{brand.name}</td>
                     <td className="p-3">{brand.modelCount}</td>

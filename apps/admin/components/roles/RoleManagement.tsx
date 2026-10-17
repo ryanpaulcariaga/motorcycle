@@ -208,6 +208,7 @@ export default function RoleManagement() {
                   <tr
                     className={`border-b border-black/10 ${lastTouchedId === role.id ? 'bg-brand-button/10' : ''}`}
                     key={role.id}
+                    onClick={() => setLastTouchedId(role.id)}
                   >
                     <td className="p-3">
                       <div className="font-semibold">{role.facebookUserId}</div>

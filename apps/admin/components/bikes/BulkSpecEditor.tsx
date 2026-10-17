@@ -33,6 +33,7 @@ export default function BulkSpecEditor() {
   const [loadedSpecCode, setLoadedSpecCode] = useState('');
   const [rows, setRows] = useState<BikeSpecValueItem[]>([]);
   const [edits, setEdits] = useState<Record<number, string>>({});
+  const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -366,8 +367,9 @@ export default function BulkSpecEditor() {
                     <tbody>
                       {rows.map((row) => (
                         <tr
-                          className={`border-b border-black/10 ${dirtyIds.includes(row.id) ? 'bg-yellow-50' : ''}`}
+                          className={`border-b border-black/10 ${dirtyIds.includes(row.id) ? 'bg-yellow-50' : lastTouchedId === row.id ? 'bg-brand-button/10' : ''}`}
                           key={row.id}
+                          onClick={() => setLastTouchedId(row.id)}
                         >
                           <td className="p-3 font-semibold">
                             {row.brandName} - {row.variantName}

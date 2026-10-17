@@ -278,6 +278,7 @@ export default function SpecDefinitionManagement({
                   <tr
                     className={`border-b border-black/10 ${lastTouchedId === definition.id ? 'bg-brand-button/10' : ''}`}
                     key={definition.id}
+                    onClick={() => setLastTouchedId(definition.id)}
                   >
                     <td className="p-3">
                       <button

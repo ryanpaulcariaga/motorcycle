@@ -164,6 +164,7 @@ export default function CategoryManagement() {
                   <tr
                     className={`border-b border-black/10 ${lastTouchedId === category.id ? 'bg-brand-button/10' : ''}`}
                     key={category.id}
+                    onClick={() => setLastTouchedId(category.id)}
                   >
                     <td className="p-3 font-semibold">{category.name}</td>
                     <td className="p-3">{category.modelCount}</td>

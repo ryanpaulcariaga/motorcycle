@@ -217,6 +217,7 @@ export default function SpecGroupManagement() {
                     <tr
                       className={`border-b border-black/10 ${lastTouchedId === group.id ? 'bg-brand-button/10' : selectedGroupId === group.id ? 'bg-brand-gold/10' : ''}`}
                       key={group.id}
+                      onClick={() => setLastTouchedId(group.id)}
                     >
                       <td className="p-3">
                         <button
