@@ -634,13 +634,22 @@ export default function BikeManagement({
                         : '—'}
                     </td>
                     <td className="p-3">
-                      {bike.isPublished ? (
-                        <span className="font-semibold text-green-700">
-                          Published
-                        </span>
-                      ) : (
-                        <span className="text-brand-grey">Unpublished</span>
-                      )}
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={bike.isPublished}
+                        aria-label={`Published status for ${bike.brandName} - ${bike.variantName} (${bike.year})`}
+                        title={bike.isPublished ? 'Published - click to unpublish' : 'Not published - click to publish'}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${bike.isPublished ? 'bg-green-600' : 'bg-black/20'}`}
+                        onClick={() => {
+                          setLastTouchedId(bike.id);
+                          void togglePublish(bike);
+                        }}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${bike.isPublished ? 'translate-x-5' : 'translate-x-0.5'}`}
+                        />
+                      </button>
                     </td>
                     <td className="p-3">
                       <button
@@ -687,14 +696,6 @@ export default function BikeManagement({
                           onClick={() => {
                             setLastTouchedId(bike.id);
                             void startClone(bike);
-                          }}
-                        />
-                        <IconButton
-                          icon={bike.isPublished ? 'unpublish' : 'publish'}
-                          label={bike.isPublished ? 'Unpublish' : 'Publish'}
-                          onClick={() => {
-                            setLastTouchedId(bike.id);
-                            void togglePublish(bike);
                           }}
                         />
                         <IconButton
