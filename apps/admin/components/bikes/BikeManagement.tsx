@@ -68,6 +68,7 @@ export default function BikeManagement({
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [reassignTargetBike, setReassignTargetBike] =
     useState<BikeAdminListItem | null>(null);
   const [imagesBike, setImagesBike] = useState<BikeAdminListItem | null>(null);
@@ -571,7 +572,10 @@ export default function BikeManagement({
               </thead>
               <tbody>
                 {visibleBikes.map((bike) => (
-                  <tr className="border-b border-black/10" key={bike.id}>
+                  <tr
+                    className={`border-b border-black/10 ${bike.id === lastTouchedId ? 'bg-brand-button/10' : ''}`}
+                    key={bike.id}
+                  >
                     <td className="p-3">{bike.year}</td>
                     <td className="p-3 font-semibold">
                       {bike.brandName} - {bike.variantName}
@@ -584,7 +588,10 @@ export default function BikeManagement({
                           className="text-brand-button hover:opacity-70"
                           aria-label={`Reassign BikeModel for ${bike.brandName} - ${bike.variantName} (${bike.year})`}
                           title="Reassign BikeModel"
-                          onClick={() => startReassign(bike)}
+                          onClick={() => {
+                            setLastTouchedId(bike.id);
+                            startReassign(bike);
+                          }}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -624,28 +631,43 @@ export default function BikeManagement({
                         <IconButton
                           icon="edit"
                           label="Edit"
-                          onClick={() => void startEdit(bike)}
+                          onClick={() => {
+                            setLastTouchedId(bike.id);
+                            void startEdit(bike);
+                          }}
                         />
                         <IconButton
                           icon="images"
                           label="Images"
-                          onClick={() => setImagesBike(bike)}
+                          onClick={() => {
+                            setLastTouchedId(bike.id);
+                            setImagesBike(bike);
+                          }}
                         />
                         <IconButton
                           icon="clone"
                           label="Clone"
-                          onClick={() => void startClone(bike)}
+                          onClick={() => {
+                            setLastTouchedId(bike.id);
+                            void startClone(bike);
+                          }}
                         />
                         <IconButton
                           icon={bike.isPublished ? 'unpublish' : 'publish'}
                           label={bike.isPublished ? 'Unpublish' : 'Publish'}
-                          onClick={() => void togglePublish(bike)}
+                          onClick={() => {
+                            setLastTouchedId(bike.id);
+                            void togglePublish(bike);
+                          }}
                         />
                         <IconButton
                           icon="delete"
                           label="Delete"
                           variant="danger"
-                          onClick={() => void remove(bike)}
+                          onClick={() => {
+                            setLastTouchedId(bike.id);
+                            void remove(bike);
+                          }}
                         />
                       </div>
                     </td>

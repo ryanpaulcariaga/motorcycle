@@ -22,6 +22,7 @@ export default function RoleManagement() {
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [modalOpen, setModalOpen] = useState(false);
+  const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [editingRole, setEditingRole] = useState<AdminRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -208,7 +209,10 @@ export default function RoleManagement() {
               </thead>
               <tbody>
                 {roles.map((role) => (
-                  <tr className="border-b border-black/10" key={role.id}>
+                  <tr
+                    className={`border-b border-black/10 ${lastTouchedId === role.id ? 'bg-brand-button/10' : ''}`}
+                    key={role.id}
+                  >
                     <td className="p-3">
                       <div className="font-semibold">{role.facebookUserId}</div>
                       <div className="text-brand-grey">
@@ -226,23 +230,35 @@ export default function RoleManagement() {
                         <IconButton
                           icon="edit"
                           label="Edit"
-                          onClick={() => startEdit(role)}
+                          onClick={() => {
+                            setLastTouchedId(role.id);
+                            startEdit(role);
+                          }}
                         />
                         <IconButton
                           icon="clone"
                           label="Clone"
-                          onClick={() => startClone(role)}
+                          onClick={() => {
+                            setLastTouchedId(role.id);
+                            startClone(role);
+                          }}
                         />
                         <IconButton
                           icon={role.isActive ? 'deactivate' : 'activate'}
                           label={role.isActive ? 'Deactivate' : 'Activate'}
-                          onClick={() => void toggleRole(role)}
+                          onClick={() => {
+                            setLastTouchedId(role.id);
+                            void toggleRole(role);
+                          }}
                         />
                         <IconButton
                           icon="delete"
                           label="Delete"
                           variant="danger"
-                          onClick={() => void removeRole(role)}
+                          onClick={() => {
+                            setLastTouchedId(role.id);
+                            void removeRole(role);
+                          }}
                           disabled={deletingId !== null}
                         />
                       </div>

@@ -22,6 +22,7 @@ export default function SpecGroupManagement() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -218,14 +219,17 @@ export default function SpecGroupManagement() {
                 <tbody>
                   {orderedGroups.map((group, index) => (
                     <tr
-                      className={`border-b border-black/10 ${selectedGroupId === group.id ? 'bg-brand-gold/10' : ''}`}
+                      className={`border-b border-black/10 ${lastTouchedId === group.id ? 'bg-brand-button/10' : selectedGroupId === group.id ? 'bg-brand-gold/10' : ''}`}
                       key={group.id}
                     >
                       <td className="p-3">
                         <button
                           className="mr-1 disabled:opacity-30"
                           disabled={index === 0}
-                          onClick={() => void move(group, -1)}
+                          onClick={() => {
+                            setLastTouchedId(group.id);
+                            void move(group, -1);
+                          }}
                           aria-label="Move up"
                         >
                           &uarr;
@@ -233,7 +237,10 @@ export default function SpecGroupManagement() {
                         <button
                           className="disabled:opacity-30"
                           disabled={index === orderedGroups.length - 1}
-                          onClick={() => void move(group, 1)}
+                          onClick={() => {
+                            setLastTouchedId(group.id);
+                            void move(group, 1);
+                          }}
                           aria-label="Move down"
                         >
                           &darr;
@@ -254,18 +261,27 @@ export default function SpecGroupManagement() {
                           <IconButton
                             icon="edit"
                             label="Edit"
-                            onClick={() => startEdit(group)}
+                            onClick={() => {
+                              setLastTouchedId(group.id);
+                              startEdit(group);
+                            }}
                           />
                           <IconButton
                             icon="clone"
                             label="Clone"
-                            onClick={() => startClone(group)}
+                            onClick={() => {
+                              setLastTouchedId(group.id);
+                              startClone(group);
+                            }}
                           />
                           <IconButton
                             icon="delete"
                             label="Delete"
                             variant="danger"
-                            onClick={() => void remove(group)}
+                            onClick={() => {
+                              setLastTouchedId(group.id);
+                              void remove(group);
+                            }}
                           />
                         </div>
                       </td>

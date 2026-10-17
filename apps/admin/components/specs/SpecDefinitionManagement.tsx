@@ -46,6 +46,7 @@ export default function SpecDefinitionManagement({
   const [form, setForm] = useState({ ...emptyForm, groupId });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -278,12 +279,18 @@ export default function SpecDefinitionManagement({
               </thead>
               <tbody>
                 {ordered.map((definition, index) => (
-                  <tr className="border-b border-black/10" key={definition.id}>
+                  <tr
+                    className={`border-b border-black/10 ${lastTouchedId === definition.id ? 'bg-brand-button/10' : ''}`}
+                    key={definition.id}
+                  >
                     <td className="p-3">
                       <button
                         className="mr-1 disabled:opacity-30"
                         disabled={index === 0}
-                        onClick={() => void move(definition, -1)}
+                        onClick={() => {
+                          setLastTouchedId(definition.id);
+                          void move(definition, -1);
+                        }}
                         aria-label="Move up"
                       >
                         &uarr;
@@ -291,7 +298,10 @@ export default function SpecDefinitionManagement({
                       <button
                         className="disabled:opacity-30"
                         disabled={index === ordered.length - 1}
-                        onClick={() => void move(definition, 1)}
+                        onClick={() => {
+                          setLastTouchedId(definition.id);
+                          void move(definition, 1);
+                        }}
                         aria-label="Move down"
                       >
                         &darr;
@@ -314,18 +324,27 @@ export default function SpecDefinitionManagement({
                         <IconButton
                           icon="edit"
                           label="Edit"
-                          onClick={() => startEdit(definition)}
+                          onClick={() => {
+                            setLastTouchedId(definition.id);
+                            startEdit(definition);
+                          }}
                         />
                         <IconButton
                           icon="clone"
                           label="Clone"
-                          onClick={() => startClone(definition)}
+                          onClick={() => {
+                            setLastTouchedId(definition.id);
+                            startClone(definition);
+                          }}
                         />
                         <IconButton
                           icon="delete"
                           label="Delete"
                           variant="danger"
-                          onClick={() => void remove(definition)}
+                          onClick={() => {
+                            setLastTouchedId(definition.id);
+                            void remove(definition);
+                          }}
                         />
                       </div>
                     </td>

@@ -45,6 +45,7 @@ export default function BikeModelManagement() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [variantsModel, setVariantsModel] = useState<BikeModel | null>(null);
   const closeVariants = useCallback(() => setVariantsModel(null), []);
   const [loading, setLoading] = useState(true);
@@ -311,7 +312,10 @@ export default function BikeModelManagement() {
                   </thead>
                   <tbody>
                     {filteredModels.map((model) => (
-                      <tr className="border-b border-black/10" key={model.id}>
+                      <tr
+                    className={`border-b border-black/10 ${lastTouchedId === model.id ? 'bg-brand-button/10' : ''}`}
+                    key={model.id}
+                  >
                         <td className="p-3">{model.brandName}</td>
                         <td className="p-3">{model.categoryName}</td>
                         <td className="p-3 font-semibold">{model.name}</td>
@@ -321,23 +325,35 @@ export default function BikeModelManagement() {
                             <IconButton
                               icon="edit"
                               label="Edit"
-                              onClick={() => startEdit(model)}
+                              onClick={() => {
+                                setLastTouchedId(model.id);
+                                startEdit(model);
+                              }}
                             />
                             <IconButton
                               icon="variants"
                               label="Variants"
-                              onClick={() => setVariantsModel(model)}
+                              onClick={() => {
+                                setLastTouchedId(model.id);
+                                setVariantsModel(model);
+                              }}
                             />
                             <IconButton
                               icon="clone"
                               label="Clone"
-                              onClick={() => startClone(model)}
+                              onClick={() => {
+                                setLastTouchedId(model.id);
+                                startClone(model);
+                              }}
                             />
                             <IconButton
                               icon="delete"
                               label="Delete"
                               variant="danger"
-                              onClick={() => void remove(model)}
+                              onClick={() => {
+                                setLastTouchedId(model.id);
+                                void remove(model);
+                              }}
                             />
                           </div>
                         </td>

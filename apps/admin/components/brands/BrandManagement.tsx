@@ -17,6 +17,7 @@ export default function BrandManagement() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -163,7 +164,10 @@ export default function BrandManagement() {
               </thead>
               <tbody>
                 {brands.map((brand) => (
-                  <tr className="border-b border-black/10" key={brand.id}>
+                  <tr
+                    className={`border-b border-black/10 ${lastTouchedId === brand.id ? 'bg-brand-button/10' : ''}`}
+                    key={brand.id}
+                  >
                     <td className="p-3 font-semibold">{brand.name}</td>
                     <td className="p-3">{brand.modelCount}</td>
                     <td className="p-3">{brand.bikeCount}</td>
@@ -172,18 +176,27 @@ export default function BrandManagement() {
                         <IconButton
                           icon="edit"
                           label="Edit"
-                          onClick={() => startEdit(brand)}
+                          onClick={() => {
+                            setLastTouchedId(brand.id);
+                            startEdit(brand);
+                          }}
                         />
                         <IconButton
                           icon="clone"
                           label="Clone"
-                          onClick={() => startClone(brand)}
+                          onClick={() => {
+                            setLastTouchedId(brand.id);
+                            startClone(brand);
+                          }}
                         />
                         <IconButton
                           icon="delete"
                           label="Delete"
                           variant="danger"
-                          onClick={() => void handleDelete(brand)}
+                          onClick={() => {
+                            setLastTouchedId(brand.id);
+                            void handleDelete(brand);
+                          }}
                         />
                       </div>
                     </td>

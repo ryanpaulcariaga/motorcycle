@@ -17,6 +17,7 @@ export default function CategoryManagement() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,7 +165,10 @@ export default function CategoryManagement() {
               </thead>
               <tbody>
                 {categories.map((category) => (
-                  <tr className="border-b border-black/10" key={category.id}>
+                  <tr
+                    className={`border-b border-black/10 ${lastTouchedId === category.id ? 'bg-brand-button/10' : ''}`}
+                    key={category.id}
+                  >
                     <td className="p-3 font-semibold">{category.name}</td>
                     <td className="p-3">{category.modelCount}</td>
                     <td className="p-3">{category.bikeCount}</td>
@@ -173,18 +177,27 @@ export default function CategoryManagement() {
                         <IconButton
                           icon="edit"
                           label="Edit"
-                          onClick={() => startEdit(category)}
+                          onClick={() => {
+                            setLastTouchedId(category.id);
+                            startEdit(category);
+                          }}
                         />
                         <IconButton
                           icon="clone"
                           label="Clone"
-                          onClick={() => startClone(category)}
+                          onClick={() => {
+                            setLastTouchedId(category.id);
+                            startClone(category);
+                          }}
                         />
                         <IconButton
                           icon="delete"
                           label="Delete"
                           variant="danger"
-                          onClick={() => void handleDelete(category)}
+                          onClick={() => {
+                            setLastTouchedId(category.id);
+                            void handleDelete(category);
+                          }}
                         />
                       </div>
                     </td>
