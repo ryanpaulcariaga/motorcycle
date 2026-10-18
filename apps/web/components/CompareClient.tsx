@@ -4,8 +4,14 @@ import { useRouter } from 'next/navigation';
 import { Fragment, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Button from '@/components/Button';
-import { searchBikes } from '@/lib/api';
-import type { BikeListItemDto, CompareResultDto } from '@/lib/types';
+import { getBikes, getBrands, getCategories } from '@/lib/api';
+import type {
+  BikeListItemDto,
+  BikesQuery,
+  BrandDto,
+  CategoryDto,
+  CompareResultDto,
+} from '@/lib/types';
 
 interface CompareClientProps {
   selectedIds: string[];
@@ -42,22 +48,74 @@ export default function CompareClient({
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<BikeListItemDto[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [brands, setBrands] = useState<BrandDto[]>([]);
+  const [categories, setCategories] = useState<CategoryDto[]>([]);
+  const [filters, setFilters] = useState({
+    brandId: '',
+    categoryId: '',
+    yearMin: '',
+    yearMax: '',
+    priceMin: '',
+    priceMax: '',
+  });
+
+  const hasFilters =
+    showAdvanced && Object.values(filters).some((value) => value !== '');
+  const trimmedTerm = searchTerm.trim();
+  const canSearch = trimmedTerm.length >= 2 || hasFilters;
+
+  function setFilter(key: keyof typeof filters, value: string) {
+    setFilters((current) => ({ ...current, [key]: value }));
+  }
+
+  function clearFilters() {
+    setFilters({
+      brandId: '',
+      categoryId: '',
+      yearMin: '',
+      yearMax: '',
+      priceMin: '',
+      priceMax: '',
+    });
+  }
 
   useEffect(() => {
-    const term = searchTerm.trim();
+    if (!showAdvanced || brands.length > 0) {
+      return;
+    }
+    getBrands().then(setBrands).catch(() => setBrands([]));
+    getCategories().then(setCategories).catch(() => setCategories([]));
+  }, [showAdvanced, brands.length]);
+
+  useEffect(() => {
     const timeout = setTimeout(() => {
-      if (term.length < 2) {
+      if (!canSearch) {
         setSearchResults([]);
         return;
       }
+      const toNumber = (value: string) =>
+        value === '' || Number.isNaN(Number(value)) ? undefined : Number(value);
+      const query: BikesQuery = {
+        pageSize: hasFilters ? 20 : 8,
+        search: trimmedTerm.length >= 2 ? trimmedTerm : undefined,
+        ...(hasFilters && {
+          brandId: filters.brandId || undefined,
+          categoryId: filters.categoryId || undefined,
+          yearMin: toNumber(filters.yearMin),
+          yearMax: toNumber(filters.yearMax),
+          priceMin: toNumber(filters.priceMin),
+          priceMax: toNumber(filters.priceMax),
+        }),
+      };
       setIsSearching(true);
-      searchBikes(term)
+      getBikes(query)
         .then((result) => setSearchResults(result.items))
         .catch(() => setSearchResults([]))
         .finally(() => setIsSearching(false));
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timeout);
-  }, [searchTerm]);
+  }, [trimmedTerm, filters, canSearch, hasFilters]);
 
   function updateUrl(next: SelectedBike[]) {
     const query =
@@ -124,7 +182,79 @@ export default function CompareClient({
             placeholder="Search bikes by model or brand..."
             className="w-full border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-button"
           />
-          {searchTerm.trim().length >= 2 && (
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((open) => !open)}
+            aria-expanded={showAdvanced}
+            className="mt-2 text-xs font-semibold text-brand-button hover:underline"
+          >
+            {showAdvanced ? 'Hide advanced search' : 'Advanced search'}
+          </button>
+          {showAdvanced && (
+            <div className="mt-2 grid grid-cols-2 gap-3 border border-zinc-200 p-3 text-sm md:grid-cols-3">
+              <label className="flex flex-col gap-1 text-xs">
+                Brand
+                <select
+                  value={filters.brandId}
+                  onChange={(e) => setFilter('brandId', e.target.value)}
+                  className="border border-zinc-300 bg-white px-2 py-2 text-sm"
+                >
+                  <option value="">All brands</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-xs">
+                Category
+                <select
+                  value={filters.categoryId}
+                  onChange={(e) => setFilter('categoryId', e.target.value)}
+                  className="border border-zinc-300 bg-white px-2 py-2 text-sm"
+                >
+                  <option value="">All categories</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="hidden md:block" />
+              {(
+                [
+                  ['yearMin', 'Year from'],
+                  ['yearMax', 'Year to'],
+                  ['priceMin', 'Min price'],
+                  ['priceMax', 'Max price'],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} className="flex flex-col gap-1 text-xs">
+                  {label}
+                  <input
+                    type="number"
+                    min={0}
+                    value={filters[key]}
+                    onChange={(e) => setFilter(key, e.target.value)}
+                    className="border border-zinc-300 px-2 py-2 text-sm"
+                  />
+                </label>
+              ))}
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  disabled={!hasFilters}
+                  className="px-3 py-2 text-xs font-semibold text-brand-button hover:underline disabled:opacity-50"
+                >
+                  Clear filters
+                </button>
+              </div>
+            </div>
+          )}
+          {canSearch && (
             <div className="absolute z-10 mt-1 w-full max-h-64 overflow-y-auto border border-zinc-200 bg-white shadow-md">
               {isSearching && (
                 <p className="p-2 text-xs text-brand-grey">Searching...</p>
