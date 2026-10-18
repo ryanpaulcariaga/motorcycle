@@ -44,6 +44,27 @@ public sealed class AdminBikesController : ControllerBase
         }
     }
 
+    [HttpGet("spec-grid")]
+    public async Task<ActionResult<IReadOnlyList<BikeSpecGridRowDto>>> GetSpecGrid([FromQuery] int? brandId, [FromQuery] int? categoryId, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, CancellationToken ct)
+    {
+        if (brandId.HasValue && brandId <= 0) {
+            return BadRequest(new { message = "Brand must be a positive ID." });
+        }
+
+        return Ok(await _service.GetSpecGridAsync(brandId, categoryId, minPrice, maxPrice, ct));
+    }
+
+    [HttpPut("spec-grid")]
+    public async Task<ActionResult<object>> UpdateSpecGrid(UpdateSpecGridRequest request, CancellationToken ct)
+    {
+        try {
+            return Ok(new { updatedCount = await _service.UpdateSpecGridAsync(request, ct) });
+        } catch (KeyNotFoundException ex) {
+            return NotFound(new { message = ex.Message });
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BikeAdminDetailDto>> GetById(int id, CancellationToken ct)
     {

@@ -800,10 +800,10 @@ export default function BikeManagement({
             />
             {specGroups.map((group) => (
               <fieldset
-                className="mt-4 border-t border-white/20 pt-4"
+                className="mt-4 border-t border-black/10 pt-4"
                 key={group.code}
               >
-                <legend className="text-sm font-semibold uppercase tracking-wide text-brand-gold">
+                <legend className="text-sm font-semibold uppercase tracking-wide text-brand-button">
                   {group.name}
                 </legend>
                 {group.definitions.map((def) => (
@@ -867,7 +867,7 @@ export default function BikeManagement({
                     : 'Save changes'}
               </button>
               <button
-                className="border border-white px-4 py-3 font-semibold"
+                className="border border-black/30 px-4 py-3 font-semibold"
                 type="button"
                 onClick={reset}
               >
@@ -886,7 +886,7 @@ export default function BikeManagement({
           <BikeImageManagement bikeId={imagesBike.id} />
           <ModalFooter>
             <button
-              className="border border-white px-4 py-3 font-semibold"
+              className="border border-black/30 px-4 py-3 font-semibold"
               type="button"
               onClick={closeImages}
             >
@@ -902,11 +902,11 @@ export default function BikeManagement({
           onClose={closeReassign}
         >
           <form onSubmit={reassignModel}>
-            <p className="mt-5 text-sm text-white/80">
+            <p className="mt-5 text-sm text-brand-grey">
               {reassignTargetBike.year} {reassignTargetBike.brandName} -{' '}
               {reassignTargetBike.variantName}
             </p>
-            <p className="mt-2 text-sm text-white/80">
+            <p className="mt-2 text-sm text-brand-grey">
               Only the BikeModel assignment will change.
             </p>
             <div className="mt-5 flex items-center justify-between">
@@ -1018,7 +1018,7 @@ export default function BikeManagement({
             )}
             <ModalFooter>
               <button
-                className="flex-1 border border-white/40 px-5 py-3 font-semibold disabled:opacity-50"
+                className="flex-1 border border-black/30 px-5 py-3 font-semibold disabled:opacity-50"
                 type="button"
                 disabled={reassigning}
                 onClick={closeReassign}

@@ -1,4 +1,4 @@
-import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, ReassignBikeModelRequest, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest } from "./types";
+import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, ReassignBikeModelRequest, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest, BikeSpecGridRow, UpdateSpecGridRequest } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
@@ -94,6 +94,25 @@ export function getAdminBikeSpecValues(filters: SpecValueFilters): Promise<BikeS
 }
 export function updateAdminBikeSpecValues(request: UpdateSingleSpecRequest): Promise<{ updatedCount: number }> {
   return apiFetch("/api/admin/bikes/spec-values", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+}
+export function getAdminBikeSpecGrid(filters: Omit<SpecValueFilters, "specCode">): Promise<BikeSpecGridRow[]> {
+  const params = new URLSearchParams();
+  if (filters.brandId !== undefined) {
+    params.set("brandId", String(filters.brandId));
+  }
+  if (filters.categoryId) {
+    params.set("categoryId", String(filters.categoryId));
+  }
+  if (filters.minPrice !== undefined) {
+    params.set("minPrice", String(filters.minPrice));
+  }
+  if (filters.maxPrice !== undefined) {
+    params.set("maxPrice", String(filters.maxPrice));
+  }
+  return apiFetch(`/api/admin/bikes/spec-grid?${params}`);
+}
+export function updateAdminBikeSpecGrid(request: UpdateSpecGridRequest): Promise<{ updatedCount: number }> {
+  return apiFetch("/api/admin/bikes/spec-grid", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
 }
 export function getAdminBike(id: number): Promise<BikeAdminDetail> { return apiFetch(`/api/admin/bikes/${id}`); }
 export function createAdminBike(request: CreateBikeRequest): Promise<BikeAdminDetail> {

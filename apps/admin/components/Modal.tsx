@@ -5,6 +5,7 @@ interface ModalProps {
   error?: string | null;
   wide?: boolean;
   extraWide?: boolean;
+  fullWidth?: boolean;
   onClose: () => void;
   children: ReactNode;
 }
@@ -16,6 +17,7 @@ export default function Modal({
   error,
   wide,
   extraWide,
+  fullWidth,
   onClose,
   children,
 }: ModalProps) {
@@ -44,12 +46,12 @@ export default function Modal({
       }}
     >
       <div
-        className={`flex max-h-full w-full flex-col bg-brand-sidebar text-white shadow-2xl ${extraWide ? 'max-w-5xl' : wide ? 'max-w-2xl' : 'max-w-md'}`}
+        className={`flex max-h-full w-full flex-col bg-white text-brand-black shadow-2xl ${fullWidth ? 'max-w-[96vw]' : extraWide ? 'max-w-5xl' : wide ? 'max-w-2xl' : 'max-w-md'}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}
       >
-        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-white/20 px-6 py-4">
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-black/10 bg-brand-sidebar px-6 py-4 text-white">
           <h2 className="text-lg font-bold">{title}</h2>
           <button
             className="text-2xl leading-none"
@@ -78,7 +80,7 @@ export default function Modal({
 
 export function ModalFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky bottom-0 z-10 mt-6 flex gap-3 border-t border-white/20 bg-brand-sidebar py-4">
+    <div className="sticky bottom-0 z-10 mt-6 flex gap-3 border-t border-black/10 bg-white py-4">
       {children}
     </div>
   );

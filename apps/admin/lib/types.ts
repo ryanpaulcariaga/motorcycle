@@ -114,6 +114,22 @@ export type UpdateSingleSpecRequest = {
   values: { bikeId: number; value: unknown }[];
 };
 
+export type BikeSpecGridRow = {
+  id: number;
+  modelName: string;
+  brandName: string;
+  categoryName: string;
+  variantName: string;
+  year: number;
+  msrpPrice: number | null;
+  isPublished: boolean;
+  specs: Record<string, unknown>;
+};
+
+export type UpdateSpecGridRequest = {
+  changes: { bikeId: number; specCode: string; value: unknown }[];
+};
+
 export type BikeImage = {
   id: number;
   blobUrl: string;

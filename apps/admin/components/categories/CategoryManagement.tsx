@@ -240,7 +240,7 @@ export default function CategoryManagement() {
                     : 'Save changes'}
               </button>
               <button
-                className="border border-white px-4 py-3 font-semibold"
+                className="border border-black/30 px-4 py-3 font-semibold"
                 type="button"
                 onClick={reset}
               >

@@ -105,16 +105,15 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
   }
 
   return (
-    <section className="mt-8 border-t border-white/20 pt-6">
-      <h2 className="text-lg font-bold">Images</h2>
+    <section className="mt-8">
       <label
-        className="mt-4 block text-sm font-semibold"
+        className="mt-4 block text-sm font-bold text-brand-button"
         htmlFor="bike-image-upload"
       >
         Upload image
       </label>
       <input
-        className="mt-2 block w-full text-sm"
+        className="mt-2 block w-full cursor-pointer text-sm file:mr-3 file:cursor-pointer file:border-0 file:bg-brand-button file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-brand-sidebar disabled:cursor-not-allowed disabled:opacity-60"
         id="bike-image-upload"
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
@@ -127,12 +126,12 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
         </p>
       )}
       {images.length === 0 ? (
-        <p className="mt-4 text-sm text-white/70">No images assigned.</p>
+        <p className="mt-4 text-sm text-brand-grey">No images assigned.</p>
       ) : (
         <div className="mt-4 space-y-3">
           {images.map((image, index) => (
             <div
-              className="flex items-center gap-3 bg-white/10 p-2"
+              className="flex items-center gap-3 bg-black/5 p-2"
               key={image.id}
             >
               <img
@@ -144,10 +143,10 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
               />
               <div className="min-w-0 flex-1 text-xs">
                 {image.isPrimary && (
-                  <p className="font-bold text-brand-gold">Primary</p>
+                  <p className="font-bold text-brand-button">Primary</p>
                 )}
                 <a
-                  className="block truncate underline"
+                  className="block truncate text-sm font-semibold text-brand-button underline"
                   href={image.blobUrl}
                   target="_blank"
                   rel="noreferrer"
@@ -180,7 +179,7 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
                   </button>
                 )}
                 <button
-                  className="text-red-200"
+                  className="font-semibold text-red-700 underline hover:text-red-900 disabled:opacity-50"
                   type="button"
                   onClick={() => void remove(image)}
                   disabled={busy}

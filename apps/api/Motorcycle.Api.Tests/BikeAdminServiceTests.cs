@@ -14,6 +14,83 @@ public class BikeAdminServiceTests
         return (service, repository);
     }
 
+    private static Bike NewBike(string variant) => new()
+    {
+        ModelId = 1,
+        VariantName = variant,
+        Year = 2024,
+        Slug = $"test-{variant}",
+        Specs = new() { ["engine_displacement_cc"] = 399 }
+    };
+
+    [Fact]
+    public async Task UpdateSpecGridAsync_AppliesMultipleSpecsAndClearsNulls()
+    {
+        var (service, repository) = CreateService();
+        var bike = NewBike("A");
+        await repository.AddAsync(bike);
+
+        var count = await service.UpdateSpecGridAsync(new UpdateSpecGridRequest(new()
+        {
+            new(bike.Id, "engine_displacement_cc", null),
+            new(bike.Id, "abs", true)
+        }));
+
+        Assert.Equal(1, count);
+        Assert.False(bike.Specs.ContainsKey("engine_displacement_cc"));
+        Assert.Equal(true, bike.Specs["abs"]);
+    }
+
+    [Fact]
+    public async Task UpdateSpecGridAsync_WithInvalidValue_LeavesAllBikesUnchanged()
+    {
+        var (service, repository) = CreateService();
+        var first = NewBike("A");
+        var second = NewBike("B");
+        await repository.AddAsync(first);
+        await repository.AddAsync(second);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.UpdateSpecGridAsync(new UpdateSpecGridRequest(new()
+        {
+            new(first.Id, "engine_displacement_cc", 500),
+            new(second.Id, "abs", "not-a-boolean")
+        })));
+
+        Assert.Equal(399, first.Specs["engine_displacement_cc"]);
+    }
+
+    [Fact]
+    public async Task UpdateSpecGridAsync_WithUnknownBike_ThrowsKeyNotFound()
+    {
+        var (service, _) = CreateService();
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            service.UpdateSpecGridAsync(new UpdateSpecGridRequest(new() { new(999, "abs", true) })));
+    }
+
+    [Fact]
+    public async Task UpdateSpecGridAsync_WithUnknownSpecOrDuplicateCell_Throws()
+    {
+        var (service, repository) = CreateService();
+        var bike = NewBike("A");
+        await repository.AddAsync(bike);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.UpdateSpecGridAsync(new UpdateSpecGridRequest(new() { new(bike.Id, "nope", 1) })));
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.UpdateSpecGridAsync(new UpdateSpecGridRequest(new() { new(bike.Id, "abs", true), new(bike.Id, "abs", false) })));
+    }
+
+    [Fact]
+    public async Task GetSpecGridAsync_ReturnsAllSpecsPerBike()
+    {
+        var (service, repository) = CreateService();
+        await repository.AddAsync(NewBike("A"));
+
+        var rows = await service.GetSpecGridAsync(null, null, null, null);
+
+        Assert.Equal(399, Assert.Single(rows).Specs["engine_displacement_cc"]);
+    }
     [Fact]
     public async Task CreateAsync_WithValidData_PersistsUnpublishedBike()
     {
