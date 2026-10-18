@@ -106,11 +106,25 @@ function AdminShell({ session }: { session: AdminSession }) {
               Catalog
             </p>
             <a
-              aria-current={isAdministratorsActive ? 'page' : undefined}
-              className={`block px-3 py-2 font-semibold ${isAdministratorsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-              href="/admin/roles"
+              aria-current={isVariantsActive ? 'page' : undefined}
+              className={`block px-3 py-2 font-semibold ${isVariantsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/bike-variants"
             >
-              Administrators
+              Bikes
+            </a>
+            <a
+              aria-current={isBikesActive ? 'page' : undefined}
+              className={`mt-2 block px-3 py-2 font-semibold ${isBikesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/bike-models"
+            >
+              Bikes Model
+            </a>
+            <a
+              aria-current={isSpecificationsActive ? 'page' : undefined}
+              className={`mt-2 block px-3 py-2 font-semibold ${isSpecificationsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/specs"
+            >
+              Specifications
             </a>
             <a
               aria-current={isBrandsActive ? 'page' : undefined}
@@ -127,32 +141,18 @@ function AdminShell({ session }: { session: AdminSession }) {
               Categories
             </a>
             <a
-              aria-current={isBikesActive ? 'page' : undefined}
-              className={`mt-2 block px-3 py-2 font-semibold ${isBikesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-              href="/admin/bike-models"
-            >
-              Bikes Model
-            </a>
-            <a
-              aria-current={isVariantsActive ? 'page' : undefined}
-              className={`mt-2 block px-3 py-2 font-semibold ${isVariantsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-              href="/admin/bike-variants"
-            >
-              Bikes Variants
-            </a>
-            <a
-              aria-current={isSpecificationsActive ? 'page' : undefined}
-              className={`mt-2 block px-3 py-2 font-semibold ${isSpecificationsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-              href="/admin/specs"
-            >
-              Specifications
-            </a>
-            <a
               aria-current={isBulkSpecActive ? 'page' : undefined}
               className={`mt-2 block px-3 py-2 font-semibold ${isBulkSpecActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
               href="/admin/bulk-spec"
             >
-              Bulk Spec Edit
+              Bikes Bulk Edit
+            </a>
+            <a
+              aria-current={isAdministratorsActive ? 'page' : undefined}
+              className={`mt-2 block px-3 py-2 font-semibold ${isAdministratorsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/roles"
+            >
+              Administrators
             </a>
           </nav>
           <div className="space-y-4" ref={setSidebarSlot} />
