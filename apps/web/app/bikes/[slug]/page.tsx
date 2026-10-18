@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import PageShell from '@/components/PageShell';
 import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
 import Button from '@/components/Button';
-import { getBikeBySlug, getBrands } from '@/lib/api';
+import { getBikeBySlug, getBrands, getComparedWith } from '@/lib/api';
 import type { Metadata } from 'next';
 
 interface BikeDetailPageProps {
@@ -43,6 +43,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
   }
 
   const brands = await getBrands();
+  const comparedWith = await getComparedWith(slug).catch(() => []);
 
   const groupsWithSpecs = bike.specGroups.filter(
     (group) => group.specs.length > 0
@@ -55,6 +56,19 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
     <PageShell bare>
       <div className="flex flex-col md:flex-row md:items-start gap-6">
         <Sidebar>
+          {comparedWith.length > 0 && (
+            <SidebarSection
+              title={`${bike.variantName} is usually compared to`}
+            >
+              <div className="flex flex-col">
+                {comparedWith.map(({ bike: other }) => (
+                  <SidebarLink key={other.id} href={`/bikes/${other.slug}`}>
+                    {other.brandName} - {other.variantName}
+                  </SidebarLink>
+                ))}
+              </div>
+            </SidebarSection>
+          )}
           <SidebarSection title="Brands">
             <div className="flex flex-col">
               <SidebarLink href="/bikes">All Brands</SidebarLink>
@@ -143,6 +157,56 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
               </div>
             </div>
           </div>
+
+          {comparedWith.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-xl font-bold mb-3">
+                {bike.brandName} - {bike.variantName} is usually compared to
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {comparedWith.map(({ bike: other, compareCount }) => (
+                  <div
+                    key={other.id}
+                    className="flex gap-3 border border-zinc-200 p-3"
+                  >
+                    <div className="relative h-20 w-28 shrink-0 bg-zinc-100 overflow-hidden">
+                      {other.primaryImageUrl && (
+                        <Image
+                          src={other.primaryImageUrl}
+                          alt={`${other.brandName} - ${other.variantName}`}
+                          fill
+                          className="object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold">
+                        {other.brandName} - {other.variantName}
+                      </p>
+                      <p className="text-xs text-brand-grey">
+                        Compared {compareCount}{' '}
+                        {compareCount === 1 ? 'time' : 'times'}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Link href={`/bikes/${other.slug}`}>
+                          <Button variant="black">View specs</Button>
+                        </Link>
+                        <Link href={`/compare?ids=${bike.id},${other.id}`}>
+                          <Button variant="gold">View comparison</Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Link
+                href={`/compare?ids=${[bike.id, ...comparedWith.map((c) => c.bike.id)].join(',')}`}
+                className="mt-3 inline-block text-sm font-semibold text-brand-button hover:underline"
+              >
+                Compare all {comparedWith.length + 1} bikes
+              </Link>
+            </div>
+          )}
 
           <div className="mt-8 space-y-6">
             <h2 className="text-xl font-bold">Full Specifications</h2>

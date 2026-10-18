@@ -24,6 +24,7 @@ public class MotorcycleDbContext : DbContext
     public DbSet<UserExternalLogin> UserExternalLogins => Set<UserExternalLogin>();
 
     // Future tables (Phase 5+)
+    public DbSet<BikeComparison> BikeComparisons => Set<BikeComparison>();
     public DbSet<BikeView> BikeViews => Set<BikeView>();
     public DbSet<SpecSearchLog> SpecSearchLogs => Set<SpecSearchLog>();
     public DbSet<BikeVote> BikeVotes => Set<BikeVote>();
@@ -172,6 +173,16 @@ public class MotorcycleDbContext : DbContext
         });
 
         // Future tables (schema stubs for Phase 5+)
+        modelBuilder.Entity<BikeComparison>(bc =>
+        {
+            bc.HasKey(x => x.Id);
+            bc.HasIndex(x => new { x.BikeAId, x.BikeBId }).IsUnique();
+            bc.HasIndex(x => x.BikeBId);
+            bc.HasOne(x => x.BikeA).WithMany().HasForeignKey(x => x.BikeAId).OnDelete(DeleteBehavior.Cascade);
+            bc.HasOne(x => x.BikeB).WithMany().HasForeignKey(x => x.BikeBId).OnDelete(DeleteBehavior.Cascade);
+            bc.ToTable(t => t.HasCheckConstraint("ck_bike_comparisons_ordered", "bike_a_id < bike_b_id"));
+        });
+
         modelBuilder.Entity<BikeView>(bv =>
         {
             bv.HasKey(x => x.Id);

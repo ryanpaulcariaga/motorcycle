@@ -159,6 +159,21 @@ CREATE TABLE spec_definitions (
 
 Managed through protected `/api/admin/spec-groups`/`/api/admin/spec-definitions` endpoints (`specs/009-spec-metadata-management/`). `code` was originally unique only per `(group_id, code)`; it is now globally unique because it is the literal JSON key read from every `bikes.specs` row, and a duplicate across groups would be ambiguous in that flat map. Renaming a `code` renames the matching key across every affected `bikes.specs` row in the same transaction (one `UPDATE bikes SET specs = (specs - old) || jsonb_build_object(new, specs -> old) WHERE specs ? old` statement). Deleting a `spec_definitions` row that any bike currently has a non-null value for is blocked at the application layer with a `409` conflict.
 
+### bike_comparisons
+```sql
+CREATE TABLE bike_comparisons (
+  id SERIAL PRIMARY KEY,
+  bike_a_id INT NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
+  bike_b_id INT NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
+  compare_count INT NOT NULL,
+  first_compared_at TIMESTAMPTZ NOT NULL,
+  last_compared_at TIMESTAMPTZ NOT NULL,
+  UNIQUE (bike_a_id, bike_b_id),
+  CHECK (bike_a_id < bike_b_id)
+);
+```
+One row per unordered bike pair (lower id first), upserted atomically with `ON CONFLICT` whenever the pair is compared. Powers the "most compared with" recommendations.
+
 ### Future Tables (Schema Stubs)
 ```sql
 -- Analytics

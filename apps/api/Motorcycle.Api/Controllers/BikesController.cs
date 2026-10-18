@@ -99,4 +99,12 @@ public class BikesController : ControllerBase
         var result = await _bikeService.CompareBikesAsync(bikeIds, ct);
         return Ok(result);
     }
+
+    /// <summary>Bikes most often compared with the given bike, to recommend as comparison options.</summary>
+    [HttpGet("{slug}/compared-with")]
+    public async Task<IActionResult> GetComparedWith(string slug, [FromQuery] int limit = 4, CancellationToken ct = default)
+    {
+        var result = await _bikeService.GetMostComparedWithAsync(slug, limit is < 1 or > 12 ? 4 : limit, ct);
+        return result is null ? NotFound() : Ok(result);
+    }
 }

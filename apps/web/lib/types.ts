@@ -140,3 +140,8 @@ export interface BikesQuery {
   specMax?: string;
   specValues?: string;
 }
+
+export interface ComparedBikeDto {
+  bike: BikeListItemDto;
+  compareCount: number;
+}

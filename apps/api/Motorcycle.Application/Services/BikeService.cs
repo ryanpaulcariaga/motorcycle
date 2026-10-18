@@ -10,6 +10,7 @@ public interface IBikeService
     Task<PagedResult<BikeListItemDto>> GetBikesAsync(BikeQueryParameters query, CancellationToken ct = default);
     Task<BikeDetailDto?> GetBikeDetailAsync(string slug, CancellationToken ct = default);
     Task<CompareResultDto> CompareBikesAsync(List<int> bikeIds, CancellationToken ct = default);
+    Task<List<ComparedBikeDto>?> GetMostComparedWithAsync(string slug, int limit, CancellationToken ct = default);
 }
 
 public class BikeService : IBikeService
@@ -17,15 +18,18 @@ public class BikeService : IBikeService
     private readonly IBikeRepository _bikeRepository;
     private readonly ISpecGroupRepository _specGroupRepository;
     private readonly ISpecFilterStrategyFactory _strategyFactory;
+    private readonly IBikeComparisonRepository _comparisonRepository;
 
     public BikeService(
         IBikeRepository bikeRepository,
         ISpecGroupRepository specGroupRepository,
-        ISpecFilterStrategyFactory strategyFactory)
+        ISpecFilterStrategyFactory strategyFactory,
+        IBikeComparisonRepository comparisonRepository)
     {
         _bikeRepository = bikeRepository;
         _specGroupRepository = specGroupRepository;
         _strategyFactory = strategyFactory;
+        _comparisonRepository = comparisonRepository;
     }
 
     public async Task<PagedResult<BikeListItemDto>> GetBikesAsync(BikeQueryParameters query, CancellationToken ct = default)
@@ -126,7 +130,41 @@ public class BikeService : IBikeService
             result.SpecGroups.Add(groupDto);
         }
 
+        await TrackComparisonAsync(bikes, ct);
+
         return result;
+    }
+
+    public async Task<List<ComparedBikeDto>?> GetMostComparedWithAsync(string slug, int limit, CancellationToken ct = default)
+    {
+        var bike = await _bikeRepository.GetBySlugAsync(slug, ct);
+        if (bike is null) {
+            return null;
+        }
+
+        var matches = await _comparisonRepository.GetMostComparedWithAsync(bike.Id, limit, ct);
+        return matches.Select(m => new ComparedBikeDto { Bike = ToListItemDto(m.Bike), CompareCount = m.CompareCount }).ToList();
+    }
+
+    private async Task TrackComparisonAsync(List<Bike> bikes, CancellationToken ct)
+    {
+        var ids = bikes.Select(b => b.Id).Distinct().OrderBy(id => id).ToList();
+        var pairs = new List<(int, int)>();
+        for (var i = 0; i < ids.Count; i++) {
+            for (var j = i + 1; j < ids.Count; j++) {
+                pairs.Add((ids[i], ids[j]));
+            }
+        }
+
+        if (pairs.Count == 0) {
+            return;
+        }
+
+        try {
+            await _comparisonRepository.RecordAsync(pairs, ct);
+        } catch (Exception) when (!ct.IsCancellationRequested) {
+            // Tracking is best-effort and must never break a comparison.
+        }
     }
 
     private static List<Bike> ApplySort(List<Bike> bikes, string? sortBy, bool descending)

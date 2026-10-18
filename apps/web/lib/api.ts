@@ -5,6 +5,7 @@ import type {
   BrandDto,
   CategoryDto,
   CompareResultDto,
+  ComparedBikeDto,
   PagedResult,
   SpecGroupDto,
   UserSessionDto,
@@ -50,6 +51,10 @@ export function getBikeBySlug(slug: string): Promise<BikeDetailDto> {
 
 export function compareBikes(ids: string[]): Promise<CompareResultDto> {
   return apiFetch(`/api/bikes/compare${buildQueryString({ ids: ids.join(",") })}`);
+}
+
+export function getComparedWith(slug: string, limit = 4): Promise<ComparedBikeDto[]> {
+  return apiFetch(`/api/bikes/${encodeURIComponent(slug)}/compared-with${buildQueryString({ limit })}`);
 }
 
 export function getBrands(): Promise<BrandDto[]> {

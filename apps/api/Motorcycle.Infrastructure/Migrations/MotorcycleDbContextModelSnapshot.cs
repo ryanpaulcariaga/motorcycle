@@ -192,6 +192,51 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.ToTable("bike_comments");
                 });
 
+            modelBuilder.Entity("Motorcycle.Domain.BikeComparison", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BikeAId")
+                        .HasColumnType("integer")
+                        .HasColumnName("bike_a_id");
+
+                    b.Property<int>("BikeBId")
+                        .HasColumnType("integer")
+                        .HasColumnName("bike_b_id");
+
+                    b.Property<int>("CompareCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("compare_count");
+
+                    b.Property<DateTime>("FirstComparedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_compared_at");
+
+                    b.Property<DateTime>("LastComparedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_compared_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bike_comparisons");
+
+                    b.HasIndex("BikeBId")
+                        .HasDatabaseName("ix_bike_comparisons_bike_b_id");
+
+                    b.HasIndex("BikeAId", "BikeBId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_bike_comparisons_bike_a_id_bike_b_id");
+
+                    b.ToTable("bike_comparisons", t =>
+                        {
+                            t.HasCheckConstraint("ck_bike_comparisons_ordered", "bike_a_id < bike_b_id");
+                        });
+                });
+
             modelBuilder.Entity("Motorcycle.Domain.BikeImage", b =>
                 {
                     b.Property<int>("Id")
@@ -663,6 +708,27 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasConstraintName("fk_bikes_bike_models_model_id");
 
                     b.Navigation("Model");
+                });
+
+            modelBuilder.Entity("Motorcycle.Domain.BikeComparison", b =>
+                {
+                    b.HasOne("Motorcycle.Domain.Bike", "BikeA")
+                        .WithMany()
+                        .HasForeignKey("BikeAId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bike_comparisons_bikes_bike_a_id");
+
+                    b.HasOne("Motorcycle.Domain.Bike", "BikeB")
+                        .WithMany()
+                        .HasForeignKey("BikeBId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bike_comparisons_bikes_bike_b_id");
+
+                    b.Navigation("BikeA");
+
+                    b.Navigation("BikeB");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.BikeImage", b =>

@@ -104,7 +104,14 @@ Compare multiple motorcycles side-by-side.
 }
 ```
 
-### Spec Definitions
+Each successful comparison also increments the `bike_comparisons` counter for every pair of the compared bikes (any number). Tracking is best-effort and never fails the request.
+
+#### GET /api/bikes/{slug}/compared-with?limit=4
+
+Published bikes most often compared with the given bike (most compared first; `limit` 1–12, default 4). Returns `404` for an unknown/unpublished slug.
+
+**Response**: `[{ "bike": <BikeListItemDto>, "compareCount": 12 }]`
+
 
 #### GET /api/spec-groups
 
