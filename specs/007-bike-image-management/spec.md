@@ -8,6 +8,9 @@
 ### Upload and manage bike images
 An active administrator can upload images to a bike variant, view its assigned images, choose one primary image, reorder images, and remove an image. Public bike detail and list responses use the stored public URLs.
 
+### View bike images
+A visitor can open any image on the bike detail page in a full-screen viewer, zoom in and out, and navigate between the bike's images.
+
 ### Acceptance Scenarios
 
 1. An administrator uploads a supported image and it appears in the bike's image list and public URL response.
@@ -16,6 +19,8 @@ An active administrator can upload images to a bike variant, view its assigned i
 4. An administrator deletes an image and the database reference and Blob object are removed.
 5. Unauthenticated and non-administrator requests cannot mutate or inspect admin image assignments.
 6. Invalid file types, empty files, and oversized files are rejected without creating a database row.
+7. A visitor opens an image from the bike detail gallery, views it fit to screen, zooms in and out, and closes the viewer.
+8. A visitor navigates between the bike's images in the viewer using its controls or keyboard.
 
 ## Functional Requirements
 

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import PageShell from '@/components/PageShell';
 import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
 import Button from '@/components/Button';
+import BikeImageGallery from '@/components/BikeImageGallery';
 import { getBikeBySlug, getBrands, getComparedWith } from '@/lib/api';
 import type { Metadata } from 'next';
 
@@ -92,36 +93,10 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
           </p>
 
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div id="pictures">
-              <div className="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
-                {bike.images[0] && (
-                  <Image
-                    src={bike.images[0].blobUrl}
-                    alt={`${bike.brandName} - ${bike.variantName}`}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                )}
-              </div>
-              {bike.images.length > 1 && (
-                <div className="mt-3 grid grid-cols-4 gap-2">
-                  {bike.images.slice(1).map((image) => (
-                    <div
-                      key={image.id}
-                      className="relative aspect-square bg-zinc-100 overflow-hidden"
-                    >
-                      <Image
-                        src={image.blobUrl}
-                        alt={`${bike.brandName} - ${bike.variantName}`}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <BikeImageGallery
+              images={bike.images}
+              alt={`${bike.brandName} - ${bike.variantName}`}
+            />
 
             <div>
               {highlightSpecs.length > 0 && (
@@ -151,9 +126,6 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                 <Link href={`/compare?ids=${bike.id}`}>
                   <Button variant="gold">Compare</Button>
                 </Link>
-                <a href="#pictures">
-                  <Button variant="black">Pictures</Button>
-                </a>
               </div>
             </div>
           </div>
