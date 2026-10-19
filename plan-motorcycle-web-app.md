@@ -34,7 +34,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 |---|---|---|---|---|
 | Product functionality | ✅ | Feature Log items 1–9 work locally | Browser acceptance of bulk spec and admin flows | G-05 |
 | Azure infrastructure | ✅ | Resource group, PostgreSQL, Storage, Key Vault, plan, 3 Web Apps | None | |
-| Deployment pipeline | 🔄 | `ci.yml` (PRs, reused) and `deploy.yml` (push to `master`: CI, then per-app OIDC deploy to Azure) defined; README documents setup | One-time Azure OIDC/GitHub setup and first deployment not yet done or validated | G-01, TODO-2, TODO-3 |
+| Deployment pipeline | 🔄 | `ci.yml` (PRs, reused) and `deploy.yml` (push to `master`: CI, then per-app OIDC deploy to Azure) defined; README documents setup; `scripts/setup-azure-oidc.ps1` automates the Azure OIDC step (parameterized for future dev/QA) | One-time Azure OIDC/GitHub setup and first deployment not yet done or validated | G-01, TODO-2, TODO-3 |
 | Configuration and secrets | 🔄 | Key Vault references for DB and Storage strings; Swagger Development-only; deploy secrets via OIDC (no stored credentials) | Production Facebook IDs/secrets, redirect URIs, CORS origins, site URL | G-02, TODO-1 |
 | Database and migrations | 🔄 | Migrations apply on API startup; SQL deployment managed manually (not in pipeline) | Decide a deploy-time step later; review the first production migration | G-03 |
 | Observability | 🔄 | Serilog console logs, `/health`, `/health/ready`, ProblemDetails | Application Insights, alerts, uptime probes, error tracking | G-06 |

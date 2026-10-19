@@ -147,33 +147,64 @@ Pull requests run CI only (`ci.yml`). **Run workflow** on the Actions tab (`work
 
 **Database:** the pipeline does not run migrations or SQL scripts. The API still applies EF Core migrations when it starts, so a deployed API with new migrations updates the database on first start. Manage any manual SQL deployment yourself and deploy it before pushing code that depends on it.
 
-### One-time setup
+### One-time setup (production)
 
-1. **Azure app registration for GitHub OIDC** (replace placeholders):
+This is the setup performed for the **production** environment. Values that are specific to production are shown in **bold**; to build another environment (dev, QA), repeat the same steps and change only those values (see [Adding another environment](#adding-another-environment-dev-qa)).
+
+**1. Azure identity for GitHub OIDC.** Prerequisite: Azure CLI (`winget install Microsoft.AzureCLI`, then open a new PowerShell window) and an account that can create app registrations and assign roles on the resource group. Run from the repository root:
 
 ```powershell
-az login
-$sub = az account show --query id -o tsv
-$app = az ad app create --display-name "motorcycle-github-deploy" --query appId -o tsv
-az ad sp create --id $app
-az role assignment create --assignee $app --role "Website Contributor" `
-  --scope "/subscriptions/$sub/resourceGroups/motorcycle-prod-rg"
-az ad app federated-credential create --id $app --parameters '{
-  "name": "github-production",
-  "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:ryanpaulcariaga/motorcycle:environment:production",
-  "audiences": ["api://AzureADTokenExchange"]
-}'
-az account show --query tenantId -o tsv   # tenant id
-$app                                      # client id
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-azure-oidc.ps1
 ```
 
-2. **GitHub environment:** Settings > Environments > New environment named `production`. Do not add required reviewers if you want fully automatic deployment.
-3. **GitHub secrets** (Settings > Secrets and variables > Actions > Secrets): `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`.
-4. **GitHub variables** (Variables tab): `NEXT_PUBLIC_API_URL` (API URL), `NEXT_PUBLIC_SITE_URL` (public web URL), `VITE_API_URL` (API URL). Optional overrides: `AZURE_API_APP_NAME`, `AZURE_WEB_APP_NAME`, `AZURE_ADMIN_APP_NAME` (default to the `motorcycle-*-prod` names).
-5. **App Service runtime stacks:** API = .NET 10, web = Node 22 LTS, admin = Node 22 LTS (needed for `pm2 serve`). Set them on each Web App.
-6. **API configuration:** complete the API application settings (Facebook, CORS, redirect URIs) in M1 below. Key Vault references for the connection strings are already set.
-7. Ensure the GitHub repository's default branch is `master` (the workflows trigger on `master`).
+The defaults are the production values: resource group **`motorcycle-prod-rg`**, GitHub environment **`production`**, app registration **`motorcycle-github-deploy`**. [setup-azure-oidc.ps1](scripts/setup-azure-oidc.ps1) is safe to re-run. It:
+
+- creates (or reuses) the app registration and service principal (no client secret; OIDC only),
+- assigns **Website Contributor** on the resource group,
+- adds the federated credential with subject `repo:ryanpaulcariaga/motorcycle:environment:<environment>`,
+- prints the three values needed in step 3.
+
+<details>
+<summary>Manual alternative (Azure Portal)</summary>
+
+1. **Microsoft Entra ID > App registrations > New registration**, named `motorcycle-github-deploy`. Copy the **Application (client) ID** and **Directory (tenant) ID**.
+2. In the registration: **Certificates & secrets > Federated credentials > Add credential**. Scenario **GitHub Actions deploying Azure resources**, organization `ryanpaulcariaga`, repository `motorcycle`, entity type **Environment**, environment name **`production`**, credential name `github-production`.
+3. **Resource groups > motorcycle-prod-rg > Access control (IAM) > Add role assignment**: role **Website Contributor**, member `motorcycle-github-deploy`.
+4. Copy the **Subscription ID** from **Subscriptions**.
+
+</details>
+
+**2. GitHub environment.** Settings > Environments > New environment named **`production`** (it must match the federated credential subject exactly). Do not add required reviewers if you want fully automatic deployment.
+
+**3. GitHub secrets** (environment secrets in `production`): the script prints these values.
+
+| Secret | Value |
+|---|---|
+| `AZURE_CLIENT_ID` | Application (client) ID of `motorcycle-github-deploy` |
+| `AZURE_TENANT_ID` | Directory (tenant) ID (Microsoft Entra ID > Overview) |
+| `AZURE_SUBSCRIPTION_ID` | Subscription containing `motorcycle-prod-rg` |
+
+**4. GitHub variables** (environment variables in `production`): `NEXT_PUBLIC_API_URL` (**production** API URL), `NEXT_PUBLIC_SITE_URL` (**production** public web URL), `VITE_API_URL` (**production** API URL). Optional overrides: `AZURE_API_APP_NAME`, `AZURE_WEB_APP_NAME`, `AZURE_ADMIN_APP_NAME` (default to the **`motorcycle-*-prod`** names).
+
+**5. App Service runtime stacks** (on each Web App): API = .NET 10, web = Node 22 LTS, admin = Node 22 LTS (needed for `pm2 serve`).
+
+**6. API configuration:** complete the API application settings (Facebook, CORS, redirect URIs) in M1 below. Key Vault references for the connection strings are already set.
+
+**7. Branch:** the repository's default branch is `master` (confirmed), and `deploy.yml` triggers on `master`.
+
+### Adding another environment (dev, QA)
+
+Repeat the production setup with these changes. Everything else stays the same.
+
+| What | Production (done) | Dev/QA: change to |
+|---|---|---|
+| Azure resources | `motorcycle-prod-rg` with `motorcycle-{api,web,admin}-prod`, `motorcycle-prod-pg`, `motorcycleimagesprod`, `motorcycle-prod-kv` | New resource group and resources with their own names (for example `motorcycle-dev-rg`, `motorcycle-api-dev`) |
+| OIDC setup | `setup-azure-oidc.ps1` (defaults) | `.\scripts\setup-azure-oidc.ps1 -ResourceGroup motorcycle-dev-rg -Environment dev` (creates `motorcycle-github-deploy-dev` with its own federated credential) |
+| GitHub environment | `production` | `dev` (same name passed to the script) |
+| Secrets | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | Same names, set in the new environment with that environment's values (subscription and tenant may be identical) |
+| Variables | Production URLs | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, `VITE_API_URL` for the new environment; set `AZURE_API_APP_NAME`, `AZURE_WEB_APP_NAME`, `AZURE_ADMIN_APP_NAME` to the new Web App names |
+| API app settings | Production Facebook app, redirect URIs, CORS (M1) | The new environment's hosts and a separate Facebook app or its dev redirect URIs |
+| Workflow | `deploy.yml` hardcodes `environment: production` and the `master` trigger | Not yet parameterized: add a workflow (or an environment input) that targets the new environment and branch before deploying; this is the only code change |
 
 ### Verify a deployment
 
