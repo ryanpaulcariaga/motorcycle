@@ -130,14 +130,14 @@ See [apps/admin/README.md](apps/admin/README.md) for the admin SPA, including lo
 
 ## Deploying to Azure
 
-> **Status:** the Azure resources are provisioned (see [plan-motorcycle-web-app.md](plan-motorcycle-web-app.md#provisioned-azure-resources-as-of-2026-09-22)) and the automated pipeline is defined, but it has **not** run yet: the one-time setup below must be completed first, and the first deployment must be validated.
+> **Status:** the Azure resources are provisioned (see [plan-motorcycle-web-app.md](plan-motorcycle-web-app.md#provisioned-azure-resources-as-of-2026-09-22)) and the pipeline is defined. CI passes on `master`, but no deployment has succeeded yet: the first attempt failed at Azure login (secrets not configured) and the second skipped all deploy jobs (no app files changed). Complete the one-time setup below, then run the workflow manually with **Run workflow** to deploy all three apps. Deploy jobs fail fast with a clear message if a required secret or variable is missing.
 
 ### How the pipeline works
 
 Pushing to `master` runs `.github/workflows/deploy.yml`:
 
 1. **CI** (`ci.yml`, reused): API build and tests, web and admin lint and build. Any failure stops the pipeline.
-2. **Change detection:** only the apps whose files changed are deployed (`apps/api/**`, `apps/web/**` plus root package/lock files, `apps/admin/**` plus root package/lock files).
+2. **Change detection:** only the apps whose files changed are deployed (`apps/api/**`, `apps/web/**` plus root package/lock files, `apps/admin/**` plus root package/lock files; `deploy.yml` itself counts for every app).
 3. **Deploy** (job environment `production`, Azure login by OIDC, no stored secrets):
    - **API** to `motorcycle-api-prod`: `dotnet publish` then `azure/webapps-deploy`.
    - **Web** to `motorcycle-web-prod`: Next.js standalone build (`output: "standalone"`), static assets copied in, started with `HOSTNAME=0.0.0.0 node apps/web/server.js`.
