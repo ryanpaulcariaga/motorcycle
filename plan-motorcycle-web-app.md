@@ -89,15 +89,16 @@ Open implementation items with their `TODO-n` tags (search this file for a tag).
 
 #### Next Steps: First Deployment (added 2026-10-19)
 
-The CI/CD pipeline (`ci.yml`, `deploy.yml`) has run twice on `master` (2026-10-19). CI passes (including `pnpm install --frozen-lockfile`, NS-4). Deployment findings:
+The CI/CD pipeline (`ci.yml`, `deploy.yml`) has run three times on `master` (2026-10-19). CI passes (including `pnpm install --frozen-lockfile`, NS-4). Deployment findings:
 
 - **Run 1 (`bfc999b`)**: `deploy-api`, `deploy-web`, `deploy-admin` failed at `azure/login` because `AZURE_CLIENT_ID`/`AZURE_TENANT_ID` are not set (NS-1 not done).
 - **Run 2 (`d54d549`)**: all three deploy jobs were skipped because the commit touched only README, plan, and `scripts/`, so change detection selected no app. `deploy.yml` now also counts as a change for every app, and each deploy job fails fast with a clear message when a required secret/variable is missing.
+- **Run 3 (`bdbfc93`)**: all three deploy jobs failed at Azure login with `AADSTS700213` (no matching federated identity record). The token uses GitHub's immutable subject format (`repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:production`), while the setup script generated the legacy name-only format. The script now uses the immutable IDs and repairs stale claims on the named credential; rerun it and ensure the `production` environment's `AZURE_CLIENT_ID` matches its output.
 - **To get the first deployment:** finish NS-1 and NS-2, then run the workflow manually (Actions > CI/CD - Deploy to Azure > Run workflow, `deploy_all` = true).
 
 Complete in order; details are in the README "Deploying to Azure" section.
 
-- [ ] **NS-1 One-time Azure and GitHub setup** (TODO-3, G-01): create the Entra app registration with the federated credential (subject `repo:ryanpaulcariaga/motorcycle:environment:production`) and assign Website Contributor on `motorcycle-prod-rg`; create the GitHub `production` environment; add secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`; add variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL` (TODO-1), `VITE_API_URL`. Requires the Azure CLI, which is not installed in the Copilot session.
+- [ ] **NS-1 One-time Azure and GitHub setup** (TODO-3, G-01): create the Entra app registration with the federated credential (subject `repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:production`) and assign Website Contributor on `motorcycle-prod-rg`; create the GitHub `production` environment; add secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`; add variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL` (TODO-1), `VITE_API_URL`. Requires the Azure CLI, which is not installed in the Copilot session.
 - [ ] **NS-2 Set App Service runtimes** (TODO-2): API = .NET 10, web = Node 22, admin = Node 22 (needed for `pm2 serve`). Complete API app settings (Facebook, CORS, redirect URIs) per README M1.
 - [ ] **NS-3 Run the first deployment and verify** (TODO-2, TODO-3, G-01): commit and push to `master` (or run the workflow manually), then complete the README verification checklist (`/health`, `/health/ready`, `/bikes`, `/sitemap.xml`, admin sign-in).
 - [ ] **NS-4 Confirm pnpm lockfile compatibility** (TODO-4, G-04): ✅ `pnpm install --frozen-lockfile` passed in CI on 2026-10-19 (pnpm 10); only the deploy jobs' install is unverified.

@@ -161,8 +161,10 @@ The defaults are the production values: resource group **`motorcycle-prod-rg`**,
 
 - creates (or reuses) the app registration and service principal (no client secret; OIDC only),
 - assigns **Website Contributor** on the resource group,
-- adds the federated credential with subject `repo:ryanpaulcariaga/motorcycle:environment:<environment>`,
+- adds the federated credential with subject `repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:<environment>` (and replaces the named credential if its issuer, subject, or audience is stale),
 - prints the three values needed in step 3.
+
+If an `azure/login` step fails with `AADSTS700213` / “No matching federated identity record,” rerun this setup script using the same environment and app registration. For this repository, GitHub's immutable subject format means the production credential subject must be exactly `repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:production`. The script defaults to those GitHub owner/repository IDs; override `-OwnerId` and `-RepositoryId` if using it for a different repository. Make sure the `production` environment secrets point to the client ID printed by the script; all three deploy jobs use that same identity. `job_workflow_ref` is informational here; Azure's federated credential matching is based on issuer, subject, and audience.
 
 <details>
 <summary>Manual alternative (Azure Portal)</summary>
@@ -291,4 +293,3 @@ The `--spa` flag serves `index.html` for client-side routes. The API (not the SP
 - `https://<web-host>/sitemap.xml` and `/robots.txt` use the production host.
 - Signing in at `https://<admin-host>` succeeds for an active administrator (check CORS and the redirect URI if it fails).
 - Browser requests carry the `mc_admin_session` / `mc_user_session` cookies across hosts; if sign-in loops, review cookie `SameSite`/domain settings for your final domains.
-

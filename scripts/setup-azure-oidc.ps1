@@ -20,10 +20,16 @@ param(
   [string]$ResourceGroup = "motorcycle-prod-rg",
   [string]$Environment = "production",
   [string]$Repo = "ryanpaulcariaga/motorcycle",
+  [string]$OwnerId = "3658143",
+  [string]$RepositoryId = "1352834212",
   [string]$AppName = ""
 )
 
 $ErrorActionPreference = "Stop"
+$repoParts = $Repo.Split("/")
+if ($repoParts.Count -ne 2 -or $OwnerId -notmatch '^\d+$' -or $RepositoryId -notmatch '^\d+$') {
+  throw "Repo must be owner/repository, and OwnerId and RepositoryId must be numeric GitHub IDs."
+}
 
 # Production keeps the original name; other environments get their own identity.
 if (-not $AppName) {
@@ -103,15 +109,38 @@ if (-not $existingRole) {
 }
 
 Write-Host "6/6 Adding GitHub federated credential..."
-$subject = "repo:${Repo}:environment:${Environment}"
+$subject = "repo:{0}@{1}/{2}@{3}:environment:{4}" -f $repoParts[0], $OwnerId, $repoParts[1], $RepositoryId, $Environment
+$issuer = "https://token.actions.githubusercontent.com"
+$audience = "api://AzureADTokenExchange"
 $credentialName = "github-$Environment"
-$existingCredential = (az ad app federated-credential list --id $clientId --query "[?name=='$credentialName'].name | [0]" -o tsv)
-if (-not $existingCredential) {
+$existingCredentialJson = (Invoke-Az @("ad", "app", "federated-credential", "list", "--id", $clientId, "-o", "json")) -join "`n"
+$existingCredential = $existingCredentialJson |
+  ConvertFrom-Json |
+  Where-Object { $_.name -eq $credentialName } |
+  Select-Object -First 1
+$shouldCreateCredential = $true
+if ($existingCredential) {
+  $existingAudiences = @($existingCredential.audiences)
+  if (
+    $existingCredential.issuer -eq $issuer -and
+    $existingCredential.subject -eq $subject -and
+    $existingAudiences.Count -eq 1 -and
+    $existingAudiences[0] -eq $audience
+  ) {
+    $shouldCreateCredential = $false
+    Write-Host "    Already exists with the expected issuer, subject, and audience."
+  } else {
+    Write-Host "    Replacing existing credential '$credentialName' because its claims do not match."
+    $null = Invoke-Az @("ad", "app", "federated-credential", "delete", "--id", $clientId, "--federated-credential-id", $existingCredential.id)
+  }
+}
+
+if ($shouldCreateCredential) {
   $credential = @{
     name      = $credentialName
-    issuer    = "https://token.actions.githubusercontent.com"
+    issuer    = $issuer
     subject   = $subject
-    audiences = @("api://AzureADTokenExchange")
+    audiences = @($audience)
   } | ConvertTo-Json -Compress
 
   # Passing the JSON through a file avoids PowerShell quote-escaping problems.
@@ -122,9 +151,7 @@ if (-not $existingCredential) {
   } finally {
     Remove-Item $tempFile -ErrorAction SilentlyContinue
   }
-  Write-Host "    Created: $subject"
-} else {
-  Write-Host "    Already exists: $subject"
+  Write-Host "    Created with subject: $subject"
 }
 
 Write-Host ""
