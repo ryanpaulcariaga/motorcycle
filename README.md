@@ -253,7 +253,11 @@ Resource group `motorcycle-prod-rg` (Southeast Asia) hosts one Linux App Service
   | `Cors__AllowedOrigins__0` | `https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net` |
   | `Cors__AllowedOrigins__1` | `https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net` |
 
-  Keep the existing `AdminAuth__FacebookClientId`, `AdminAuth__FacebookClientSecret`, `UserAuth__Facebook__ClientId`, and `UserAuth__Facebook__ClientSecret` settings. The Facebook callback URLs must also be registered in the Facebook app as described in [the API Facebook setup guide](apps/api/Motorcycle.Api/README.md#facebook-app-portal-setup-one-app-admin--web). Do not add trailing slashes to app URLs or CORS origins.
+  **Facebook credentials:** In Meta for Developers, open **My Apps → the Facebook app used for sign-in → App settings → Basic**. Copy **App ID** into the API App Service setting `AdminAuth__FacebookClientId`. Use the **App secret** for `AdminAuth__FacebookClientSecret`; click **Show** in Meta if necessary. The same app is used for both admin and public-user sign-in. If public sign-in is enabled, configure `UserAuth__Facebook__ClientId` with the same App ID and `UserAuth__Facebook__ClientSecret` with the same secret.
+
+  Store the App Secret in Key Vault rather than source control or plain-text documentation. In **Key Vault → Secrets**, create/import a secret (for example, `FacebookAppSecret`), then set the API App Service setting `AdminAuth__FacebookClientSecret` to a Key Vault reference such as `@Microsoft.KeyVault(SecretUri=https://motorcycle-prod-kv.vault.azure.net/secrets/FacebookAppSecret/)`. The API's managed identity must have permission to read this secret. If public sign-in is enabled, set `UserAuth__Facebook__ClientSecret` to the same Key Vault reference. The App ID is not secret and can be entered directly as an App Service setting.
+
+  The Facebook callback URLs must also be registered in the Facebook app as described in [the API Facebook setup guide](apps/api/Motorcycle.Api/README.md#facebook-app-portal-setup-one-app-admin--web). Do not add trailing slashes to app URLs or CORS origins.
 
   The same settings can be applied with Azure CLI from PowerShell (retain the existing client IDs and Key Vault secret references, substituting the actual secret URI if needed):
 
