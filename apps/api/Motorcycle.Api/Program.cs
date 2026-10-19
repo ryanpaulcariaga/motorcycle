@@ -31,6 +31,7 @@ builder.Services.AddDbContext<MotorcycleDbContext>(options =>
 );
 
 // Repositories
+builder.Services.AddScoped<IDatabaseConnectionTester, DatabaseConnectionTester>();
 builder.Services.AddScoped<IBikeRepository, BikeRepository>();
 builder.Services.AddScoped<IBikeComparisonRepository, BikeComparisonRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
