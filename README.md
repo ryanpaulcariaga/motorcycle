@@ -145,7 +145,7 @@ Pushing to `master` runs `.github/workflows/deploy.yml`:
 
 Pull requests run CI only (`ci.yml`). **Run workflow** on the Actions tab (`workflow_dispatch`) redeploys all three apps.
 
-**Database:** the pipeline does not run migrations or SQL scripts. The API still applies EF Core migrations when it starts, so a deployed API with new migrations updates the database on first start. Manage any manual SQL deployment yourself and deploy it before pushing code that depends on it.
+**Database:** the pipeline does not run migrations or SQL scripts, and the API does not apply them at startup in deployed environments (`Database:MigrateOnStartup` is `false` outside Development). Apply migrations yourself before deploying code that depends on them; see [Database migrations](#database-migrations-production).
 
 ### One-time setup (production)
 
@@ -164,7 +164,7 @@ The defaults are the production values: resource group **`motorcycle-prod-rg`**,
 - adds the federated credential with subject `repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:<environment>` (and replaces the named credential if its issuer, subject, or audience is stale),
 - prints the three values needed in step 3.
 
-If an `azure/login` step fails with `AADSTS700213` / “No matching federated identity record,” rerun this setup script using the same environment and app registration. For this repository, GitHub's immutable subject format means the production credential subject must be exactly `repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:production`. The script defaults to those GitHub owner/repository IDs; override `-OwnerId` and `-RepositoryId` if using it for a different repository. Make sure the `production` environment secrets point to the client ID printed by the script; all three deploy jobs use that same identity. `job_workflow_ref` is informational here; Azure's federated credential matching is based on issuer, subject, and audience.
+If an `azure/login` step fails with `AADSTS700213` (no matching federated identity record), see [Troubleshooting deployments](#troubleshooting-deployments).
 
 <details>
 <summary>Manual alternative (Azure Portal)</summary>
@@ -208,6 +208,17 @@ Repeat the production setup with these changes. Everything else stays the same.
 | API app settings | Production Facebook app, redirect URIs, CORS (M1) | The new environment's hosts and a separate Facebook app or its dev redirect URIs |
 | Workflow | `deploy.yml` hardcodes `environment: production` and the `master` trigger | Not yet parameterized: add a workflow (or an environment input) that targets the new environment and branch before deploying; this is the only code change |
 
+### Troubleshooting deployments
+
+| Symptom | Cause and fix |
+|---|---|
+| `azure/login` fails with `AADSTS700213` (no matching federated identity record) | The Entra federated credential does not match the token. Open the failed step's **Federated token details** and compare with the credential: issuer `https://token.actions.githubusercontent.com`, audience `api://AzureADTokenExchange`, and subject exactly as logged. This repository uses GitHub's immutable subject, `repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:production`, not the legacy `repo:owner/repo:environment:production`. Rerun `setup-azure-oidc.ps1` (it replaces a stale `github-<environment>` credential; pass `-OwnerId` and `-RepositoryId` for another repository). `job_workflow_ref` is informational and is not matched |
+| A deploy job fails with "Missing ... in the 'production' environment" | Add the named secret or variable to the GitHub `production` environment (steps 3-4 above) |
+| `azure/login` fails because secrets are empty or wrong | `AZURE_CLIENT_ID` must be the app registration that holds the federated credential; the tenant and subscription must match it. Rerunning the setup script does not require re-entering secrets unless the printed values differ |
+| After a green deploy, a site shows "Your web app is running and waiting for your content" or loads for minutes | Each deploy restarts the App Service; on the Basic plan the first request can take 2-4 minutes while Node (web, admin) starts. Wait and retry before investigating. If it persists, check **Log stream** and the startup command (`az webapp config show -g motorcycle-prod-rg -n <app> --query "{stack:linuxFxVersion,startup:appCommandLine}"`) |
+| API never responds (`/health` times out) | Startup migrations are off by default in deployed environments, so a hang usually means the app is not starting at all. Check **Log stream** / `az webapp log tail -g motorcycle-prod-rg -n motorcycle-api-prod`; confirm the runtime is .NET 10 and that the Key Vault references on `ConnectionStrings__DefaultConnection` and `Storage__ConnectionString` show a green "Key Vault Reference" status (managed identity enabled with **Key Vault Secrets User**). If `Database__MigrateOnStartup=true` is set, an unreachable PostgreSQL blocks startup; remove the setting and check that PostgreSQL allows Azure services. `/health/ready` returns 503 while the database is unreachable |
+| All deploy jobs are skipped | A push that changes only docs or `scripts/` selects no app. Use **Run workflow** with `deploy_all` checked |
+
 ### Verify a deployment
 
 - Actions tab: CI and each deploy job green.
@@ -244,8 +255,22 @@ az webapp config appsettings set -g motorcycle-prod-rg -n motorcycle-api-prod --
   "Cors__AllowedOrigins__0=https://<web-host>" "Cors__AllowedOrigins__1=https://<admin-host>"
 ```
 
-- Keep secrets in Key Vault, never in source or plain settings. Swagger is on only when `ASPNETCORE_ENVIRONMENT=Development`, so leave production as `Production`.
-- The PostgreSQL firewall must allow Azure services (already enabled). The API applies EF Core migrations on startup.
+- Keep secrets in Key Vault, never in source or plain settings. Leave `ASPNETCORE_ENVIRONMENT` as `Production`.
+- Optional API behavior settings (both default to off outside Development):
+  - `Swagger__Enabled=true` serves Swagger UI at `https://<api-host>/swagger` (the API root redirects there; spec at `/swagger/v1/swagger.json`). It documents all endpoints, including `/api/admin`, which still require the administrator session cookie; remove the setting to hide it. Locally, the `https` launch profile opens `https://localhost:7240/swagger`.
+  - `Database__MigrateOnStartup=true` applies pending EF Core migrations when the API starts. Leave it off in production and use the explicit step below.
+- The PostgreSQL firewall must allow Azure services (already enabled).
+
+### Database migrations (production)
+
+The API never migrates the production database on its own, so a database problem cannot keep it from starting. Apply pending migrations explicitly, from a machine whose IP is allowed by the PostgreSQL firewall, before deploying code that needs them:
+
+```powershell
+$env:ConnectionStrings__DefaultConnection = "<production connection string>"
+dotnet ef database update --project apps\api\Motorcycle.Infrastructure --startup-project apps\api\Motorcycle.Api
+```
+
+To review first, generate a script with `dotnet ef migrations script --idempotent ... -o migrate.sql` and run it with `psql`. Confirm with `https://<api-host>/health/ready`. For a one-off, you can instead set `Database__MigrateOnStartup=true`, restart the API, then remove the setting.
 
 ### M2. Deploy the API
 

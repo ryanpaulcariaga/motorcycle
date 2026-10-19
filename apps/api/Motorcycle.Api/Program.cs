@@ -128,7 +128,15 @@ builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
+    {
+        Title = "Motorcycle API",
+        Version = "v1",
+        Description = "Public catalog endpoints are anonymous. /api/admin endpoints require the API-managed administrator session cookie."
+    });
+});
 
 const string CorsPolicy = "WebFrontend";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
@@ -158,27 +166,40 @@ if (DbSeedCommand.IsRequested(args)) {
     return;
 }
 
-// Apply migrations on startup (safe in all environments - EF tracks applied migrations).
+// Startup migrations are controlled by Database:MigrateOnStartup (on in Development, off otherwise).
+// Keeping them off in deployed environments means a slow or unreachable database can never stop the
+// API from listening. Apply migrations explicitly (README: Database migrations) or opt in with the
+// app setting Database__MigrateOnStartup=true.
 // Dev-only auto-seed runs once against an empty bikes table (e.g. a fresh local or Azure DB) so it
 // never silently re-mutates a database that already has real/seeded data on every restart.
 // Run `dotnet run -- db seed [--force]` to seed on demand in any environment.
-using (var scope = app.Services.CreateScope()) {
+var migrateOnStartup = app.Configuration.GetValue<bool?>("Database:MigrateOnStartup") ?? app.Environment.IsDevelopment();
+if (migrateOnStartup) {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<MotorcycleDbContext>();
+    app.Logger.LogInformation("Applying database migrations (Database:MigrateOnStartup is enabled).");
     await db.Database.MigrateAsync();
 
     if (app.Environment.IsDevelopment() && !await db.Bikes.AnyAsync()) {
         await DatabaseSeeder.SeedAsync(db);
         await MotorcycleDataSeeder.SeedAsync(db);
     }
+} else {
+    app.Logger.LogInformation("Skipping database migrations (Database:MigrateOnStartup is disabled).");
 }
 
 // Unhandled exceptions become RFC 7807 problem responses without leaking details.
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 
-if (app.Environment.IsDevelopment()) {
+// Swagger UI at /swagger. On in Development; enable elsewhere with the app setting Swagger__Enabled=true.
+var swaggerEnabled = app.Configuration.GetValue<bool?>("Swagger:Enabled") ?? app.Environment.IsDevelopment();
+if (swaggerEnabled) {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Motorcycle API v1");
+    });
 }
 
 app.UseCors(CorsPolicy);
@@ -186,7 +207,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.MapGet("/", () => "Motorcycle API - Running");
+// The root opens Swagger UI when it is enabled; otherwise it is a plain status response.
+if (swaggerEnabled) {
+    app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+} else {
+    app.MapGet("/", () => "Motorcycle API - Running").ExcludeFromDescription();
+}
 app.MapGet("/health", () => Results.Ok("Healthy"));
 app.MapGet("/health/ready", async (MotorcycleDbContext db, CancellationToken ct) =>
     await db.Database.CanConnectAsync(ct)

@@ -16,7 +16,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 
 ### Release Status at a Glance
 
-**Verdict (updated 2026-10-19): NOT READY FOR PRODUCTION.** The product is feature-complete for the first release and runs locally against the Azure PostgreSQL and Blob Storage resources, but nothing has been deployed, and security, testing, legal, and operational gates are open. Production deployment is intentionally deferred until feature development is complete.
+**Verdict (updated 2026-10-19): NOT READY FOR PRODUCTION.** The product is feature-complete for the first release and runs locally against the Azure PostgreSQL and Blob Storage resources, and the CI/CD pipeline completed its first successful deployment to Azure on 2026-10-19 (run #39211828423). Post-deployment verification, production configuration, and security, testing, legal, and operational gates are still open.
 
 | Phase | Status | Notes |
 |---|---|---|
@@ -25,7 +25,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 | 2 Backend API | ✅ | Clean Architecture, Strategy-pattern filters, Serilog, ProblemDetails, `/health` and `/health/ready` |
 | 3 Public frontend | ✅ | `/`, `/bikes`, `/bikes/[slug]`, `/compare`, Facebook sign-in, "Often compared with", sitemap/robots, error pages |
 | 4 Admin catalog | ✅ locally | See Feature Log; acceptance coverage and hardening are release gates |
-| 5 Azure and deployment | 🔄 | Resources provisioned; deploy workflows are build-only placeholders; never deployed |
+| 5 Azure and deployment | 🔄 | Resources provisioned; `deploy.yml` deployed successfully via OIDC on 2026-10-19; production config and verification checklist pending |
 | 6 Future backlog | ⏳ | Reviews, advertising, dealer links, AI pros/cons, surveys, analytics, voting |
 
 ### Production Readiness Scorecard
@@ -34,9 +34,9 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 |---|---|---|---|---|
 | Product functionality | ✅ | Feature Log items 1–9 work locally | Browser acceptance of bulk spec and admin flows | G-05 |
 | Azure infrastructure | ✅ | Resource group, PostgreSQL, Storage, Key Vault, plan, 3 Web Apps | None | |
-| Deployment pipeline | 🔄 | `ci.yml` (PRs, reused) and `deploy.yml` (push to `master`: CI, then per-app OIDC deploy to Azure) defined; README documents setup; `scripts/setup-azure-oidc.ps1` automates the Azure OIDC step (parameterized for future dev/QA) | One-time Azure OIDC/GitHub setup and first deployment not yet done or validated | G-01, TODO-2, TODO-3 |
-| Configuration and secrets | 🔄 | Key Vault references for DB and Storage strings; Swagger Development-only; deploy secrets via OIDC (no stored credentials) | Production Facebook IDs/secrets, redirect URIs, CORS origins, site URL | G-02, TODO-1 |
-| Database and migrations | 🔄 | Migrations apply on API startup; SQL deployment managed manually (not in pipeline) | Decide a deploy-time step later; review the first production migration | G-03 |
+| Deployment pipeline | ✅ | `ci.yml` (PRs, reused) and `deploy.yml` (push to `master`: CI, then per-app OIDC deploy to Azure); OIDC setup done and first deployment succeeded 2026-10-19 (run #39211828423); `scripts/setup-azure-oidc.ps1` creates the identity and federated credential (parameterized for future dev/QA) | Run the README verification checklist against the deployed hosts | G-01, TODO-2, TODO-3 |
+| Configuration and secrets | 🔄 | Key Vault references for DB and Storage strings; Swagger off outside Development unless `Swagger__Enabled=true`; deploy secrets via OIDC (no stored credentials) | Production Facebook IDs/secrets, redirect URIs, CORS origins, site URL | G-02, TODO-1 |
+| Database and migrations | 🔄 | Startup migrations off outside Development (`Database:MigrateOnStartup`); explicit `dotnet ef database update` step documented in README | Apply and review the first production migration; consider a deploy-time step | G-03 |
 | Observability | 🔄 | Serilog console logs, `/health`, `/health/ready`, ProblemDetails | Application Insights, alerts, uptime probes, error tracking | G-06 |
 | Automated testing | ❌ | API unit tests exist (3 files); CI defined | CI never run on GitHub; no image/spec/bulk tests; no frontend or e2e tests | G-04, TODO-7 |
 | Security | ❌ | HttpOnly Secure cookies, policy-based admin auth, CORS allow-list | Rate limiting, security headers, CSRF stance, upload validation, audit log, admin IdP exit plan | G-07 |
@@ -51,9 +51,9 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 ### Release Gates
 
 **Must pass before the first production deployment (blockers)**
-- [ ] **G-01** Pipeline set up and proven: Azure OIDC app registration, GitHub `production` environment, secrets/variables, and runtime stacks configured (see README); a push to `master` deploys API, web, and admin and the README verification checklist passes
+- [ ] **G-01** Pipeline set up and proven: Azure OIDC app registration, GitHub `production` environment, secrets/variables, and runtime stacks configured (see README); a push to `master` deploys API, web, and admin and the README verification checklist passes. Progress: OIDC and first deployment done (2026-10-19, run #39211828423); tick when the verification checklist passes
 - [ ] **G-02** Production configuration complete: Facebook app (production redirect URIs, review/data-use), CORS origins, GitHub variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, `VITE_API_URL`, custom domains with HTTPS-only
-- [ ] **G-03** Migration strategy: currently manual SQL plus API startup migrations (decided 2026-10-19 to keep out of the pipeline); revisit a deploy-time step before production and review the first production migration
+- [ ] **G-03** Migration strategy: startup migrations are off outside Development (decided 2026-10-19 after the first deployed API hung); migrations are applied explicitly (README: Database migrations) and kept out of the pipeline; review the first production migration and revisit a deploy-time step before production
 - [ ] **G-04** CI passes on GitHub (API tests, web/admin lint and build); core API tests added for image, spec metadata, bulk spec, and compare tracking
 - [ ] **G-05** Browser validation of admin flows (BikeModel, variant, images, spec metadata, bulk spec/grid) and of public browse, filter, and compare
 - [ ] **G-06** Monitoring in place: Application Insights or equivalent, alerts on failures, uptime probes for `/health/ready`
@@ -80,28 +80,32 @@ Open implementation items with their `TODO-n` tags (search this file for a tag).
 | Tag | Item | Gate |
 |---|---|---|
 | TODO-1 | Set GitHub variable `NEXT_PUBLIC_SITE_URL` (used by sitemap/robots via `apps/web/lib/site.ts`) to the production public URL; defaults to `https://localhost:3000` | G-02 |
-| TODO-2 | ✅ Admin deploy is part of `.github/workflows/deploy.yml` (Vite build with `VITE_API_URL`, `pm2 serve --spa` startup command). Remaining: confirm it works on first run (Node 22 runtime on the admin Web App) | G-01 |
-| TODO-3 | Complete the one-time pipeline setup (README: Deploying to Azure) and run the first deployment; migrations are intentionally NOT part of the pipeline (managed manually; the API still applies EF migrations on startup; revisit a deploy-time migration step later) | G-01, G-03 |
+| TODO-2 | ✅ Admin deploy is part of `.github/workflows/deploy.yml` (Vite build with `VITE_API_URL`, `pm2 serve --spa` startup command). Remaining: confirm the admin site serves correctly on the Node 22 runtime | G-01 |
+| TODO-3 | ✅ One-time pipeline setup and first deployment done (2026-10-19). Remaining: verify the deployed apps; migrations are intentionally NOT part of the pipeline and the API does not migrate at startup outside Development (`Database:MigrateOnStartup`); apply them explicitly per README. Open: the deployed API (`motorcycle-api-prod`) did not respond on 2026-10-19 (suspected startup migration hang); redeploy and verify `/health`, `/health/ready`, `/swagger` | G-01, G-03 |
 | TODO-4 | CI uses pnpm `version: 10`; the lockfile is version 9.0, which pnpm 10 reads, but confirm `pnpm install --frozen-lockfile` passes on the first CI run (local pnpm is 12.6) | G-04 |
 | TODO-5 | HTTP output caching for `/api/bikes` and the Next.js caching/revalidation strategy | G-09 |
 | TODO-6 | OpenGraph images, canonical URLs, JSON-LD structured data | |
 | TODO-7 | Run CI on GitHub; re-run API tests locally with the API stopped (a running API locks the build output) | G-04 |
 
-#### Next Steps: First Deployment (added 2026-10-19)
+#### Next Steps: First Deployment (updated 2026-10-19)
 
-The CI/CD pipeline (`ci.yml`, `deploy.yml`) has run three times on `master` (2026-10-19). CI passes (including `pnpm install --frozen-lockfile`, NS-4). Deployment findings:
+The first successful deployment ran on 2026-10-19 (run #39211828423). History of the first-deployment attempts, all on `master`:
 
-- **Run 1 (`bfc999b`)**: `deploy-api`, `deploy-web`, `deploy-admin` failed at `azure/login` because `AZURE_CLIENT_ID`/`AZURE_TENANT_ID` are not set (NS-1 not done).
-- **Run 2 (`d54d549`)**: all three deploy jobs were skipped because the commit touched only README, plan, and `scripts/`, so change detection selected no app. `deploy.yml` now also counts as a change for every app, and each deploy job fails fast with a clear message when a required secret/variable is missing.
-- **Run 3 (`bdbfc93`)**: all three deploy jobs failed at Azure login with `AADSTS700213` (no matching federated identity record). The token uses GitHub's immutable subject format (`repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:production`), while the setup script generated the legacy name-only format. The script now uses the immutable IDs and repairs stale claims on the named credential; rerun it and ensure the `production` environment's `AZURE_CLIENT_ID` matches its output.
-- **To get the first deployment:** finish NS-1 and NS-2, then run the workflow manually (Actions > CI/CD - Deploy to Azure > Run workflow, `deploy_all` = true).
+| Run | Result | Cause and fix |
+|---|---|---|
+| 1 (`bfc999b`) | Failed at `azure/login` | `AZURE_CLIENT_ID`/`AZURE_TENANT_ID` were not set. Fix: environment secrets added |
+| 2 (`d54d549`) | Deploy jobs skipped | Commit touched only README, plan, and `scripts/`, so change detection selected no app. Fix: `deploy.yml` now counts as a change for every app; each deploy job fails fast with a clear message when a required secret/variable is missing. Manual runs with `deploy_all` deploy everything |
+| 3 (`bdbfc93`) | Failed at `azure/login` (`AADSTS700213`, no matching federated identity record) | GitHub issues immutable subject claims for this repository (`repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:production`) but the credential used the legacy name-only subject. Fix: `scripts/setup-azure-oidc.ps1` now builds the immutable subject from `-OwnerId`/`-RepositoryId` and replaces a stale named credential |
+| Later | ✅ Succeeded | Credential corrected, workflow rerun |
 
-Complete in order; details are in the README "Deploying to Azure" section.
+Lessons: compare the "Federated token details" in the failed `azure/login` log with the Entra federated credential (issuer, subject, audience must match exactly); the environment secrets only change when the app registration, tenant, or subscription changes; docs-only pushes do not deploy, so use **Run workflow** with `deploy_all` to redeploy everything.
 
-- [ ] **NS-1 One-time Azure and GitHub setup** (TODO-3, G-01): create the Entra app registration with the federated credential (subject `repo:ryanpaulcariaga@3658143/motorcycle@1352834212:environment:production`) and assign Website Contributor on `motorcycle-prod-rg`; create the GitHub `production` environment; add secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`; add variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL` (TODO-1), `VITE_API_URL`. Requires the Azure CLI, which is not installed in the Copilot session.
-- [ ] **NS-2 Set App Service runtimes** (TODO-2): API = .NET 10, web = Node 22, admin = Node 22 (needed for `pm2 serve`). Complete API app settings (Facebook, CORS, redirect URIs) per README M1.
-- [ ] **NS-3 Run the first deployment and verify** (TODO-2, TODO-3, G-01): commit and push to `master` (or run the workflow manually), then complete the README verification checklist (`/health`, `/health/ready`, `/bikes`, `/sitemap.xml`, admin sign-in).
-- [ ] **NS-4 Confirm pnpm lockfile compatibility** (TODO-4, G-04): ✅ `pnpm install --frozen-lockfile` passed in CI on 2026-10-19 (pnpm 10); only the deploy jobs' install is unverified.
+Remaining steps; details are in the README "Deploying to Azure" section.
+
+- [x] **NS-1 One-time Azure and GitHub setup** (TODO-3, G-01): Entra app registration, federated credential, Website Contributor on `motorcycle-prod-rg`, GitHub `production` environment with secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, and variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL` (TODO-1), `VITE_API_URL`. Done 2026-10-19.
+- [ ] **NS-2 Confirm App Service runtimes and API settings** (TODO-2): API = .NET 10, web = Node 22, admin = Node 22 (needed for `pm2 serve`). Complete API app settings (Facebook, CORS, redirect URIs) per README M1.
+- [ ] **NS-3 Verify the deployed apps** (TODO-2, TODO-3, G-01): deployment ✅ 2026-10-19; complete the README verification checklist (`/health`, `/health/ready`, `/bikes`, `/sitemap.xml`, admin sign-in) and record evidence here.
+- [x] **NS-4 Confirm pnpm lockfile compatibility** (TODO-4, G-04): ✅ `pnpm install --frozen-lockfile` passed in CI and in the deploy jobs (pnpm 10), 2026-10-19.
 - [ ] **NS-5 Run API tests locally** (TODO-7, G-04): stop the running API and Visual Studio, then `dotnet test apps\api\Motorcycle.Api.slnx`. Never run in this session.
 
 Tick each item with evidence (run link or date) and update the scorecard and gates when done.
@@ -177,7 +181,7 @@ API contracts live in `docs/api.md`, architecture in `docs/architecture.md`, sch
 - **Testing:** unit tests for Application services and filter strategies; integration tests against PostgreSQL for repositories and migrations; frontend tests for critical flows (e.g. Playwright for browse, filter, compare, and admin edit). Set a coverage target once the baseline is measured.
 - **CI gates (implemented in `ci.yml`, not yet run on GitHub):** on each push/PR run `dotnet build`/`dotnet test`, `pnpm --filter web lint` and build, and admin typecheck/build. `.github/workflows/ci.yml` runs these gates (API build/test; web and admin lint and build).
 - **Environments:** define local, staging, and production; consider App Service deployment slots. Use separate databases and storage per environment.
-- **Migrations:** the API applies migrations on startup. Before production, move to an explicit deploy-time migration step (or guard startup migration) to avoid races across instances and to allow review of generated scripts.
+- **Migrations:** startup migration is controlled by `Database:MigrateOnStartup` (true in Development, false elsewhere). Production uses an explicit `dotnet ef database update` step (or reviewed script) to avoid races across instances and startup hangs; a deploy-time pipeline step remains a possible later improvement.
 - **Dependencies:** keep pnpm and NuGet dependencies current; review Next.js 16 and .NET 10 upgrade notes when bumping.
 - **Documentation discipline:** every shipped change updates the relevant `docs/` file and this plan's Feature Log, Work Register, Production Readiness Scorecard, and Release Gates (tick gates with evidence).
 
