@@ -73,7 +73,7 @@ CREATE TABLE spec_groups (
 );
 ```
 
-Deleting a `spec_groups` row is blocked at both the application layer and the `spec_definitions.group_id` foreign key (`ON DELETE RESTRICT`) while any `spec_definitions` row still references it — an administrator must move or delete its definitions first (`specs/009-spec-metadata-management/`).
+Deleting a `spec_groups` row is blocked at both the application layer and the `spec_definitions.group_id` foreign key (`ON DELETE RESTRICT`) while any `spec_definitions` row still references it — an administrator must move or delete its definitions first.
 
 ### bike_models
 ```sql
@@ -157,7 +157,7 @@ CREATE TABLE spec_definitions (
 );
 ```
 
-Managed through protected `/api/admin/spec-groups`/`/api/admin/spec-definitions` endpoints (`specs/009-spec-metadata-management/`). `code` was originally unique only per `(group_id, code)`; it is now globally unique because it is the literal JSON key read from every `bikes.specs` row, and a duplicate across groups would be ambiguous in that flat map. Renaming a `code` renames the matching key across every affected `bikes.specs` row in the same transaction (one `UPDATE bikes SET specs = (specs - old) || jsonb_build_object(new, specs -> old) WHERE specs ? old` statement). Deleting a `spec_definitions` row that any bike currently has a non-null value for is blocked at the application layer with a `409` conflict.
+Managed through protected `/api/admin/spec-groups`/`/api/admin/spec-definitions` endpoints. `code` was originally unique only per `(group_id, code)`; it is now globally unique because it is the literal JSON key read from every `bikes.specs` row, and a duplicate across groups would be ambiguous in that flat map. Renaming a `code` renames the matching key across every affected `bikes.specs` row in the same transaction (one `UPDATE bikes SET specs = (specs - old) || jsonb_build_object(new, specs -> old) WHERE specs ? old` statement). Deleting a `spec_definitions` row that any bike currently has a non-null value for is blocked at the application layer with a `409` conflict.
 
 ### bike_comparisons
 ```sql

@@ -4,9 +4,9 @@ These instructions are the single source of truth for GitHub Copilot in VS Code 
 
 ## Feature Workflow
 
-- Start feature work with `specs/NNN-feature-name/spec.md`, follow its `plan.md`, and mark completed work in `tasks.md`.
+- `plan-motorcycle-web-app.md` at the repository root is the living project document (decisions, status, feature log, backlog). Read it before starting work and update it when work ships: the Feature Log, Work Register, Production Readiness Scorecard, and Release Gates (G-nn) must reflect reality, and the production verdict changes only when every blocker gate is ticked with evidence. Feature `specs/` folders and the SpecKit workflow are no longer used; `.specify/` and `.github/skills/speckit-*` are kept only for possible future use, so do not invoke them unless asked.
 - Deliver backend and every affected frontend together. Update `docs/architecture.md`, `docs/api.md`, or `docs/database.md` when the corresponding contract, architecture, or schema changes.
-- `apps/admin` is scaffolded with the Stage 1 local administration slice. Do not add an alternate data path: both web applications must use the shared API.
+- `apps/admin` is the private administration SPA. Do not add an alternate data path: both web applications must use the shared API.
 
 ## Commands
 
@@ -34,7 +34,7 @@ dotnet ef migrations add <MigrationName> --project apps\api\Motorcycle.Infrastru
 
 Use the shared API for both frontend applications. Do not add a separate data path for `apps/admin`; it is a private frontend and never connects directly to PostgreSQL or Azure Blob Storage.
 
-The API targets .NET 10 and runs at `https://localhost:7240` from the single `https` launch profile. Visual Studio and `dotnet run --launch-profile https` use the same address. The public web app defaults to `https://localhost:7240` through `NEXT_PUBLIC_API_URL`. There are no test projects or test-runner scripts yet, so there is no supported single-test command; `dotnet test` currently discovers no tests.
+The API targets .NET 10 and runs at `https://localhost:7240` from the single `https` launch profile. Visual Studio and `dotnet run --launch-profile https` use the same address. The public web app defaults to `https://localhost:7240` through `NEXT_PUBLIC_API_URL`. API unit tests live in `apps\api\Motorcycle.Api.Tests` (run `dotnet test apps\api\Motorcycle.Api.slnx`, or add `--filter <name>` for one test; stop a running API first or the build fails on locked DLLs). There are no frontend test runners yet.
 
 ## Next.js Version Guidance
 
@@ -46,12 +46,12 @@ The public app uses Next.js 16, whose APIs and conventions differ from earlier r
 - The API follows Clean Architecture: `Motorcycle.Domain` holds entities, `Motorcycle.Application` owns DTOs, service contracts, repository contracts, and filtering contracts, `Motorcycle.Infrastructure` implements EF Core persistence, repositories, seeding, and filtering, and `Motorcycle.Api` contains controllers and dependency-injection composition.
 - PostgreSQL stores flexible motorcycle specifications in the `bikes.specs` JSONB column. `spec_groups` and `spec_definitions` define display order, labels, units, and filter behavior; their `sortOrder` values must drive detail and comparison output. `MotorcycleDbContext` centrally maps EF Core database names to PostgreSQL snake_case.
 - Controllers bind HTTP requests and delegate to Application services. Repositories load published catalog data with its related brand, category, and images; public catalog routes expose only published bikes.
-- Public catalog endpoints are anonymous and read-only. Administration uses protected `/api/admin` endpoints with API-owned Facebook PKCE sign-in, an API-managed HttpOnly session, and active `AdminRole` authorization. Role, BikeModel, Bike variant, publication, Azure Blob image, specification metadata, and bulk single-spec edit mutations are implemented.
+- Public catalog endpoints are anonymous and read-only. Administration uses protected `/api/admin` endpoints with API-owned Facebook PKCE sign-in, an API-managed HttpOnly session, and active `AdminRole` authorization. Role, Brand, Category, BikeModel, Bike variant (including model reassignment, publication, reviewed flag), Azure Blob image, specification metadata, and bulk single-spec edit/grid mutations are implemented.
 
 ## Repository Conventions
 
 - Use braces for every `if`/`else`, loop, and other control-flow body, even when it contains a single statement. Put the opening brace on the same line as the control statement, with the body and closing brace on separate lines. Keep this convention when editing existing code.
-- Start feature work from `specs/NNN-feature-name/spec.md`, then use its `plan.md` and `tasks.md`. Update the task checklist and applicable `docs/architecture.md`, `docs/api.md`, or `docs/database.md` with the implementation.
+- Update the plan's status, feature log, scorecard/release gates, and the applicable `docs/architecture.md`, `docs/api.md`, or `docs/database.md` with each implementation.
 - Keep HTTP DTOs in `Motorcycle.Application` and mirror affected contracts in each frontend's TypeScript types. Frontend requests go through the application's centralized typed API client (`apps/web/lib/api.ts`); do not add component-level `fetch` calls.
 - Register Application interfaces and Infrastructure implementations in `apps/api/Motorcycle.Api/Program.cs`. Controllers delegate to Application services rather than querying EF Core directly.
 - Dynamic specification filtering is strategy-based. Add a new `ISpecFilterStrategy` implementation and register it in `Program.cs`; do not grow controller or service conditionals for new filter types.

@@ -54,9 +54,9 @@ The first administrator is created through an operator-only bootstrap command af
 
 Stage 2 adds Bike (year/trim variant) CRUD and publication management under `/api/admin/bikes`, so administrators can create, edit, publish/unpublish, and delete variants beneath an existing BikeModel; editing a published variant applies immediately without an unpublish step, and deletion is a hard delete blocked only when the variant has assigned images. Stage 3 adds API-owned Azure Blob upload, image assignment, ordering, primary-image selection, and deletion under `/api/admin/bikes/{bikeId}/images`; the admin browser never receives database or storage credentials.
 
-Spec metadata management (`specs/009-spec-metadata-management/`) adds protected CRUD for `SpecGroup`/`SpecDefinition` under `/api/admin/spec-groups`/`/api/admin/spec-definitions`, including group/definition reordering. Because `SpecDefinition.Code` is the literal JSON key read from every `Bike.Specs` row, its uniqueness is enforced globally (not per-group), and renaming it triggers a transactional rename-cascade across every affected bike so no data is silently orphaned; deleting a group with definitions, deleting a definition bikes still hold values for, or changing a `dataType` incompatibly with existing bike values are all hard-blocked with a `409` conflict rather than silently discarding data.
+Spec metadata management adds protected CRUD for `SpecGroup`/`SpecDefinition` under `/api/admin/spec-groups`/`/api/admin/spec-definitions`, including group/definition reordering. Because `SpecDefinition.Code` is the literal JSON key read from every `Bike.Specs` row, its uniqueness is enforced globally (not per-group), and renaming it triggers a transactional rename-cascade across every affected bike so no data is silently orphaned; deleting a group with definitions, deleting a definition bikes still hold values for, or changing a `dataType` incompatibly with existing bike values are all hard-blocked with a `409` conflict rather than silently discarding data.
 
-Bulk single-spec editing (`specs/010-bulk-single-spec-edit/`) lets an administrator set one specification across many bikes (optionally filtered by brand, category, and MSRP range) through `GET`/`PUT /api/admin/bikes/spec-values`; values are validated against the definition's `dataType` and saved all-or-nothing in one transaction, with no schema change.
+Bulk single-spec editing lets an administrator set one specification across many bikes (optionally filtered by brand, category, and MSRP range) through `GET`/`PUT /api/admin/bikes/spec-values`; values are validated against the definition's `dataType` and saved all-or-nothing in one transaction, with no schema change.
 
 ### Public User Authentication Boundary
 
@@ -88,7 +88,7 @@ Dealer information should be modeled separately from `brands`: a brand identifie
 1. **Clean Architecture**: Backend layers (Domain → Application → Infrastructure → API) with unidirectional dependencies.
 2. **Strategy Pattern**: Spec filtering logic extensible per data type.
 3. **Database as Code**: EF Core migrations define schema in C#; all SQL visible in version control.
-4. **Monorepo**: Single repo, shared backend with public and admin frontends, and shared specs/docs.
+4. **Monorepo**: Single repo, shared backend with public and admin frontends, and shared docs.
 5. **Mobile-First**: Tailwind CSS utilities, responsive breakpoints from ground up.
 6. **Aligned Styling**: The admin and public web apps share the same look (header, sidebar, content area, spacing, colors, fonts, square corners). A style change requested for either app is always applied to both.
 6. **SEO-Ready Public Catalog**: The public Next.js catalog uses server rendering, metadata, and structured data; the private admin SPA intentionally does not require SEO.

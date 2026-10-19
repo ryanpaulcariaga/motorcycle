@@ -1,6 +1,11 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for App Service (`node apps/web/server.js`); the monorepo root
+  // is the tracing root so hoisted workspace dependencies are included.
+  output: "standalone",
+  outputFileTracingRoot: path.join(import.meta.dirname, "../.."),
   images: {
     remotePatterns: [
       // Local dev seed data placeholder images

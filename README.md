@@ -10,18 +10,9 @@ motorcycle-app/
 │   ├── web/              # Public Next.js frontend
 │   ├── admin/            # Private Vite React administration SPA
 │   └── api/              # Shared ASP.NET Core backend
-├── specs/                # Feature specifications (SpecKit)
-│   ├── 001-motorcycle-comparison/
-│   ├── 002-user-reviews/
-│   ├── 003-advertising/
-│   ├── 004-dealer-links/
-│   ├── 005-admin-catalog-management/
-│   ├── 006-bike-catalog-management/
-│   ├── 007-bike-image-management/
-│   ├── 008-public-user-authentication/
-│   ├── 009-spec-metadata-management/
-│   └── 010-bulk-single-spec-edit/
-├── docs/                 # Shared documentation
+├── docs/                 # Shared architecture, API, and database documentation
+├── plan-motorcycle-web-app.md  # Living project plan/status
+├── .specify/             # SpecKit tooling (retained, currently unused)
 ├── .github/workflows/    # CI/CD pipelines
 ├── .npmrc                # pnpm install config (see Windows Environment Setup)
 ├── pnpm-workspace.yaml   # pnpm workspaces config + allowBuilds
@@ -33,7 +24,7 @@ motorcycle-app/
 - **Frontend**: Next.js 16 (App Router) + TypeScript + Tailwind CSS
 - **Backend**: ASP.NET Core 10 (Clean Architecture)
 - **Database**: PostgreSQL (EF Core + Npgsql)
-- **Hosting**: Azure (App Service, Database, Blob Storage, Key Vault)
+- **Hosting**: Azure (App Service with three Web Apps: API, public web, admin; Database, Blob Storage, Key Vault)
 - **Package Manager**: pnpm (workspaces)
 
 ## Getting Started
@@ -125,25 +116,148 @@ For app-specific configuration, see [apps/web/README.md](apps/web/README.md).
 
 ## Feature Development
 
-Features are spec-driven. See [specs/](specs/) for active features.
-
-### Admin Catalog Management
-
-The `apps/admin/` Vite React SPA has implemented administrator authentication, BikeModel CRUD, Bike variant CRUD/publication, and Azure Blob-backed image management through the shared `apps/api/` backend. Local development uses `https://localhost:3001`; the API-owned Facebook callback is `https://localhost:7240/api/admin/auth/facebook/callback`. Specification metadata CRUD and focused image acceptance tests remain. Production deployment is intentionally deferred until feature development is complete. See [specs/007-bike-image-management/spec.md](specs/007-bike-image-management/spec.md) and [apps/admin/README.md](apps/admin/README.md).
-
-### Future Roadmap
-
-Planned post-MVP capabilities include user reviews, AI-assisted comparison insights, analytics, dealer links, and a privacy-conscious advertising platform. Advertising is intended to support clearly labeled sponsored placements and relevant motorcycle-related campaigns without changing organic search or comparison results. See [specs/003-advertising/spec.md](specs/003-advertising/spec.md) and [specs/004-dealer-links/spec.md](specs/004-dealer-links/spec.md) for the initial future scopes.
+[plan-motorcycle-web-app.md](plan-motorcycle-web-app.md) is the living project document: decisions, implementation status, feature log, operational notes, and backlog. Update it whenever work ships. Feature-by-feature `specs/` folders are no longer used; the SpecKit tooling (`.specify/` and `.github/skills/speckit-*`) is kept only for possible future use.
 
 When implementing a feature:
-1. Review the feature spec in `specs/NNN-feature-name/spec.md`
-2. Follow the plan in `specs/NNN-feature-name/plan.md`
-3. Track progress in `specs/NNN-feature-name/tasks.md`
-4. Modify the shared backend (`apps/api/`) and every affected frontend (`apps/web/` and/or `apps/admin/`) in the same session
-5. Update relevant docs as you go
+1. Check the plan's release status, gates, and work register
+2. Modify the shared backend (`apps/api/`) and every affected frontend (`apps/web/` and/or `apps/admin/`) in the same session
+3. Update `docs/api.md`, `docs/architecture.md`, or `docs/database.md` for contract, architecture, or schema changes
+4. Record the result in the plan's feature log and update the readiness scorecard/release gates
 
 See [.github/copilot-instructions.md](.github/copilot-instructions.md) for AI-assisted development guidelines used by VS Code Copilot and Copilot CLI.
 
-## Continuing Admin Development
+See [apps/admin/README.md](apps/admin/README.md) for the admin SPA, including local development at `https://localhost:3001`.
 
-For the current implementation boundary, verified local commands, remaining tasks, and the next admin stage entry point, start with [specs/005-admin-catalog-management/implementation-status.md](specs/005-admin-catalog-management/implementation-status.md). Do not begin a new admin feature until the remaining Stage 1 validation tasks in `specs/005-admin-catalog-management/tasks.md` are reviewed.
+## Deploying to Azure
+
+> **Status:** the Azure resources are provisioned (see [plan-motorcycle-web-app.md](plan-motorcycle-web-app.md#provisioned-azure-resources-as-of-2026-09-22)) and the automated pipeline is defined, but it has **not** run yet: the one-time setup below must be completed first, and the first deployment must be validated.
+
+### How the pipeline works
+
+Pushing to `master` runs `.github/workflows/deploy.yml`:
+
+1. **CI** (`ci.yml`, reused): API build and tests, web and admin lint and build. Any failure stops the pipeline.
+2. **Change detection:** only the apps whose files changed are deployed (`apps/api/**`, `apps/web/**` plus root package/lock files, `apps/admin/**` plus root package/lock files).
+3. **Deploy** (job environment `production`, Azure login by OIDC, no stored secrets):
+   - **API** to `motorcycle-api-prod`: `dotnet publish` then `azure/webapps-deploy`.
+   - **Web** to `motorcycle-web-prod`: Next.js standalone build (`output: "standalone"`), static assets copied in, started with `HOSTNAME=0.0.0.0 node apps/web/server.js`.
+   - **Admin** to `motorcycle-admin-prod`: Vite build served with `pm2 serve ... --spa`.
+
+Pull requests run CI only (`ci.yml`). **Run workflow** on the Actions tab (`workflow_dispatch`) redeploys all three apps.
+
+**Database:** the pipeline does not run migrations or SQL scripts. The API still applies EF Core migrations when it starts, so a deployed API with new migrations updates the database on first start. Manage any manual SQL deployment yourself and deploy it before pushing code that depends on it.
+
+### One-time setup
+
+1. **Azure app registration for GitHub OIDC** (replace placeholders):
+
+```powershell
+az login
+$sub = az account show --query id -o tsv
+$app = az ad app create --display-name "motorcycle-github-deploy" --query appId -o tsv
+az ad sp create --id $app
+az role assignment create --assignee $app --role "Website Contributor" `
+  --scope "/subscriptions/$sub/resourceGroups/motorcycle-prod-rg"
+az ad app federated-credential create --id $app --parameters '{
+  "name": "github-production",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:ryanpaulcariaga/motorcycle:environment:production",
+  "audiences": ["api://AzureADTokenExchange"]
+}'
+az account show --query tenantId -o tsv   # tenant id
+$app                                      # client id
+```
+
+2. **GitHub environment:** Settings > Environments > New environment named `production`. Do not add required reviewers if you want fully automatic deployment.
+3. **GitHub secrets** (Settings > Secrets and variables > Actions > Secrets): `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`.
+4. **GitHub variables** (Variables tab): `NEXT_PUBLIC_API_URL` (API URL), `NEXT_PUBLIC_SITE_URL` (public web URL), `VITE_API_URL` (API URL). Optional overrides: `AZURE_API_APP_NAME`, `AZURE_WEB_APP_NAME`, `AZURE_ADMIN_APP_NAME` (default to the `motorcycle-*-prod` names).
+5. **App Service runtime stacks:** API = .NET 10, web = Node 22 LTS, admin = Node 22 LTS (needed for `pm2 serve`). Set them on each Web App.
+6. **API configuration:** complete the API application settings (Facebook, CORS, redirect URIs) in M1 below. Key Vault references for the connection strings are already set.
+7. Ensure the GitHub repository's default branch is `master` (the workflows trigger on `master`).
+
+### Verify a deployment
+
+- Actions tab: CI and each deploy job green.
+- `https://<api-host>/health` and `/health/ready` return `200`.
+- `https://<web-host>/bikes` lists bikes with images; `/sitemap.xml` and `/robots.txt` use the production host.
+- Administrator sign-in at `https://<admin-host>` works (check CORS and the Facebook redirect URI if it fails).
+- Create the first administrator with the bootstrap command in the plan's Feature Log if the production database has none.
+
+### Manual deployment (fallback)
+
+Use these steps if the pipeline is unavailable. Prerequisites: Azure CLI (`az login`), .NET 10 SDK, Node 22 with pnpm, and access to the resource group. Deploy the API first.
+
+Resource group `motorcycle-prod-rg` (Southeast Asia) hosts one Linux App Service plan with three Web Apps:
+
+| App | Web App | Source | Runtime |
+|---|---|---|---|
+| API | `motorcycle-api-prod` | `apps/api/Motorcycle.Api` | .NET 10 |
+| Public web | `motorcycle-web-prod` | `apps/web` | Node.js |
+| Admin | `motorcycle-admin-prod` | `apps/admin` | Static files (Vite build) |
+
+### M1. Configure the API (once)
+
+- Key Vault references (already set): `ConnectionStrings__DefaultConnection` and `Storage__ConnectionString` resolve from `motorcycle-prod-kv` through the app's managed identity (**Key Vault Secrets User**).
+- Add these application settings (use the real URLs; the Facebook redirect must be registered in the Facebook app):
+
+```powershell
+az webapp config appsettings set -g motorcycle-prod-rg -n motorcycle-api-prod --settings `
+  "AdminAuth__FacebookClientId=<id>" "AdminAuth__FacebookClientSecret=@Microsoft.KeyVault(SecretUri=<secret-uri>)" `
+  "AdminAuth__FacebookRedirectUri=https://<api-host>/api/admin/auth/facebook/callback" `
+  "AdminAuth__AdminAppUrl=https://<admin-host>" `
+  "UserAuth__WebAppUrl=https://<web-host>" "UserAuth__Facebook__ClientId=<id>" `
+  "UserAuth__Facebook__ClientSecret=@Microsoft.KeyVault(SecretUri=<secret-uri>)" `
+  "UserAuth__Facebook__RedirectUri=https://<api-host>/api/auth/facebook/callback" `
+  "Cors__AllowedOrigins__0=https://<web-host>" "Cors__AllowedOrigins__1=https://<admin-host>"
+```
+
+- Keep secrets in Key Vault, never in source or plain settings. Swagger is on only when `ASPNETCORE_ENVIRONMENT=Development`, so leave production as `Production`.
+- The PostgreSQL firewall must allow Azure services (already enabled). The API applies EF Core migrations on startup.
+
+### M2. Deploy the API
+
+```powershell
+dotnet publish apps\api\Motorcycle.Api\Motorcycle.Api.csproj -c Release -o publish
+Compress-Archive -Path publish\* -DestinationPath api.zip -Force
+az webapp deploy -g motorcycle-prod-rg -n motorcycle-api-prod --src-path api.zip --type zip
+```
+
+Verify: `https://<api-host>/health` returns `200` and `https://<api-host>/health/ready` returns `200` (database reachable). Create the first administrator with the bootstrap command in the plan's Feature Log if the production database has none.
+
+### M3. Deploy the public web app
+
+Set the API URL at build time (it is baked into the client bundle) and the public site URL used by the sitemap and robots files:
+
+```powershell
+$env:NEXT_PUBLIC_API_URL = "https://<api-host>"
+$env:NEXT_PUBLIC_SITE_URL = "https://<web-host>"
+pnpm install --frozen-lockfile
+pnpm --filter web build
+Copy-Item apps\web\.next\static apps\web\.next\standalone\apps\web\.next\static -Recurse
+Copy-Item apps\web\public apps\web\.next\standalone\apps\web\public -Recurse
+Compress-Archive -Path apps\web\.next\standalone\* -DestinationPath web.zip -Force
+az webapp deploy -g motorcycle-prod-rg -n motorcycle-web-prod --src-path web.zip --type zip
+az webapp config set -g motorcycle-prod-rg -n motorcycle-web-prod --startup-file "HOSTNAME=0.0.0.0 node apps/web/server.js"
+```
+
+`apps/web` builds as a Next.js standalone bundle. Copy the static assets into it, zip it, deploy, and set the startup command. The local `pnpm --filter web start` script is Windows-specific (it uses `set` and a local dev certificate) and must not be used on App Service, which terminates TLS itself. Add your Blob Storage hostname to `remotePatterns` in `apps/web/next.config.ts` if it differs from `*.blob.core.windows.net`.
+
+### M4. Deploy the admin SPA
+
+```powershell
+$env:VITE_API_URL = "https://<api-host>"
+pnpm --filter admin build
+Compress-Archive -Path apps\admin\dist\* -DestinationPath admin.zip -Force
+az webapp deploy -g motorcycle-prod-rg -n motorcycle-admin-prod --src-path admin.zip --type zip
+az webapp config set -g motorcycle-prod-rg -n motorcycle-admin-prod --startup-file "pm2 serve /home/site/wwwroot --no-daemon --spa"
+```
+
+The `--spa` flag serves `index.html` for client-side routes. The API (not the SPA) owns the Facebook callback.
+
+### Manual verification extras
+
+- `https://<web-host>/bikes` lists bikes and images load.
+- `https://<web-host>/sitemap.xml` and `/robots.txt` use the production host.
+- Signing in at `https://<admin-host>` succeeds for an active administrator (check CORS and the redirect URI if it fails).
+- Browser requests carry the `mc_admin_session` / `mc_user_session` cookies across hosts; if sign-in loops, review cookie `SameSite`/domain settings for your final domains.
+

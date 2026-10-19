@@ -44,7 +44,7 @@ export default function Header() {
     setSession(null);
   }
 
-  function AccountControl({ className = '' }: { className?: string }) {
+  function renderAccountControl(className = '') {
     if (loadingSession) {
       return null;
     }
@@ -90,7 +90,7 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          <AccountControl />
+          {renderAccountControl()}
         </nav>
 
         {/* Mobile hamburger */}
@@ -120,7 +120,7 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          <AccountControl className="pt-2 border-t border-white/10" />
+          {renderAccountControl('pt-2 border-t border-white/10')}
         </nav>
       )}
     </header>

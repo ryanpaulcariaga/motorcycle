@@ -11,8 +11,16 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Motorcycle.Api.Authorization;
 using Motorcycle.Api.Common;
 using Motorcycle.Api.Bootstrap;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Structured logging to the console, which the App Service log stream captures.
+builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
 
 // Add DbContext. Supply ConnectionStrings:DefaultConnection through user secrets or managed configuration.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -118,6 +126,7 @@ builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHand
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient();
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -163,6 +172,10 @@ using (var scope = app.Services.CreateScope()) {
     }
 }
 
+// Unhandled exceptions become RFC 7807 problem responses without leaking details.
+app.UseExceptionHandler();
+app.UseSerilogRequestLogging();
+
 if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -175,6 +188,10 @@ app.MapControllers();
 
 app.MapGet("/", () => "Motorcycle API - Running");
 app.MapGet("/health", () => Results.Ok("Healthy"));
+app.MapGet("/health/ready", async (MotorcycleDbContext db, CancellationToken ct) =>
+    await db.Database.CanConnectAsync(ct)
+        ? Results.Ok("Ready")
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 
 app.Run();
 

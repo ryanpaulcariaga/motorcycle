@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore apps/api/Motorcycle.Api.slnx
+
+      - name: Build
+        run: dotnet build apps/api/Motorcycle.Api.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test apps/api/Motorcycle.Api.slnx --configuration Release --no-build
+
+  frontends:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint web
+        run: pnpm --filter web lint
+
+      - name: Build web
+        run: pnpm --filter web build
+
+      - name: Lint admin
+        run: pnpm --filter admin lint
+
+      - name: Build admin (typecheck + bundle)
+        run: pnpm --filter admin build

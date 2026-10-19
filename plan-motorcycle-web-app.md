@@ -1,16 +1,182 @@
 ## Plan: Motorcycle Specs, Comparison & Administration App
 
-**Progress status (updated 2026-09-20)**
-- ✅ Phase 0 — Monorepo Initialization — DONE
-- ✅ Phase 1 — Database Design — DONE (schema, migrations, GIN index, seed data all applied to local Postgres)
-- ✅ Phase 2 — Backend API — DONE (repositories, Strategy-pattern spec filters, services, controllers; smoke-tested against live DB)
-- ✅ Phase 3 — Frontend — DONE (Tailwind theme, layout components, typed API client, `/`, `/bikes`, `/bikes/[slug]`, `/compare`; smoke-tested end-to-end against live API; refreshed 2026-09-27 with a GSMArena-inspired layout — sidebar brand/latest-devices/trending sections, reordered bike detail page, and a search-driven compare picker)
-- ✅ Public user authentication (`specs/008-public-user-authentication/`) — DONE (any active Facebook identity can sign in to `apps/web` with no manual registration; a shared API `User`/`UserExternalLogin` model supports linking a future Google/other provider to the same account by verified email)
-- 🔄 Phase 4 — Admin Catalog Management — Stage 1 (roles + BikeModel), Stage 2 (Bike variant CRUD + publication), and Stage 3 (Azure Blob image management, `specs/007-bike-image-management/`) implemented locally; spec-metadata management (`specs/009-spec-metadata-management/`) and bulk single-spec editing (`specs/010-bulk-single-spec-edit/`) are also implemented; focused image acceptance tests, bulk-spec tests/browser validation, and security hardening remain
-- 🔄 Phase 5 — Azure Development Services & Final Deployment — IN PROGRESS (resource group, Storage Account + public `images` container, Key Vault, PostgreSQL Flexible Server, App Service Plan, and all three Web Apps are provisioned; local development uses Azure PostgreSQL and Storage; production deployment is deferred until feature development is complete)
-- ⏳ Phase 6 — Future Backlog — NOT STARTED (intentionally deferred, schema stubs only)
+> **Living document.** This file is the single source of truth for project decisions, implementation status, the feature log, and the backlog. Update it whenever work ships. Per-feature `specs/` folders and SpecKit are no longer used (the `.specify/` constitution/templates and `.github/skills/speckit-*` remain only for possible future use; earlier spec history is in git). LLM-facing references stay in `docs/` and `.github/copilot-instructions.md`.
 
-**Resume here:** Continue feature development against the provisioned Azure PostgreSQL and Storage resources. Stage 3 image management, spec-metadata management, and bulk single-spec editing are implemented; next complete focused image tests/Azure upload validation, the open tasks in `specs/010-bulk-single-spec-edit/tasks.md` (build/test run, focused tests, browser check), and admin hardening. Local access to the Azure PostgreSQL server needs your current public IP in its firewall rules (Networking blade) or the API fails with "Failed to connect ... :5432". Deploy application code to the three App Services only after the remaining product features and validation are complete. Local development runs the API on `https://localhost:7240` using the single `https` profile, the public web app on `https://localhost:3000` (a custom HTTPS dev/start server, `apps/web/server.mjs`, using a locally generated certificate), and the Vite React admin SPA on `https://localhost:3001`. The API owns the admin callback at `https://localhost:7240/api/admin/auth/facebook/callback`; the first local administrator is bootstrapped through the operator command documented in the feature quickstart. Local API secrets use `dotnet user-secrets` on `apps/api/Motorcycle.Api` (`UserSecretsId: motorcycle-api-local`).
+### Contents
+1. [Release Status at a Glance](#release-status-at-a-glance)
+2. [Production Readiness Scorecard](#production-readiness-scorecard)
+3. [Release Gates](#release-gates)
+4. [Work Register](#work-register)
+5. [Local Development Quick Reference](#local-development-quick-reference)
+6. [Feature Log](#feature-log-implemented)
+7. [Non-Functional Requirements](#non-functional-requirements-targets-to-design-and-review-against-none-are-verified-yet) and [Engineering Practices](#engineering-practices)
+8. [Provisioned Azure Resources](#provisioned-azure-resources-as-of-2026-09-22), then Decisions, Phases, and Verification
+
+Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · ⏳ deferred by decision · ⚠️ done but unverified
+
+### Release Status at a Glance
+
+**Verdict (updated 2026-10-19): NOT READY FOR PRODUCTION.** The product is feature-complete for the first release and runs locally against the Azure PostgreSQL and Blob Storage resources, but nothing has been deployed, and security, testing, legal, and operational gates are open. Production deployment is intentionally deferred until feature development is complete.
+
+| Phase | Status | Notes |
+|---|---|---|
+| 0 Monorepo | ✅ | pnpm workspace, `apps/web`, `apps/admin`, `apps/api`, `docs/`, workflows |
+| 1 Database | ✅ | Schema, EF Core migrations, GIN index, seed data |
+| 2 Backend API | ✅ | Clean Architecture, Strategy-pattern filters, Serilog, ProblemDetails, `/health` and `/health/ready` |
+| 3 Public frontend | ✅ | `/`, `/bikes`, `/bikes/[slug]`, `/compare`, Facebook sign-in, "Often compared with", sitemap/robots, error pages |
+| 4 Admin catalog | ✅ locally | See Feature Log; acceptance coverage and hardening are release gates |
+| 5 Azure and deployment | 🔄 | Resources provisioned; deploy workflows are build-only placeholders; never deployed |
+| 6 Future backlog | ⏳ | Reviews, advertising, dealer links, AI pros/cons, surveys, analytics, voting |
+
+### Production Readiness Scorecard
+
+| Area | Status | Evidence | Gap / next action | Ref |
+|---|---|---|---|---|
+| Product functionality | ✅ | Feature Log items 1–9 work locally | Browser acceptance of bulk spec and admin flows | G-05 |
+| Azure infrastructure | ✅ | Resource group, PostgreSQL, Storage, Key Vault, plan, 3 Web Apps | None | |
+| Deployment pipeline | 🔄 | `ci.yml` (PRs, reused) and `deploy.yml` (push to `master`: CI, then per-app OIDC deploy to Azure) defined; README documents setup | One-time Azure OIDC/GitHub setup and first deployment not yet done or validated | G-01, TODO-2, TODO-3 |
+| Configuration and secrets | 🔄 | Key Vault references for DB and Storage strings; Swagger Development-only; deploy secrets via OIDC (no stored credentials) | Production Facebook IDs/secrets, redirect URIs, CORS origins, site URL | G-02, TODO-1 |
+| Database and migrations | 🔄 | Migrations apply on API startup; SQL deployment managed manually (not in pipeline) | Decide a deploy-time step later; review the first production migration | G-03 |
+| Observability | 🔄 | Serilog console logs, `/health`, `/health/ready`, ProblemDetails | Application Insights, alerts, uptime probes, error tracking | G-06 |
+| Automated testing | ❌ | API unit tests exist (3 files); CI defined | CI never run on GitHub; no image/spec/bulk tests; no frontend or e2e tests | G-04, TODO-7 |
+| Security | ❌ | HttpOnly Secure cookies, policy-based admin auth, CORS allow-list | Rate limiting, security headers, CSRF stance, upload validation, audit log, admin IdP exit plan | G-07 |
+| Responsive and accessibility | ⚠️ | Mobile-first Tailwind, header drawer | No audit; contrast of gold/orange palette unchecked | G-08 |
+| SEO and sharing | 🔄 | Per-bike metadata, `sitemap.xml`, `robots.txt`, error pages | OpenGraph images, canonical URLs, JSON-LD | TODO-6 |
+| Performance | ⏳ | Lookup endpoints cached 10 minutes | Output caching for `/api/bikes`, Next.js revalidation, load check at 1000+ bikes | TODO-5, G-09 |
+| Privacy and legal | ❌ | None | Privacy policy, terms, cookie consent, data deletion process, Facebook app review | G-10 |
+| Backup and recovery | ❌ | None | PostgreSQL backups, Blob soft delete, tested restore, rollback runbook | G-11 |
+| Domains and TLS | ❌ | Default `azurewebsites.net` hosts | Custom domains, HTTPS-only, Facebook redirect URIs | G-02 |
+| Cost control | ❌ | Basic B1 plan, Burstable B1ms | Budget and alerts | G-12 |
+
+### Release Gates
+
+**Must pass before the first production deployment (blockers)**
+- [ ] **G-01** Pipeline set up and proven: Azure OIDC app registration, GitHub `production` environment, secrets/variables, and runtime stacks configured (see README); a push to `master` deploys API, web, and admin and the README verification checklist passes
+- [ ] **G-02** Production configuration complete: Facebook app (production redirect URIs, review/data-use), CORS origins, GitHub variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, `VITE_API_URL`, custom domains with HTTPS-only
+- [ ] **G-03** Migration strategy: currently manual SQL plus API startup migrations (decided 2026-10-19 to keep out of the pipeline); revisit a deploy-time step before production and review the first production migration
+- [ ] **G-04** CI passes on GitHub (API tests, web/admin lint and build); core API tests added for image, spec metadata, bulk spec, and compare tracking
+- [ ] **G-05** Browser validation of admin flows (BikeModel, variant, images, spec metadata, bulk spec/grid) and of public browse, filter, and compare
+- [ ] **G-06** Monitoring in place: Application Insights or equivalent, alerts on failures, uptime probes for `/health/ready`
+- [ ] **G-07** Security baseline: rate limiting on auth/upload/public endpoints, security headers on all three apps, documented CSRF stance, upload type/size validation, admin audit log, decision on the admin identity provider
+- [ ] **G-10** Privacy policy and terms published; cookie consent if analytics/ads are added
+- [ ] **G-11** Backups enabled and one restore tested; rollback procedure written
+
+**Should pass before public promotion**
+- [ ] **G-08** Accessibility audit (WCAG 2.2 AA) and responsive check at 360, 768, 1280 px, including admin tablet behavior
+- [ ] **G-09** Load/performance check on realistic catalog size; LCP budget on mobile
+- [ ] **G-12** Azure budget and cost alerts
+- [ ] Success metrics defined (traffic, compare usage, catalog completeness)
+- [ ] Catalog data sourcing, verification, and `is_reviewed` publishing workflow defined
+
+**After launch**
+- Phase 6 backlog; replace placeholder sidebar sections ("Top 10 by Daily Interest/Fans") once analytics exist; CDN/Front Door for images.
+
+**How to use:** when a gate is met, tick it here with the date and link to evidence (PR, run, document). The verdict above changes to READY only when every blocker is ticked.
+
+### Work Register
+
+Open implementation items with their `TODO-n` tags (search this file for a tag). Gate IDs show which release gate each item unblocks.
+
+| Tag | Item | Gate |
+|---|---|---|
+| TODO-1 | Set GitHub variable `NEXT_PUBLIC_SITE_URL` (used by sitemap/robots via `apps/web/lib/site.ts`) to the production public URL; defaults to `https://localhost:3000` | G-02 |
+| TODO-2 | ✅ Admin deploy is part of `.github/workflows/deploy.yml` (Vite build with `VITE_API_URL`, `pm2 serve --spa` startup command). Remaining: confirm it works on first run (Node 22 runtime on the admin Web App) | G-01 |
+| TODO-3 | Complete the one-time pipeline setup (README: Deploying to Azure) and run the first deployment; migrations are intentionally NOT part of the pipeline (managed manually; the API still applies EF migrations on startup; revisit a deploy-time migration step later) | G-01, G-03 |
+| TODO-4 | CI uses pnpm `version: 10`; the lockfile is version 9.0, which pnpm 10 reads, but confirm `pnpm install --frozen-lockfile` passes on the first CI run (local pnpm is 12.6) | G-04 |
+| TODO-5 | HTTP output caching for `/api/bikes` and the Next.js caching/revalidation strategy | G-09 |
+| TODO-6 | OpenGraph images, canonical URLs, JSON-LD structured data | |
+| TODO-7 | Run CI on GitHub; re-run API tests locally with the API stopped (a running API locks the build output) | G-04 |
+
+#### Next Steps: First Deployment (added 2026-10-19)
+
+The CI/CD pipeline (`ci.yml`, `deploy.yml`) is written but has never run and its YAML is unvalidated. Complete in order; details are in the README "Deploying to Azure" section.
+
+- [ ] **NS-1 One-time Azure and GitHub setup** (TODO-3, G-01): create the Entra app registration with the federated credential (subject `repo:ryanpaulcariaga/motorcycle:environment:production`) and assign Website Contributor on `motorcycle-prod-rg`; create the GitHub `production` environment; add secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`; add variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL` (TODO-1), `VITE_API_URL`. Requires the Azure CLI, which is not installed in the Copilot session.
+- [ ] **NS-2 Set App Service runtimes** (TODO-2): API = .NET 10, web = Node 22, admin = Node 22 (needed for `pm2 serve`). Complete API app settings (Facebook, CORS, redirect URIs) per README M1.
+- [ ] **NS-3 Run the first deployment and verify** (TODO-2, TODO-3, G-01): commit and push to `master` (or run the workflow manually), then complete the README verification checklist (`/health`, `/health/ready`, `/bikes`, `/sitemap.xml`, admin sign-in).
+- [ ] **NS-4 Confirm pnpm lockfile compatibility** (TODO-4, G-04): check `pnpm install --frozen-lockfile` passes in the first CI run (CI uses pnpm 10, local is 12.6, lockfile is v9.0).
+- [ ] **NS-5 Run API tests locally** (TODO-7, G-04): stop the running API and Visual Studio, then `dotnet test apps\api\Motorcycle.Api.slnx`. Never run in this session.
+
+Tick each item with evidence (run link or date) and update the scorecard and gates when done.
+
+Other open work: automated tests for image service/controller, spec metadata, bulk spec/grid, and compared-with tracking; Azure Blob upload acceptance validation with an authenticated admin; admin authorization and security hardening (G-07).
+
+Resolved 2026-10-19: Serilog console logging and request logging; global ProblemDetails exception handler; `/health` and `/health/ready`; `sitemap.xml`, `robots.txt`, `not-found`, `loading`, and `error` pages in `apps/web`; `ci.yml`; single auto-deploy pipeline `deploy.yml` (push to `master`: CI then per-app deploy via Azure OIDC, replacing the placeholder `deploy-api/web/admin.yml`); `apps/web` switched to Next.js standalone output for App Service; lint errors in `apps/web/components/Header.tsx` fixed. Lookup endpoint caching (10 minutes) and Development-only Swagger already existed.
+
+### Local Development Quick Reference
+
+Local ports: API `https://localhost:7240` (single `https` launch profile), public web `https://localhost:3000` (custom HTTPS server `apps/web/server.mjs`), admin SPA `https://localhost:3001`. The API owns the admin callback `https://localhost:7240/api/admin/auth/facebook/callback`. Local API secrets use `dotnet user-secrets` on `apps/api/Motorcycle.Api` (`UserSecretsId: motorcycle-api-local`). Local access to the Azure PostgreSQL server needs your current public IP in its firewall rules or the API fails with "Failed to connect ... :5432". Stop a running API before `dotnet test` or `dotnet build` or DLLs are locked. Azure deployment steps are in [README.md](README.md#deploying-to-azure).
+
+### Feature Log (implemented)
+
+| # | Feature | Summary |
+|---|---|---|
+| 1 | Public catalog & comparison | Browse/search/filter bikes, detail page, N-bike compare with grouped specs (`/api/bikes`, `/api/bikes/{slug}`, `/api/bikes/compare`, `/api/spec-groups`, `/api/brands`, `/api/categories`). Compare tracking is limited to published bikes |
+| 2 | Admin auth & roles | API-owned Facebook PKCE, HttpOnly session, active `AdminRole` policy; role CRUD under `/api/admin/admin-roles`. First administrator is bootstrapped with `dotnet run --project apps/api/Motorcycle.Api --launch-profile https -- admin bootstrap --facebook-user-id <id> --email <email> --display-name <name>` (already done locally; do not rerun) |
+| 3 | Brand / Category / BikeModel admin | CRUD with reference-protected deletes (`409 *_referenced`); BikeModel list has brand/category filters and sortable headers that persist when navigating to variants and back |
+| 4 | Bike variant admin | CRUD, publish/unpublish, reviewed flag (`is_reviewed`), reassignment to another BikeModel (`PATCH /api/admin/bikes/{id}/model`), unique `(model_id, year, variant_name)`; delete blocked when images exist |
+| 5 | Bike image management | API-owned Azure Blob upload/delete, ordering, primary image |
+| 6 | Public user authentication | Facebook sign-in for `apps/web` via `/api/auth/*`; provider-agnostic `User`/`UserExternalLogin` with verified-email linking |
+| 7 | Spec metadata admin | CRUD/reorder of `spec_groups`/`spec_definitions`, global unique code, transactional rename cascade, `409` on unsafe deletes/type changes |
+| 8 | Bulk spec editing | Set one spec across many bikes (`/api/admin/bikes/spec-values`) and a multi-spec grid (`/api/admin/bikes/spec-grid`), all-or-nothing saves, filterable by brand/category/MSRP |
+| 9 | Compared-bike recommendations | `bike_comparisons` pair counter (migration `AddBikeComparisons`), `GET /api/bikes/{slug}/compared-with`, "Often compared with" on bike detail |
+
+API contracts live in `docs/api.md`, architecture in `docs/architecture.md`, schema in `docs/database.md`. API unit tests: `apps/api/Motorcycle.Api.Tests` (admin controller authorization, `AdminRoleService`, `BikeAdminService`). No frontend test runner yet.
+
+### Non-Functional Requirements (targets to design and review against; none are verified yet)
+
+**Responsive and mobile**
+- Mobile-first for both apps. Verify at 360, 768, and 1280 px widths; no horizontal page scroll except intentional scrollable tables.
+- Touch targets at least 44x44 px; sidebar collapses to a drawer below `md` (public app).
+- Admin SPA: decide per page whether phone/tablet use is supported. Wide data screens (bike list, Bulk Spec Edit grid, spec grid) may be tablet/desktop-only, but must degrade to horizontal scroll with sticky identifying columns rather than break.
+- Compare page: side-by-side cards for few bikes, scrollable table with sticky first column beyond the threshold; test with 2, 5, and 10+ bikes on a phone.
+- Images: `next/image` with correct `sizes`, responsive gallery, explicit dimensions to prevent layout shift.
+
+**Accessibility (target WCAG 2.2 AA)**
+- Check text contrast on the gold/orange and dark-brown backgrounds and finalize the palette hex values.
+- Visible focus states, full keyboard navigation (menus, drawer, compare picker, admin forms and grids), semantic landmarks and headings.
+- Meaningful alt text for bike images; table headers/scopes for spec and compare tables; accessible announcements for async save/error states in the admin app.
+
+**SEO and sharing (public app)**
+- Per-bike metadata exists; `sitemap.xml` and `robots.txt` are implemented. Still open: OpenGraph/Twitter images, canonical URLs, and JSON-LD structured data (e.g. `Product`).
+- Slug policy: slugs are immutable on edit; define redirects or `410`/`404` behavior for unpublished or deleted bikes.
+- Custom error, loading, and not-found pages are implemented.
+
+**Performance and scale**
+- Budgets (initial targets): LCP under 2.5 s on mobile for `/bikes` and `/bikes/[slug]`; keep JS bundles small.
+- Next.js caching/revalidation strategy for catalog pages; API output caching for lookup endpoints; enforce maximum page size and query limits.
+- Review filter queries for N+1 and index use as the catalog grows (JSONB expression indexes per filterable spec).
+- CDN/Front Door for images once traffic warrants it.
+
+**Security**
+- Rate limiting on public, auth, and upload endpoints.
+- Security headers on all three apps (CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, frame protections).
+- CSRF stance for cookie-authenticated admin writes (currently SameSite=Lax plus credentialed CORS to a fixed origin): document the reasoning or add anti-forgery tokens.
+- Image uploads: enforce allowed types, size limits, and content sniffing; strip metadata; generate server-side names.
+- Admin audit log (who changed what and when), since the admin API can hard-delete records.
+- Plan an exit from Facebook as the admin identity provider (e.g. Entra ID) before production.
+- Dependency and secret scanning in CI (Dependabot, secret scanning).
+
+**Privacy and legal**
+- Privacy policy and terms of use; cookie consent before analytics or advertising cookies are introduced.
+- Public user data export/deletion process; Facebook app review and data-use requirements.
+- Image licensing/attribution policy for catalog photos.
+
+**Content and data**
+- Define data sourcing and verification workflow, including what the `is_reviewed` flag means and who may publish.
+- Decide units (metric/imperial), MSRP currency, and localization needs for the target market (Southeast Asia).
+
+### Engineering Practices
+- **Testing:** unit tests for Application services and filter strategies; integration tests against PostgreSQL for repositories and migrations; frontend tests for critical flows (e.g. Playwright for browse, filter, compare, and admin edit). Set a coverage target once the baseline is measured.
+- **CI gates (implemented in `ci.yml`, not yet run on GitHub):** on each push/PR run `dotnet build`/`dotnet test`, `pnpm --filter web lint` and build, and admin typecheck/build. `.github/workflows/ci.yml` runs these gates (API build/test; web and admin lint and build).
+- **Environments:** define local, staging, and production; consider App Service deployment slots. Use separate databases and storage per environment.
+- **Migrations:** the API applies migrations on startup. Before production, move to an explicit deploy-time migration step (or guard startup migration) to avoid races across instances and to allow review of generated scripts.
+- **Dependencies:** keep pnpm and NuGet dependencies current; review Next.js 16 and .NET 10 upgrade notes when bumping.
+- **Documentation discipline:** every shipped change updates the relevant `docs/` file and this plan's Feature Log, Work Register, Production Readiness Scorecard, and Release Gates (tick gates with evidence).
+
+### Production Readiness
+
+The readiness scorecard, release gates (G-01 to G-12), and work register are at the top of this document. Tick gates there as evidence is produced.
 
 ### Provisioned Azure Resources (as of 2026-09-22)
 
@@ -40,7 +206,7 @@ ConnectionStrings__DefaultConnection = @Microsoft.KeyVault(SecretUri=https://mot
 Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite React SPA (no SEO requirement), plus a shared ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering), PostgreSQL (JSONB specs, schema versioned via EF Core Migrations), and Azure Blob Storage for images. The public experience supports browse/search/filter/compare bikes with grouped specs. The admin experience manages the catalog, motorcycle specifications, image assignments, and specification metadata through the same API. Future-proofing remains for AI pros/cons, annual surveys, analytics, voting/comments, dealer listings, and advertising.
 
 **Decisions**
-- Repo structure: **monorepo** — single `motorcycle-app` repo with `apps/web` (public Next.js frontend), `apps/admin` (private Vite React SPA), and `apps/api` (shared ASP.NET Core backend); `specs/` for cross-app feature definitions; `docs/` for shared architecture/database/API docs; `.github/workflows` for CI/CD pipelines targeting each deployable app.
+- Repo structure: **monorepo** — single `motorcycle-app` repo with `apps/web` (public Next.js frontend), `apps/admin` (private Vite React SPA), and `apps/api` (shared ASP.NET Core backend); `docs/` for shared architecture/database/API docs; `.github/workflows` for CI/CD pipelines targeting each deployable app.
 - Auth: public catalog remains anonymous. The API uses Facebook Authorization Code + PKCE for admin sign-in and creates an encrypted HttpOnly session only after it verifies the active `AdminRole`. A stronger organization identity provider may replace Facebook before production deployment.
 - Data entry: the admin site replaces manual SQL as the normal workflow for bikes, specifications, images, and metadata. Seed scripts remain for local bootstrap and repeatable test data.
 - Dealer links: future dealer records are separate from manufacturer brands; a motorcycle may expose one or more approved dealer listings or contact links with clear source and availability information.
@@ -62,14 +228,14 @@ Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite Re
 
 ### Phase 0 — Monorepo Initialization ✅ DONE
 0. Set up `motorcycle-app` monorepo structure:
-   - Create directories: `apps/web/`, `apps/api/`, `specs/`, `docs/`, `.github/workflows/`
+   - Create directories: `apps/web/`, `apps/api/`, `docs/`, `.github/workflows/`
    - Initialize root `package.json` with pnpm workspaces (targets `apps/*`)
    - Create `.gitignore` (Node, .NET, Python, OS files)
    - Create `README.md` (monorepo overview)
    - Create `.github/copilot-instructions.md` (AI development guidelines for full-stack feature work)
-   - Create placeholder specs: `specs/001-motorcycle-comparison/` with `spec.md`, `plan.md`, `tasks.md`
+   - Create placeholder specs (since retired in favor of this document)
    - Create placeholder docs: `docs/architecture.md`, `docs/api.md`, `docs/database.md`
-   - Create GitHub Actions workflow templates: `.github/workflows/deploy-web.yml`, `deploy-api.yml`
+   - Create GitHub Actions workflow templates: `deploy-web.yml`, `deploy-api.yml` (since replaced by `.github/workflows/deploy.yml`)
    - Initialize git repo and commit scaffold
 
 ### Phase 1 — Database Design (PostgreSQL, Azure Flexible Server) ✅ DONE
@@ -95,9 +261,9 @@ Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite Re
    - `GET /api/bikes/compare?ids=1,2,3,...` — same alignment logic as detail but across N bikes, returns group→spec→{bikeId: value} matrix.
    - `GET /api/spec-groups` — full groups+specs settings (drives frontend filter panel & compare labels/units).
    - `GET /api/brands`, `GET /api/categories` — lookups for filter UI.
-10. Add response caching (e.g., output caching or in-memory cache) for `spec-groups`/`brands`/`categories` since they change rarely.
-11. Configure CORS for the Next.js origin, Swagger for dev, structured logging (Serilog) to App Service log stream.
-12. Add health check endpoint for App Service monitoring.
+10. ✅ DONE — Lookup endpoints (`spec-groups`/`brands`/`categories`) are cached in memory for 10 minutes; HTTP output caching for other endpoints is open.
+11. ✅ DONE — CORS, Development-only Swagger, Serilog structured logging, request logging, and a global ProblemDetails exception handler.
+12. ✅ DONE — `/health` (liveness) and `/health/ready` (database connectivity).
 
 ### Phase 3 — Frontend (Next.js + Tailwind CSS) ✅ DONE — *can start in parallel with Phase 2 once API contracts drafted (step 9)*
 13. Scaffold `apps/web`: Next.js App Router, TypeScript, Tailwind CSS (mobile-first config), a data-fetching layer (typed API client) matching backend DTOs.
@@ -105,31 +271,31 @@ Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite Re
 15. Build shared layout components mobile-first: `Header` (black bg, white text, top nav, collapses to mobile menu), `Sidebar` (dark brown, secondary nav links, becomes a drawer/hamburger panel below `md` breakpoint), `PageShell` (gold/orange page background wrapping a white-background central content area), `Button` (variant-driven brown/gold/black/dark-grey styles with active-state feedback).
 16. Pages:
    - `/bikes` — list/search page: static filter sidebar (brand/category/year/price) + dynamic spec filter panel (range sliders for numeric, multiselect for enum) built from `/api/spec-groups`; server-rendered for SEO with client-side filter interactivity; responsive grid (1 col mobile → multi-col desktop).
-   - `/bikes/[slug]` — detail page (GSMArena-style order): title first, then the image gallery beside highlighted top specs, then Compare/Pictures action links, then the full spec table grouped/ordered per settings, then a Reviews section (placeholder until `specs/002-user-reviews/` ships); the same brand-filter sidebar as `/` and `/bikes` stays visible; "Compare" deep-links to `/compare?ids={bikeId}` so the current bike is pre-selected.
+   - `/bikes/[slug]` — detail page (GSMArena-style order): title first, then the image gallery beside highlighted top specs, then Compare/Pictures action links, then the full spec table grouped/ordered per settings, then a Reviews section (placeholder until user reviews ship); the same brand-filter sidebar as `/` and `/bikes` stays visible; "Compare" deep-links to `/compare?ids={bikeId}` so the current bike is pre-selected.
    - `/compare` — bike picker uses a debounced free-text search (`GET /api/bikes?search=`) instead of listing every bike, so it stays usable as the catalog grows; selected bikes render as removable chips, side-by-side cards for few bikes, auto-switch to scrollable comparison table past threshold; selection state lives in the `ids` URL query param (shareable links).
    - `/` home — GSMArena-inspired layout: a flush-left sidebar (Brands filter, Latest Devices, and placeholder "Top 10 by Daily Interest"/"Top 10 by Fans"/"Popular Comparisons" sections pending future view/vote/comparison analytics) beside a latest-bikes grid as the initial central display.
 17. Image handling: `next/image` with a remote pattern pointing at the Azure Blob public container hostname.
 18. Basic SEO metadata (per-bike titles/OG tags using bike name + primary image).
-18a. Public user authentication (`specs/008-public-user-authentication/`): any active Facebook identity can sign in through the shared API's `/api/auth/*` endpoints (Authorization Code + PKCE, provider tokens never reach the browser), with no manual registration. The API stores a provider-agnostic `User`/`UserExternalLogin` model so a future Google (or other) sign-in method resolves to the same account when the provider reports a verified email matching an existing user; `apps/web`'s header shows a Facebook sign-in link or the signed-in user's name with a sign-out action.
+18a. Public user authentication: any active Facebook identity can sign in through the shared API's `/api/auth/*` endpoints (Authorization Code + PKCE, provider tokens never reach the browser), with no manual registration. The API stores a provider-agnostic `User`/`UserExternalLogin` model so a future Google (or other) sign-in method resolves to the same account when the provider reports a verified email matching an existing user; `apps/web`'s header shows a Facebook sign-in link or the signed-in user's name with a sign-out action.
 
-### Phase 4 — Admin Catalog Management ⏳ STAGED
-#### Stage 1 — Admin BikeModel MVP ✅ DONE (local slice; automated acceptance tests/hardening remain — see `specs/005-admin-catalog-management/implementation-status.md`)
+### Phase 4 — Admin Catalog Management ✅ IMPLEMENTED LOCALLY
+#### Stage 1 — Admin BikeModel MVP ✅ DONE (automated acceptance tests/hardening remain)
 19. Scaffold `apps/admin` as a separate Vite React SPA with TypeScript and Tailwind CSS. Copy the established `apps/web` UI tokens, typography, layout conventions, and API-client approach into an administration-focused shell.
 20. Add Facebook OAuth2 sign-in for the admin site and protected API requests. Keep public catalog endpoints anonymous and read-only; expose Stage 1 mutations under `/api/admin`.
 21. Add typed `BikeModel` CRUD contracts, application services, repository operations, and protected endpoints for loading, adding, editing, and deleting rows in `bike_models`.
 22. Prevent deletion of a `BikeModel` referenced by any `Bike` row. Return a clear conflict/error response and show an actionable message in the admin UI.
 23. Build the Stage 1 admin UI: authenticated shell, BikeModel list, add/edit form, delete confirmation, loading/empty/error states, and responsive styling matching `apps/web`.
 
-#### Stage 2 — Bike Variant CRUD & Publication ✅ DONE (`specs/006-bike-catalog-management/`)
+#### Stage 2 — Bike Variant CRUD & Publication ✅ DONE
 24. Added CRUD for `bikes` (year/variant records) under protected `/api/admin/bikes`, including publish/unpublish toggling; edits to a published variant apply immediately without an unpublish step. Deletion is a hard delete, blocked with a conflict response when the variant has dependent `bike_images`. A new unique index on `(model_id, year, variant_name)` enforces variant identity. The admin UI adds a per-model variant list/form (`BikeManagement.tsx`) reachable from each BikeModel row.
 
-#### Stage 3 — Bike Image Management ✅ IMPLEMENTED (`specs/007-bike-image-management/`)
+#### Stage 3 — Bike Image Management ✅ IMPLEMENTED
 25. Added API-owned Azure Blob upload/delete, protected image listing, ordering, primary-image selection, and admin UI management. Focused service/controller tests and authenticated Azure Blob acceptance validation remain.
 
 #### Remaining Admin Work
-26. ✅ DONE (`specs/009-spec-metadata-management/`) — CRUD for `spec_groups` and `spec_definitions`, including ordering, labels, data types, units, filter settings, group reassignment, and a transactional rename-cascade so renaming a spec's code updates every bike's stored value under that code in the same operation. Deleting a non-empty group, deleting a definition bikes still hold values for, or an incompatible `dataType` change are hard-blocked with a `409` conflict.
+26. ✅ DONE — CRUD for `spec_groups` and `spec_definitions`, including ordering, labels, data types, units, filter settings, group reassignment, and a transactional rename-cascade so renaming a spec's code updates every bike's stored value under that code in the same operation. Deleting a non-empty group, deleting a definition bikes still hold values for, or an incompatible `dataType` change are hard-blocked with a `409` conflict.
 27. Finish admin authorization, frontend/security hardening, focused acceptance tests, and final release validation.
-26a. ✅ IMPLEMENTED (`specs/010-bulk-single-spec-edit/`) — admin "Bulk Spec Edit" page (`/admin/bulk-spec`): pick one specification and a required brand (optional category and MSRP range), then set that spec across many bikes in one all-or-nothing save via `GET`/`PUT /api/admin/bikes/spec-values`. Tests and browser validation remain.
+26a. ✅ IMPLEMENTED — admin "Bulk Spec Edit" page (`/admin/bulk-spec`): pick one specification and a required brand (optional category and MSRP range), then set that spec across many bikes in one all-or-nothing save via `GET`/`PUT /api/admin/bikes/spec-values`. Tests and browser validation remain.
 
 ### Phase 5 — Azure Development Services & Final Deployment 🔄 IN PROGRESS
 28. ✅ Provisioned: Resource Group (`motorcycle-prod-rg`) → Azure Database for PostgreSQL Flexible Server (`motorcycle-prod-pg`, database `motorcycle_db`) → Azure Storage Account (`motorcycleimagesprod`, `images` Blob container, public read access for images) → Azure Key Vault (`motorcycle-prod-kv`, `StorageConnectionString` + `PostgresConnectionString` secrets) → App Service Plan (`motorcycle-prod-plan`, Linux) with three Web Apps (`motorcycle-api-prod`, `motorcycle-web-prod`, `motorcycle-admin-prod`); the API app has a system-assigned managed identity with **Key Vault Secrets User** and Key Vault references configured for both connection strings. See **Provisioned Azure Resources** above for exact names/URLs.
@@ -153,8 +319,7 @@ Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite Re
 - **Root**: `package.json` (pnpm workspaces), `.gitignore`, `README.md`, `.github/copilot-instructions.md` (AI guidelines)
 - **`apps/api/`** — ASP.NET Core Web API, Clean Architecture solution: `Motorcycle.Domain/`, `Motorcycle.Application/`, `Motorcycle.Infrastructure/` (contains `Migrations/`, `DbContext`, `Seed/`), `Motorcycle.Api/`; plus `Motorcycle.Api.sln` at the root of `apps/api/`
 - **`apps/web/`** — public Next.js app with Tailwind CSS configured (theme tokens for the header/page/sidebar/content/button color palette)
-- **`apps/admin/`** — private Vite React SPA with Stage 1 role/BikeModel management, Stage 2 Bike variant CRUD/publication management, Stage 3 image management, and spec-group/spec-definition metadata management (`specs/009-spec-metadata-management/`); it consumes the shared API and never connects directly to the database or Blob Storage.
-- **`specs/`** — cross-application feature specifications (e.g., `specs/001-motorcycle-comparison/`, `specs/005-admin-catalog-management/`, `specs/006-bike-catalog-management/`, each with `spec.md`, `plan.md`, `tasks.md`; every spec-driven feature gets a numbered folder)
+- **`apps/admin/`** — private Vite React SPA with Stage 1 role/BikeModel management, Stage 2 Bike variant CRUD/publication management, Stage 3 image management, and spec-group/spec-definition metadata management; it consumes the shared API and never connects directly to the database or Blob Storage.
 - **`docs/`** — shared architecture, API, and database documentation; updated as implementation progresses
 - **`.github/workflows/`** — CI/CD pipelines for all deployable apps (path-triggered on commits to `apps/web/`, `apps/admin/`, and `apps/api/`)
 
