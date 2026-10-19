@@ -257,6 +257,10 @@ Resource group `motorcycle-prod-rg` (Southeast Asia) hosts one Linux App Service
 
   Store the App Secret in Key Vault rather than source control or plain-text documentation. In **Key Vault → Secrets**, create/import a secret (for example, `FacebookAppSecret`), then set the API App Service setting `AdminAuth__FacebookClientSecret` to a Key Vault reference such as `@Microsoft.KeyVault(SecretUri=https://motorcycle-prod-kv.vault.azure.net/secrets/FacebookAppSecret/)`. The API's managed identity must have permission to read this secret. If public sign-in is enabled, set `UserAuth__Facebook__ClientSecret` to the same Key Vault reference. The App ID is not secret and can be entered directly as an App Service setting.
 
+  **Admin and web use separate settings and callbacks; they do not conflict.** `UserAuth__Facebook__RedirectUri` must end in `/api/auth/facebook/callback` (web), and `AdminAuth__FacebookRedirectUri` must end in `/api/admin/auth/facebook/callback` (admin). Register both URLs under **Facebook Login → Settings → Valid OAuth Redirect URIs**, and restart the API after changing settings.
+
+  **Troubleshooting web sign-in:** a 500 at `/api/auth/facebook` means a `UserAuth__*` setting is missing; Facebook "URL blocked" means the redirect URI is not registered; returning to the site still signed out means the `mc_user_session` cookie (`SameSite=Lax`) is not sent cross-site because the web and API are on different `azurewebsites.net` subdomains. Use a shared custom domain (for example `www.` and `api.` subdomains) or proxy `/api` through the web app.
+
   The Facebook callback URLs must also be registered in the Facebook app as described in [the API Facebook setup guide](apps/api/Motorcycle.Api/README.md#facebook-app-portal-setup-one-app-admin--web). Do not add trailing slashes to app URLs or CORS origins.
 
   The same settings can be applied with Azure CLI from PowerShell (retain the existing client IDs and Key Vault secret references, substituting the actual secret URI if needed):

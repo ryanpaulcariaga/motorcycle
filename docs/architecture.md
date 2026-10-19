@@ -23,7 +23,7 @@ Resource group `motorcycle-prod-rg` (Southeast Asia) currently contains:
 - App Service Plan `motorcycle-prod-plan` (Linux, Basic B1)
 - Web Apps `motorcycle-api-prod`, `motorcycle-web-prod`, `motorcycle-admin-prod`, each on the plan above
 
-The API Web App's system-assigned managed identity holds the **Key Vault Secrets User** role on `motorcycle-prod-kv` and reads both connection strings via Key Vault references in its app settings. Application code has not yet been deployed to any of the three Web Apps. During development, the API uses `dotnet user-secrets` to connect to the provisioned Azure PostgreSQL and Blob Storage resources.
+The API Web App's system-assigned managed identity holds the **Key Vault Secrets User** role on `motorcycle-prod-kv` and reads both connection strings via Key Vault references in its app settings. Set `ConnectionStrings__DefaultConnection` with the setting name in **Name** and only the reference in **Value**, for example `@Microsoft.KeyVault(SecretUri=https://motorcycle-prod-kv.vault.azure.net/secrets/PostgresConnectionString/)`; do not repeat the setting name inside the value. The secret holds a full Npgsql connection string, and `GET /health/ready` confirms connectivity. Application code has not yet been deployed to any of the three Web Apps. During development, the API uses `dotnet user-secrets` to connect to the provisioned Azure PostgreSQL and Blob Storage resources.
 
 - **Package Manager**: pnpm workspaces
 - **CI/CD**: GitHub Actions

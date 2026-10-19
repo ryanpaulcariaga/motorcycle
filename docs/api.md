@@ -148,6 +148,14 @@ Get all spec groups and their definitions (drives filter UI + compare labels).
 - `GET /health/ready` returns `200` when the database is reachable, otherwise `503` (readiness).
 - Unhandled server errors return an RFC 7807 `application/problem+json` `500` response without exception details; details go to the Serilog console log.
 
+### Database Connectivity Test
+
+`TestController` runs a `SELECT ... LIMIT 1` against `bikes` and returns a JSON boolean: `true` when a row was returned, `false` when the table is empty or the query fails (the error is swallowed). Remove or restrict these before production use.
+
+- `GET /api/test/db-anonymous` is anonymous.
+- `GET /api/test/db-user` requires the `AuthenticatedUser` policy.
+- `GET /api/test/db-admin` requires the `ActiveAdministrator` policy.
+
 ### Lookups
 
 #### GET /api/brands
