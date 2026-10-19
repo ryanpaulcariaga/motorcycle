@@ -242,20 +242,33 @@ Resource group `motorcycle-prod-rg` (Southeast Asia) hosts one Linux App Service
 ### M1. Configure the API (once)
 
 - Key Vault references (already set): `ConnectionStrings__DefaultConnection` and `Storage__ConnectionString` resolve from `motorcycle-prod-kv` through the app's managed identity (**Key Vault Secrets User**).
-- Add these application settings (use the real URLs; the Facebook redirect must be registered in the Facebook app):
+- In Azure Portal, open **App Services → `motorcycle-api-prod` → Settings → Environment variables** (or **Configuration → Application settings**) and add/update the settings below. The Azure setting names use double underscores to represent the `:` hierarchy in API configuration. These are the current default domains:
+
+  | Setting | Value |
+  |---|---|
+  | `AdminAuth__AdminAppUrl` | `https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net` |
+  | `AdminAuth__FacebookRedirectUri` | `https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/api/admin/auth/facebook/callback` |
+  | `UserAuth__WebAppUrl` | `https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net` |
+  | `UserAuth__Facebook__RedirectUri` | `https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/api/auth/facebook/callback` |
+  | `Cors__AllowedOrigins__0` | `https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net` |
+  | `Cors__AllowedOrigins__1` | `https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net` |
+
+  Keep the existing `AdminAuth__FacebookClientId`, `AdminAuth__FacebookClientSecret`, `UserAuth__Facebook__ClientId`, and `UserAuth__Facebook__ClientSecret` settings. The Facebook callback URLs must also be registered in the Facebook app as described in [the API Facebook setup guide](apps/api/Motorcycle.Api/README.md#facebook-app-portal-setup-one-app-admin--web). Do not add trailing slashes to app URLs or CORS origins.
+
+  The same settings can be applied with Azure CLI from PowerShell (retain the existing client IDs and Key Vault secret references, substituting the actual secret URI if needed):
 
 ```powershell
 az webapp config appsettings set -g motorcycle-prod-rg -n motorcycle-api-prod --settings `
-  "AdminAuth__FacebookClientId=<id>" "AdminAuth__FacebookClientSecret=@Microsoft.KeyVault(SecretUri=<secret-uri>)" `
-  "AdminAuth__FacebookRedirectUri=https://<api-host>/api/admin/auth/facebook/callback" `
-  "AdminAuth__AdminAppUrl=https://<admin-host>" `
-  "UserAuth__WebAppUrl=https://<web-host>" "UserAuth__Facebook__ClientId=<id>" `
-  "UserAuth__Facebook__ClientSecret=@Microsoft.KeyVault(SecretUri=<secret-uri>)" `
-  "UserAuth__Facebook__RedirectUri=https://<api-host>/api/auth/facebook/callback" `
-  "Cors__AllowedOrigins__0=https://<web-host>" "Cors__AllowedOrigins__1=https://<admin-host>"
+  "AdminAuth__FacebookRedirectUri=https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/api/admin/auth/facebook/callback" `
+  "AdminAuth__AdminAppUrl=https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net" `
+  "UserAuth__WebAppUrl=https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net" `
+  "UserAuth__Facebook__RedirectUri=https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/api/auth/facebook/callback" `
+  "Cors__AllowedOrigins__0=https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net" `
+  "Cors__AllowedOrigins__1=https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net"
 ```
 
 - Keep secrets in Key Vault, never in source or plain settings. Leave `ASPNETCORE_ENVIRONMENT` as `Production`.
+- In the GitHub repository's **Settings → Environments → `production` → Environment variables**, set `NEXT_PUBLIC_API_URL` and `VITE_API_URL` to `https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net`, and `NEXT_PUBLIC_SITE_URL` to `https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net`. These frontend values are embedded during build, so redeploy the frontend apps after changing them.
 - Optional API behavior settings (both default to off outside Development):
   - `Swagger__Enabled=true` serves Swagger UI at `https://<api-host>/swagger` (the API root redirects there; spec at `/swagger/v1/swagger.json`). It documents all endpoints, including `/api/admin`, which still require the administrator session cookie; remove the setting to hide it. Locally, the `https` launch profile opens `https://localhost:7240/swagger`.
   - `Database__MigrateOnStartup=true` applies pending EF Core migrations when the API starts. Leave it off in production and use the explicit step below.

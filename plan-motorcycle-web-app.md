@@ -201,7 +201,7 @@ All resources live in resource group `motorcycle-prod-rg`, region **Southeast As
 | PostgreSQL Flexible Server | `motorcycle-prod-pg` | Burstable B1ms, PostgreSQL 16 (reports 18.6), admin login `motoadmin`, public access + "allow Azure services" enabled |
 | PostgreSQL database | `motorcycle_db` | Created under `motorcycle-prod-pg` |
 | App Service Plan | `motorcycle-prod-plan` | Linux, Basic B1 |
-| API Web App | `motorcycle-api-prod` | `https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net`; system-assigned managed identity granted **Key Vault Secrets User** on `motorcycle-prod-kv`; production configuration must provide `AdminAuth:FacebookClientId`, `AdminAuth:FacebookClientSecret`, `AdminAuth:FacebookRedirectUri`, and `AdminAuth:AdminAppUrl` |
+| API Web App | `motorcycle-api-prod` | `https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net`; system-assigned managed identity granted **Key Vault Secrets User** on `motorcycle-prod-kv`; production configuration needs admin/public Facebook credentials and callback URLs, frontend redirect URLs, and CORS origins (see root README M1) |
 | Public web Web App | `motorcycle-web-prod` | `https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net` |
 | Admin Web App | `motorcycle-admin-prod` | `https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net`; Facebook redirects to the API callback, not this SPA |
 
@@ -212,7 +212,7 @@ Storage__ConnectionString = @Microsoft.KeyVault(SecretUri=https://motorcycle-pro
 ConnectionStrings__DefaultConnection = @Microsoft.KeyVault(SecretUri=https://motorcycle-prod-kv.vault.azure.net/secrets/PostgresConnectionString/)
 ```
 
-`NEXT_PUBLIC_API_URL` on the public web app and `VITE_API_URL` on the admin SPA point at the API's default domain above. The API production configuration must also allow the admin SPA origin and set its Facebook redirect URI and SPA URL. Application code has not been deployed to any of the three Web Apps; deployment is intentionally reserved for the final release after remaining feature development and validation.
+GitHub's `production` environment variables `NEXT_PUBLIC_API_URL` and `VITE_API_URL` point at the API default domain above; `NEXT_PUBLIC_SITE_URL` points at the public web domain. These are build-time frontend settings, so changes require a frontend redeploy. The API's production settings include both frontend redirect URLs and CORS origins, plus admin and public Facebook callback URLs; the exact setting names and values are in root README M1. Both production Facebook callback URLs must also be registered in the Facebook app as documented in the API README. Application code has not been deployed to any of the three Web Apps; deployment is intentionally reserved for the final release after remaining feature development and validation.
 
 Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite React SPA (no SEO requirement), plus a shared ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering), PostgreSQL (JSONB specs, schema versioned via EF Core Migrations), and Azure Blob Storage for images. The public experience supports browse/search/filter/compare bikes with grouped specs. The admin experience manages the catalog, motorcycle specifications, image assignments, and specification metadata through the same API. Future-proofing remains for AI pros/cons, annual surveys, analytics, voting/comments, dealer listings, and advertising.
 
