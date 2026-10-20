@@ -130,7 +130,11 @@ See [apps/admin/README.md](apps/admin/README.md) for the admin SPA, including lo
 
 ## Deploying to Azure
 
-> **Status:** the Azure resources are provisioned (see [plan-motorcycle-web-app.md](plan-motorcycle-web-app.md#provisioned-azure-resources-as-of-2026-09-22)) and the pipeline is defined. CI passes on `master`, but no deployment has succeeded yet: the first attempt failed at Azure login (secrets not configured) and the second skipped all deploy jobs (no app files changed). Complete the one-time setup below, then run the workflow manually with **Run workflow** to deploy all three apps. Deploy jobs fail fast with a clear message if a required secret or variable is missing.
+> **Status (2026-10-19):** all three production apps are deployed in Azure. Smoke checks over HTTPS returned HTTP 200 for the public catalog (`/bikes`), admin homepage (`/`), API liveness (`/health`), and API readiness (`/health/ready`). See [plan-motorcycle-web-app.md](plan-motorcycle-web-app.md#release-status-at-a-glance) for release readiness and remaining validation gates.
+>
+> - Public web: <https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net/>
+> - Admin: <https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net/>
+> - API: <https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/>
 
 ### How the pipeline works
 
@@ -222,9 +226,10 @@ Repeat the production setup with these changes. Everything else stays the same.
 ### Verify a deployment
 
 - Actions tab: CI and each deploy job green.
-- `https://<api-host>/health` and `/health/ready` return `200`.
-- `https://<web-host>/bikes` lists bikes with images; `/sitemap.xml` and `/robots.txt` use the production host.
-- Administrator sign-in at `https://<admin-host>` works (check CORS and the Facebook redirect URI if it fails).
+- **HTTP smoke check (2026-10-19):** API `/health` and `/health/ready`, public web `/bikes`, and admin `/` returned HTTP `200` at the production URLs listed above.
+- **Operator-confirmed (2026-10-20):** production database and storage connectivity work, and Facebook sign-in works.
+- Confirm `https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net/bikes` lists bikes with images; verify `/sitemap.xml` and `/robots.txt` use the production host.
+- Validate the admin catalog workflows, including image upload/management, specs, and bulk edits, in a browser at <https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net/>.
 - Create the first administrator with the bootstrap command in the plan's Feature Log if the production database has none.
 
 ### Manual deployment (fallback)

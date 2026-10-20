@@ -32,6 +32,10 @@ dotnet run --project apps/api/Motorcycle.Api -- admin bootstrap --facebook-user-
 
 Stage 1 requests only the `public_profile` Facebook permission. Email is an optional profile value and is not required for sign-in.
 
+## Production
+
+The admin SPA is deployed to Azure at <https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net/> and uses the shared API at <https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/>. The admin homepage returned HTTP 200 in a production smoke check on 2026-10-19; administrator sign-in and catalog workflows still require browser-level acceptance validation. Production configuration and remaining release gates are tracked in [the deployment guide](../../README.md#deploying-to-azure) and [the project plan](../../plan-motorcycle-web-app.md#release-status-at-a-glance).
+
 ## API and Bootstrap
 
 Start PostgreSQL and the API with Visual Studio's `https` profile on `https://localhost:7240`, then apply migrations:
@@ -50,7 +54,7 @@ The bootstrap command is operator-only and idempotent for an existing active adm
 
 ## Stage 1 Scope
 
-Implemented locally: API-owned Facebook PKCE sign-in, encrypted HttpOnly sessions, administrator-role lifecycle, BikeModel CRUD, Bike variant CRUD/publication, Azure Blob-backed image operations, specification metadata CRUD (`/admin/specs`, `specs/009-spec-metadata-management/`), and bulk single-spec editing across many bikes (`/admin/bulk-spec`, `specs/010-bulk-single-spec-edit/`). The API uses the provisioned Azure PostgreSQL and Blob Storage resources through local user secrets; production App Service deployment remains deferred until feature completion. Local access to the Azure PostgreSQL server requires your current public IP in its firewall rules.
+Implemented features include API-owned Facebook PKCE sign-in, encrypted HttpOnly sessions, administrator-role lifecycle, BikeModel CRUD, Bike variant CRUD/publication, Azure Blob-backed image operations, specification metadata CRUD (`/admin/specs`, `specs/009-spec-metadata-management/`), and bulk single-spec editing across many bikes (`/admin/bulk-spec`, `specs/010-bulk-single-spec-edit/`). The admin SPA and shared API are deployed to production; local development uses API user secrets to access the provisioned Azure PostgreSQL and Blob Storage resources. Local access to Azure PostgreSQL requires your current public IP in its firewall rules. Production sign-in and catalog workflows remain part of release validation.
 
 ## Continuing Work
 

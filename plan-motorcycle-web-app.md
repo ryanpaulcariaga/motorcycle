@@ -16,7 +16,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 
 ### Release Status at a Glance
 
-**Verdict (updated 2026-10-19): NOT READY FOR PRODUCTION.** The product is feature-complete for the first release and runs locally against the Azure PostgreSQL and Blob Storage resources, and the CI/CD pipeline completed its first successful deployment to Azure on 2026-10-19 (run #39211828423). Post-deployment verification, production configuration, and security, testing, legal, and operational gates are still open.
+**Verdict (updated 2026-10-20): LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION.** The production API, public web app, and admin SPA are deployed. HTTP smoke checks returned `200` for the public catalog (`/bikes`), admin homepage (`/`), API liveness (`/health`), and API readiness (`/health/ready`) on 2026-10-19. On 2026-10-20, the operator confirmed the deployed apps connect to the production database and storage account and Facebook sign-in works. Detailed browser acceptance and remaining configuration, security, testing, legal, and operational gates are still open.
 
 | Phase | Status | Notes |
 |---|---|---|
@@ -25,7 +25,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 | 2 Backend API | ✅ | Clean Architecture, Strategy-pattern filters, Serilog, ProblemDetails, `/health` and `/health/ready` |
 | 3 Public frontend | ✅ | `/`, `/bikes`, `/bikes/[slug]`, `/compare`, Facebook sign-in, "Often compared with", sitemap/robots, error pages |
 | 4 Admin catalog | ✅ locally | See Feature Log; acceptance coverage and hardening are release gates |
-| 5 Azure and deployment | 🔄 | Resources provisioned; `deploy.yml` deployed successfully via OIDC on 2026-10-19; production config and verification checklist pending |
+| 5 Azure and deployment | ✅ live | All three apps deployed via OIDC; production endpoints and health routes returned HTTP 200 on 2026-10-19; browser-level acceptance and remaining operational gates are pending |
 | 6 Future backlog | ⏳ | Reviews, advertising, dealer links, AI pros/cons, surveys, analytics, voting |
 
 ### Production Readiness Scorecard
@@ -34,9 +34,9 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 |---|---|---|---|---|
 | Product functionality | ✅ | Feature Log items 1–9 work locally | Browser acceptance of bulk spec and admin flows | G-05 |
 | Azure infrastructure | ✅ | Resource group, PostgreSQL, Storage, Key Vault, plan, 3 Web Apps | None | |
-| Deployment pipeline | ✅ | `ci.yml` (PRs, reused) and `deploy.yml` (push to `master`: CI, then per-app OIDC deploy to Azure); OIDC setup done and first deployment succeeded 2026-10-19 (run #39211828423); `scripts/setup-azure-oidc.ps1` creates the identity and federated credential (parameterized for future dev/QA) | Run the README verification checklist against the deployed hosts | G-01, TODO-2, TODO-3 |
-| Configuration and secrets | 🔄 | Key Vault references for DB and Storage strings; admin Facebook App ID/secret added to API App Service configuration (operator-confirmed 2026-10-19); Swagger off outside Development unless `Swagger__Enabled=true`; deploy secrets via OIDC (no stored credentials) | Verify Facebook secret is Key Vault-backed; verify public-user Facebook credentials if sign-in is enabled; confirm redirect URIs, CORS origins, and site URL | G-02, TODO-1 |
-| Database and migrations | 🔄 | Startup migrations off outside Development (`Database:MigrateOnStartup`); explicit `dotnet ef database update` step documented in README | Apply and review the first production migration; consider a deploy-time step | G-03 |
+| Deployment pipeline | ✅ | `ci.yml` (PRs, reused) and `deploy.yml` (push to `master`: CI, then per-app OIDC deploy to Azure); OIDC setup done and deployment succeeded 2026-10-19 (run #39211828423); production HTTP checks passed for all three apps and API health/readiness; operator confirmed database/storage connectivity and working Facebook sign-in on 2026-10-20; `scripts/setup-azure-oidc.ps1` creates the identity and federated credential (parameterized for future dev/QA) | Detailed browser acceptance of catalog content/images, sitemap/robots, and admin CRUD workflows | G-01, TODO-2, TODO-3, G-05 |
+| Configuration and secrets | 🔄 | Key Vault references for DB and Storage strings; admin Facebook App ID/secret added to API App Service configuration (operator-confirmed 2026-10-19); production frontend URL variables configured; operator confirmed Facebook sign-in works (2026-10-20); Swagger off outside Development unless `Swagger__Enabled=true`; deploy secrets via OIDC (no stored credentials) | Verify Facebook secret is Key Vault-backed, Meta review/data-use requirements, and production domain/HTTPS policy | G-02 |
+| Database and migrations | 🔄 | API `/health/ready` returned HTTP 200; operator confirmed production database and storage connectivity (2026-10-20); startup migrations off outside Development (`Database:MigrateOnStartup`); explicit `dotnet ef database update` step documented in README | Review production migration state and document/verify the production migration procedure | G-03 |
 | Observability | 🔄 | Serilog console logs, `/health`, `/health/ready`, ProblemDetails | Application Insights, alerts, uptime probes, error tracking | G-06 |
 | Automated testing | ❌ | API unit tests exist (3 files); CI defined | CI never run on GitHub; no image/spec/bulk tests; no frontend or e2e tests | G-04, TODO-7 |
 | Security | ❌ | HttpOnly Secure cookies, policy-based admin auth, CORS allow-list | Rate limiting, security headers, CSRF stance, upload validation, audit log, admin IdP exit plan | G-07 |
@@ -50,12 +50,11 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 
 ### Release Gates
 
-**Must pass before the first production deployment (blockers)**
-- [ ] **G-01** Pipeline set up and proven: Azure OIDC app registration, GitHub `production` environment, secrets/variables, and runtime stacks configured (see README); a push to `master` deploys API, web, and admin and the README verification checklist passes. Progress: OIDC and first deployment done (2026-10-19, run #39211828423); tick when the verification checklist passes
-- [ ] **G-02** Production configuration complete: Facebook app (production redirect URIs, review/data-use), CORS origins, GitHub variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, `VITE_API_URL`, custom domains with HTTPS-only
-- [ ] **G-03** Migration strategy: startup migrations are off outside Development (decided 2026-10-19 after the first deployed API hung); migrations are applied explicitly (README: Database migrations) and kept out of the pipeline; review the first production migration and revisit a deploy-time step before production
+- [x] **G-01** Deployment and availability verified: Azure OIDC app registration, GitHub `production` environment, secrets/variables, and runtime stacks configured; deployment succeeded (2026-10-19, run #39211828423); HTTP checks for `/bikes`, admin `/`, `/health`, and `/health/ready` returned 200 (2026-10-19); operator confirmed production database/storage connectivity and working Facebook sign-in (2026-10-20). This gate covers deployment and basic availability only; detailed UI/catalog acceptance remains in G-05.
+- [ ] **G-02** Production configuration complete: Facebook app production redirect URIs, review/data-use, CORS origins, GitHub variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, `VITE_API_URL`, and HTTPS/custom-domain policy. Facebook sign-in and core endpoint connectivity are operator-confirmed (2026-10-20); verify the remaining configuration and policy items before closing.
+- [ ] **G-03** Migration strategy: startup migrations are off outside Development (decided 2026-10-19 after the first deployed API hung); migrations are applied explicitly (README: Database migrations) and kept out of the pipeline; review the first production migration and document the operational procedure
 - [ ] **G-04** CI passes on GitHub (API tests, web/admin lint and build); core API tests added for image, spec metadata, bulk spec, and compare tracking
-- [ ] **G-05** Browser validation of admin flows (BikeModel, variant, images, spec metadata, bulk spec/grid) and of public browse, filter, and compare
+- [ ] **G-05** Browser acceptance beyond basic sign-in/connectivity: public browse, filters, compare, images and sitemap/robots; admin BikeModel, variant, image upload/management, spec metadata, and bulk spec/grid flows
 - [ ] **G-06** Monitoring in place: Application Insights or equivalent, alerts on failures, uptime probes for `/health/ready`
 - [ ] **G-07** Security baseline: rate limiting on auth/upload/public endpoints, security headers on all three apps, documented CSRF stance, upload type/size validation, admin audit log, decision on the admin identity provider
 - [ ] **G-10** Privacy policy and terms published; cookie consent if analytics/ads are added
@@ -79,17 +78,26 @@ Open implementation items with their `TODO-n` tags (search this file for a tag).
 
 | Tag | Item | Gate |
 |---|---|---|
-| TODO-1 | Set GitHub variable `NEXT_PUBLIC_SITE_URL` (used by sitemap/robots via `apps/web/lib/site.ts`) to the production public URL; defaults to `https://localhost:3000` | G-02 |
-| TODO-2 | ✅ Admin deploy is part of `.github/workflows/deploy.yml` (Vite build with `VITE_API_URL`, `pm2 serve --spa` startup command). Remaining: confirm the admin site serves correctly on the Node 22 runtime | G-01 |
-| TODO-3 | ✅ One-time pipeline setup and first deployment done (2026-10-19). Remaining: verify the deployed apps; migrations are intentionally NOT part of the pipeline and the API does not migrate at startup outside Development (`Database:MigrateOnStartup`); apply them explicitly per README. Open: the deployed API (`motorcycle-api-prod`) did not respond on 2026-10-19 (suspected startup migration hang); redeploy and verify `/health`, `/health/ready`, `/swagger` | G-01, G-03 |
+| TODO-1 | ✅ Set GitHub production variables `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_API_URL`, and `VITE_API_URL` to the live URLs below. Remaining: verify sitemap/robots use the public production host | G-02 |
+| TODO-2 | ✅ API, web, and admin deployed by `.github/workflows/deploy.yml`; production endpoints returned HTTP 200 on 2026-10-19; operator confirmed database/storage connectivity and Facebook sign-in on 2026-10-20. Remaining: detailed browser-level catalog and admin workflow checks | G-01, G-05 |
+| TODO-3 | ✅ OIDC pipeline setup, deployment, and HTTP smoke checks completed 2026-10-19 (run #39211828423). Migrations are intentionally NOT part of the pipeline and the API does not migrate at startup outside Development (`Database:MigrateOnStartup`); review and document production migration operations | G-01, G-03 |
 | TODO-4 | CI uses pnpm `version: 10`; the lockfile is version 9.0, which pnpm 10 reads, but confirm `pnpm install --frozen-lockfile` passes on the first CI run (local pnpm is 12.6) | G-04 |
 | TODO-5 | HTTP output caching for `/api/bikes` and the Next.js caching/revalidation strategy | G-09 |
 | TODO-6 | OpenGraph images, canonical URLs, JSON-LD structured data | |
 | TODO-7 | Run CI on GitHub; re-run API tests locally with the API stopped (a running API locks the build output) | G-04 |
 
-#### Next Steps: First Deployment (updated 2026-10-19)
+#### Production Deployment (updated 2026-10-19)
 
-The first successful deployment ran on 2026-10-19 (run #39211828423). History of the first-deployment attempts, all on `master`:
+The first successful deployment ran on 2026-10-19 (run #39211828423). HTTP smoke checks on 2026-10-19 confirmed the following routes returned `200`:
+
+| App/check | Production URL |
+|---|---|
+| Public web `/bikes` | <https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net/bikes> |
+| Admin `/` | <https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net/> |
+| API `/health` | <https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/health> |
+| API `/health/ready` | <https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/health/ready> |
+
+History of the first-deployment attempts, all on `master`:
 
 | Run | Result | Cause and fix |
 |---|---|---|
@@ -100,11 +108,11 @@ The first successful deployment ran on 2026-10-19 (run #39211828423). History of
 
 Lessons: compare the "Federated token details" in the failed `azure/login` log with the Entra federated credential (issuer, subject, audience must match exactly); the environment secrets only change when the app registration, tenant, or subscription changes; docs-only pushes do not deploy, so use **Run workflow** with `deploy_all` to redeploy everything.
 
-Remaining steps; details are in the README "Deploying to Azure" section.
+HTTP smoke checks confirm reachability and API database readiness. The operator additionally confirmed database/storage connectivity and working Facebook sign-in on 2026-10-20. These checks do not replace the detailed browser acceptance still tracked in G-05; remaining deployment settings are in the README "Deploying to Azure" section.
 
 - [x] **NS-1 One-time Azure and GitHub setup** (TODO-3, G-01): Entra app registration, federated credential, Website Contributor on `motorcycle-prod-rg`, GitHub `production` environment with secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, and variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL` (TODO-1), `VITE_API_URL`. Done 2026-10-19.
-- [ ] **NS-2 Confirm App Service runtimes and API settings** (TODO-2): API = .NET 10, web = Node 22, admin = Node 22 (needed for `pm2 serve`). Complete API app settings (Facebook, CORS, redirect URIs) per README M1.
-- [ ] **NS-3 Verify the deployed apps** (TODO-2, TODO-3, G-01): deployment ✅ 2026-10-19; complete the README verification checklist (`/health`, `/health/ready`, `/bikes`, `/sitemap.xml`, admin sign-in) and record evidence here.
+- [ ] **NS-2 Confirm App Service runtimes and API settings** (TODO-2): API = .NET 10, web = Node 22, admin = Node 22 (needed for `pm2 serve`). Verify API production redirect URIs, CORS, and secret storage per README M1; working Facebook sign-in and DB/storage connectivity were operator-confirmed on 2026-10-20.
+- [x] **NS-3 Verify production HTTP reachability** (TODO-2, TODO-3, G-01): ✅ `GET /health`, `/health/ready`, `/bikes`, and admin `/` returned HTTP 200 on 2026-10-19. Operator confirmed database/storage connectivity and Facebook sign-in on 2026-10-20. Detailed content/image/sitemap/admin workflow browser validation remains open under G-05.
 - [x] **NS-4 Confirm pnpm lockfile compatibility** (TODO-4, G-04): ✅ `pnpm install --frozen-lockfile` passed in CI and in the deploy jobs (pnpm 10), 2026-10-19.
 - [ ] **NS-5 Run API tests locally** (TODO-7, G-04): stop the running API and Visual Studio, then `dotnet test apps\api\Motorcycle.Api.slnx`. Never run in this session.
 
@@ -131,6 +139,7 @@ Local ports: API `https://localhost:7240` (single `https` launch profile), publi
 | 7 | Spec metadata admin | CRUD/reorder of `spec_groups`/`spec_definitions`, global unique code, transactional rename cascade, `409` on unsafe deletes/type changes |
 | 8 | Bulk spec editing | Set one spec across many bikes (`/api/admin/bikes/spec-values`) and a multi-spec grid (`/api/admin/bikes/spec-grid`), all-or-nothing saves, filterable by brand/category/MSRP |
 | 9 | Compared-bike recommendations | `bike_comparisons` pair counter (migration `AddBikeComparisons`), `GET /api/bikes/{slug}/compared-with`, "Often compared with" on bike detail |
+| 10 | Azure production deployment | API, public web app, and admin SPA deployed to Azure App Service via GitHub Actions OIDC; production endpoints and API health/readiness checks returned HTTP 200 on 2026-10-19. Browser acceptance and release-readiness gates remain tracked separately |
 
 API contracts live in `docs/api.md`, architecture in `docs/architecture.md`, schema in `docs/database.md`. API unit tests: `apps/api/Motorcycle.Api.Tests` (admin controller authorization, `AdminRoleService`, `BikeAdminService`). No frontend test runner yet.
 
@@ -212,7 +221,7 @@ Storage__ConnectionString = @Microsoft.KeyVault(SecretUri=https://motorcycle-pro
 ConnectionStrings__DefaultConnection = @Microsoft.KeyVault(SecretUri=https://motorcycle-prod-kv.vault.azure.net/secrets/PostgresConnectionString/)
 ```
 
-GitHub's `production` environment variables `NEXT_PUBLIC_API_URL` and `VITE_API_URL` point at the API default domain above; `NEXT_PUBLIC_SITE_URL` points at the public web domain. These are build-time frontend settings, so changes require a frontend redeploy. The API's production settings include both frontend redirect URLs and CORS origins, plus admin and public Facebook callback URLs; the exact setting names and values are in root README M1. Both production Facebook callback URLs must also be registered in the Facebook app as documented in the API README. Application code has not been deployed to any of the three Web Apps; deployment is intentionally reserved for the final release after remaining feature development and validation.
+GitHub's `production` environment variables `NEXT_PUBLIC_API_URL` and `VITE_API_URL` point at the API default domain above; `NEXT_PUBLIC_SITE_URL` points at the public web domain. These are build-time frontend settings, so changes require a frontend redeploy. The API's production settings include both frontend redirect URLs and CORS origins, plus admin and public Facebook callback URLs; the exact setting names and values are in root README M1. Both production Facebook callback URLs must also be registered in the Facebook app as documented in the API README. All three apps are deployed and their HTTP smoke checks passed on 2026-10-19; browser-based authentication and catalog acceptance still need verification.
 
 Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite React SPA (no SEO requirement), plus a shared ASP.NET Core Web API backend (Clean Architecture, EF Core, Strategy pattern for spec filtering), PostgreSQL (JSONB specs, schema versioned via EF Core Migrations), and Azure Blob Storage for images. The public experience supports browse/search/filter/compare bikes with grouped specs. The admin experience manages the catalog, motorcycle specifications, image assignments, and specification metadata through the same API. Future-proofing remains for AI pros/cons, annual surveys, analytics, voting/comments, dealer listings, and advertising.
 
@@ -308,11 +317,11 @@ Monorepo full-stack app: a public Next.js frontend (SSR/SEO) and private Vite Re
 27. Finish admin authorization, frontend/security hardening, focused acceptance tests, and final release validation.
 26a. ✅ IMPLEMENTED — admin "Bulk Spec Edit" page (`/admin/bulk-spec`): pick one specification and a required brand (optional category and MSRP range), then set that spec across many bikes in one all-or-nothing save via `GET`/`PUT /api/admin/bikes/spec-values`. Tests and browser validation remain.
 
-### Phase 5 — Azure Development Services & Final Deployment 🔄 IN PROGRESS
+### Phase 5 — Azure Production Deployment & Operations ✅ LIVE (readiness work remains)
 28. ✅ Provisioned: Resource Group (`motorcycle-prod-rg`) → Azure Database for PostgreSQL Flexible Server (`motorcycle-prod-pg`, database `motorcycle_db`) → Azure Storage Account (`motorcycleimagesprod`, `images` Blob container, public read access for images) → Azure Key Vault (`motorcycle-prod-kv`, `StorageConnectionString` + `PostgresConnectionString` secrets) → App Service Plan (`motorcycle-prod-plan`, Linux) with three Web Apps (`motorcycle-api-prod`, `motorcycle-web-prod`, `motorcycle-admin-prod`); the API app has a system-assigned managed identity with **Key Vault Secrets User** and Key Vault references configured for both connection strings. See **Provisioned Azure Resources** above for exact names/URLs.
-29. Deferred until final release: CI/CD GitHub Actions workflows in `.github/workflows/` — build/test `apps/web`, `apps/admin`, and `apps/api` on each push; deploy to the corresponding App Service only if that app changes. The API pipeline also runs `dotnet ef database update` against the target environment as a deploy step.
-30. Configure the `web` App Service for Next.js standalone output/Node runtime and serve the `admin` Vite build as static files (sources: `apps/web/` and `apps/admin/`); configure `api` for ASP.NET Core (source: `apps/api/`). Wire each app's API base URL and the API's DB connection and storage configuration through managed configuration.
-31. Point DNS/custom domains (if any), require HTTPS, and review the Facebook OAuth2 production configuration before deployment.
+29. ✅ Implemented: GitHub Actions CI/CD in `.github/workflows/`; `deploy.yml` builds and deploys changed apps to their App Services using OIDC. Database migrations are intentionally not run by the pipeline; apply them explicitly using the README procedure.
+30. ✅ Deployed: public web uses the Next.js standalone runtime, admin serves the Vite SPA, and the API runs on App Service. Production API, web, and admin URLs are listed in the README; API database readiness returned HTTP 200 in the 2026-10-19 smoke check.
+31. Remaining: consider custom domains, confirm HTTPS-only and production Facebook OAuth settings, and complete browser-level release validation.
 
 ### Phase 6 — Future Backlog (not built now, tracked for later) ⏳ NOT STARTED (intentionally deferred)
 32. AI-generated pros/cons for compared bikes (likely an async job hitting an LLM, cached per bike-set).
