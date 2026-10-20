@@ -7,6 +7,7 @@ import type {
   CompareResultDto,
   ComparedBikeDto,
   PagedResult,
+  PopularComparisonDto,
   SpecGroupDto,
   UserSessionDto,
 } from "./types";
@@ -55,6 +56,10 @@ export function compareBikes(ids: string[]): Promise<CompareResultDto> {
 
 export function getComparedWith(slug: string, limit = 4): Promise<ComparedBikeDto[]> {
   return apiFetch(`/api/bikes/${encodeURIComponent(slug)}/compared-with${buildQueryString({ limit })}`);
+}
+
+export function getPopularComparisons(limit = 10): Promise<PopularComparisonDto[]> {
+  return apiFetch(`/api/bikes/popular-comparisons${buildQueryString({ limit })}`);
 }
 
 export function getBrands(): Promise<BrandDto[]> {

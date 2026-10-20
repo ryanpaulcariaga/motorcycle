@@ -26,6 +26,28 @@ public class BikeComparisonRepository : IBikeComparisonRepository
         }
     }
 
+    public async Task<List<PopularComparisonMatch>> GetMostComparedPairsAsync(int limit, CancellationToken ct = default)
+    {
+        var rows = await _context.BikeComparisons
+            .Where(c => _context.Bikes.Any(b => b.Id == c.BikeAId && b.IsPublished)
+                && _context.Bikes.Any(b => b.Id == c.BikeBId && b.IsPublished))
+            .OrderByDescending(c => c.CompareCount)
+            .ThenByDescending(c => c.LastComparedAt)
+            .Take(limit)
+            .Select(c => new { c.BikeAId, c.BikeBId, c.CompareCount })
+            .ToListAsync(ct);
+
+        var ids = rows.SelectMany(r => new[] { r.BikeAId, r.BikeBId }).Distinct().ToList();
+        var bikes = await _context.Bikes
+            .Include(b => b.Model).ThenInclude(m => m.Brand)
+            .Include(b => b.Model).ThenInclude(m => m.Category)
+            .Include(b => b.Images)
+            .Where(b => ids.Contains(b.Id))
+            .ToDictionaryAsync(b => b.Id, ct);
+
+        return rows.Select(r => new PopularComparisonMatch(bikes[r.BikeAId], bikes[r.BikeBId], r.CompareCount)).ToList();
+    }
+
     public async Task<List<ComparedBikeMatch>> GetMostComparedWithAsync(int bikeId, int limit, CancellationToken ct = default)
     {
         var rows = await _context.BikeComparisons

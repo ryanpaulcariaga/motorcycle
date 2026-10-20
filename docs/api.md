@@ -106,6 +106,12 @@ Compare multiple motorcycles side-by-side.
 
 Each successful comparison also increments the `bike_comparisons` counter for every pair of the compared bikes (any number). Tracking is best-effort and never fails the request.
 
+#### GET /api/bikes/popular-comparisons?limit=10
+
+Most compared pairs of published bikes (most compared first; `limit` 1–20, default 10). Powers the "Popular Comparisons" sidebar, which links each pair to `/compare?ids=<bikeA.id>,<bikeB.id>`.
+
+**Response**: `[{ "bikeA": <BikeListItemDto>, "bikeB": <BikeListItemDto>, "compareCount": 12 }]`
+
 #### GET /api/bikes/{slug}/compared-with?limit=4
 
 Published bikes most often compared with the given bike (most compared first; `limit` 1–12, default 4). Returns `404` for an unknown/unpublished slug.

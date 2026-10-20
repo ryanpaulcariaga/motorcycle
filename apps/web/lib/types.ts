@@ -141,6 +141,12 @@ export interface BikesQuery {
   specValues?: string;
 }
 
+export interface PopularComparisonDto {
+  bikeA: BikeListItemDto;
+  bikeB: BikeListItemDto;
+  compareCount: number;
+}
+
 export interface ComparedBikeDto {
   bike: BikeListItemDto;
   compareCount: number;

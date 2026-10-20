@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PageShell from '@/components/PageShell';
 import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
-import { getBikes, getBrands } from '@/lib/api';
+import { getBikes, getBrands, getPopularComparisons } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,9 +11,10 @@ function ComingSoonPanel({ hint }: { hint: string }) {
 }
 
 export default async function Home() {
-  const [{ items: latestBikes }, brands] = await Promise.all([
+  const [{ items: latestBikes }, brands, popularComparisons] = await Promise.all([
     getBikes({ pageSize: 12, sortBy: 'year', sortDescending: true }),
     getBrands(),
+    getPopularComparisons(10),
   ]);
 
   return (
@@ -50,7 +51,21 @@ export default async function Home() {
           </SidebarSection>
 
           <SidebarSection title="Popular Comparisons">
-            <ComingSoonPanel hint="Coming soon — tracked once comparison analytics ship." />
+            {popularComparisons.length === 0 ? (
+              <ComingSoonPanel hint="No comparisons yet — compare some bikes to see them here." />
+            ) : (
+              <div className="flex flex-col">
+                {popularComparisons.map(({ bikeA, bikeB }) => (
+                  <SidebarLink
+                    key={`${bikeA.id}-${bikeB.id}`}
+                    href={`/compare?ids=${bikeA.id},${bikeB.id}`}
+                  >
+                    {bikeA.brandName} {bikeA.variantName} vs {bikeB.brandName}{' '}
+                    {bikeB.variantName}
+                  </SidebarLink>
+                ))}
+              </div>
+            )}
           </SidebarSection>
         </Sidebar>
 
@@ -79,8 +94,8 @@ export default async function Home() {
                   </p>
                   <p className="text-sm text-brand-grey">
                     {bike.year}{' '}
-                    {bike.msrpPrice
-                      ? `· $${bike.msrpPrice.toLocaleString()}`
+                    {bike.msrpPrice !== null
+                      ? `· MSRP $${bike.msrpPrice.toLocaleString()}`
                       : ''}
                   </p>
                 </div>

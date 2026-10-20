@@ -100,6 +100,14 @@ public class BikesController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>Most compared bike pairs, for the "Popular Comparisons" sidebar.</summary>
+    [HttpGet("popular-comparisons")]
+    public async Task<IActionResult> GetPopularComparisons([FromQuery] int limit = 10, CancellationToken ct = default)
+    {
+        var result = await _bikeService.GetPopularComparisonsAsync(limit is < 1 or > 20 ? 10 : limit, ct);
+        return Ok(result);
+    }
+
     /// <summary>Bikes most often compared with the given bike, to recommend as comparison options.</summary>
     [HttpGet("{slug}/compared-with")]
     public async Task<IActionResult> GetComparedWith(string slug, [FromQuery] int limit = 4, CancellationToken ct = default)

@@ -11,6 +11,7 @@ public interface IBikeService
     Task<BikeDetailDto?> GetBikeDetailAsync(string slug, CancellationToken ct = default);
     Task<CompareResultDto> CompareBikesAsync(List<int> bikeIds, CancellationToken ct = default);
     Task<List<ComparedBikeDto>?> GetMostComparedWithAsync(string slug, int limit, CancellationToken ct = default);
+    Task<List<PopularComparisonDto>> GetPopularComparisonsAsync(int limit, CancellationToken ct = default);
 }
 
 public class BikeService : IBikeService
@@ -144,6 +145,17 @@ public class BikeService : IBikeService
 
         var matches = await _comparisonRepository.GetMostComparedWithAsync(bike.Id, limit, ct);
         return matches.Select(m => new ComparedBikeDto { Bike = ToListItemDto(m.Bike), CompareCount = m.CompareCount }).ToList();
+    }
+
+    public async Task<List<PopularComparisonDto>> GetPopularComparisonsAsync(int limit, CancellationToken ct = default)
+    {
+        var matches = await _comparisonRepository.GetMostComparedPairsAsync(limit, ct);
+        return matches.Select(m => new PopularComparisonDto
+        {
+            BikeA = ToListItemDto(m.BikeA),
+            BikeB = ToListItemDto(m.BikeB),
+            CompareCount = m.CompareCount
+        }).ToList();
     }
 
     private async Task TrackComparisonAsync(List<Bike> bikes, CancellationToken ct)
