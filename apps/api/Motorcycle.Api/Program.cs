@@ -167,26 +167,24 @@ if (DbSeedCommand.IsRequested(args)) {
     return;
 }
 
-// Startup migrations are controlled by Database:MigrateOnStartup (on in Development, off otherwise).
-// Keeping them off in deployed environments means a slow or unreachable database can never stop the
-// API from listening. Apply migrations explicitly (README: Database migrations) or opt in with the
-// app setting Database__MigrateOnStartup=true.
-// Dev-only auto-seed runs once against an empty bikes table (e.g. a fresh local or Azure DB) so it
-// never silently re-mutates a database that already has real/seeded data on every restart.
-// Run `dotnet run -- db seed [--force]` to seed on demand in any environment.
-var migrateOnStartup = app.Configuration.GetValue<bool?>("Database:MigrateOnStartup") ?? app.Environment.IsDevelopment();
-if (migrateOnStartup) {
-    using var scope = app.Services.CreateScope();
+// Apply schema migrations on every startup, independently of the startup-seeding setting.
+// Database:MigrateOnStartup retains its existing name but now controls only development seeding.
+// The development seed runs once against an empty bikes table; production catalog data is managed
+// through the admin API. Run `dotnet run -- db seed [--force]` to seed on demand in any environment.
+using (var scope = app.Services.CreateScope()) {
     var db = scope.ServiceProvider.GetRequiredService<MotorcycleDbContext>();
-    app.Logger.LogInformation("Applying database migrations (Database:MigrateOnStartup is enabled).");
+    app.Logger.LogInformation("Applying database migrations.");
     await db.Database.MigrateAsync();
 
-    if (app.Environment.IsDevelopment() && !await db.Bikes.AnyAsync()) {
+    var seedOnStartup = app.Configuration.GetValue<bool?>("Database:MigrateOnStartup") ?? app.Environment.IsDevelopment();
+    if (seedOnStartup && app.Environment.IsDevelopment() && !await db.Bikes.AnyAsync()) {
         await DatabaseSeeder.SeedAsync(db);
         await MotorcycleDataSeeder.SeedAsync(db);
+    } else if (seedOnStartup && !app.Environment.IsDevelopment()) {
+        app.Logger.LogInformation("Skipping startup seeding because it is only enabled in Development.");
+    } else if (!seedOnStartup) {
+        app.Logger.LogInformation("Skipping startup seeding (Database:MigrateOnStartup is disabled).");
     }
-} else {
-    app.Logger.LogInformation("Skipping database migrations (Database:MigrateOnStartup is disabled).");
 }
 
 // Unhandled exceptions become RFC 7807 problem responses without leaking details.
@@ -221,4 +219,3 @@ app.MapGet("/health/ready", async (MotorcycleDbContext db, CancellationToken ct)
         : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 
 app.Run();
-
