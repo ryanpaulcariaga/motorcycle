@@ -167,7 +167,17 @@ export default function App() {
 
   useEffect(() => {
     void getAdminSession()
-      .then(setSession)
+      .then((value) => {
+        const returnTo = sessionStorage.getItem('mc_return_to');
+        if (returnTo) {
+          sessionStorage.removeItem('mc_return_to');
+          if (returnTo !== window.location.pathname + window.location.search) {
+            window.location.replace(returnTo);
+            return;
+          }
+        }
+        setSession(value);
+      })
       .catch((cause: unknown) => {
         if (!(cause instanceof AdminApiError) || cause.status !== 401) {
           console.error(cause);

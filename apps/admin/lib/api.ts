@@ -21,6 +21,13 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     headers: { Accept: "application/json", ...options?.headers },
   });
 
+  if (response.status === 401 && path !== "/api/admin/auth/session" && path !== "/api/admin/auth/signout") {
+    // Session expired: remember the page and silently re-authenticate (Facebook returns immediately if still signed in there).
+    sessionStorage.setItem("mc_return_to", window.location.pathname + window.location.search);
+    window.location.assign(`${API_BASE_URL}/api/admin/auth/facebook`);
+    return new Promise<T>(() => {});
+  }
+
   if (!response.ok) {
     let details: ApiError = { message: response.statusText || "Request failed" };
     try {

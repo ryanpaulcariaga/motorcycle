@@ -121,6 +121,7 @@ public sealed class AdminAuthenticationController : ControllerBase
             {
                 IsPersistent = true,
                 ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1),
+                AllowRefresh = true,
             });
             return Redirect(_options.AdminAppUrl);
         } catch (HttpRequestException) {
