@@ -32,7 +32,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 
 | Area | Status | Evidence | Gap / next action | Ref |
 |---|---|---|---|---|
-| Product functionality | ✅ | Feature Log items 1–9 work locally | Browser acceptance of bulk spec and admin flows | G-05 |
+| Product functionality | ✅ | Feature Log items 1–9 and 11 work locally; item 10 is live | Browser acceptance of bulk spec and admin flows | G-05 |
 | Azure infrastructure | ✅ | Resource group, PostgreSQL, Storage, Key Vault, plan, 3 Web Apps | None | |
 | Deployment pipeline | ✅ | `ci.yml` (PRs, reused) and `deploy.yml` (push to `master`: CI, then per-app OIDC deploy to Azure); OIDC setup done and deployment succeeded 2026-10-19 (run #39211828423); production HTTP checks passed for all three apps and API health/readiness; operator confirmed database/storage connectivity and working Facebook sign-in on 2026-10-20; `scripts/setup-azure-oidc.ps1` creates the identity and federated credential (parameterized for future dev/QA) | Detailed browser acceptance of catalog content/images, sitemap/robots, and admin CRUD workflows | G-01, TODO-2, TODO-3, G-05 |
 | Configuration and secrets | 🔄 | Key Vault references for DB and Storage strings; admin Facebook App ID/secret added to API App Service configuration (operator-confirmed 2026-10-19); production frontend URL variables configured; operator confirmed Facebook sign-in works (2026-10-20); Swagger off outside Development unless `Swagger__Enabled=true`; deploy secrets via OIDC (no stored credentials) | Verify Facebook secret is Key Vault-backed, Meta review/data-use requirements, and production domain/HTTPS policy | G-02 |
@@ -54,7 +54,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 - [ ] **G-02** Production configuration complete: Facebook app production redirect URIs, review/data-use, CORS origins, GitHub variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, `VITE_API_URL`, and HTTPS/custom-domain policy. Facebook sign-in and core endpoint connectivity are operator-confirmed (2026-10-20); verify the remaining configuration and policy items before closing.
 - [ ] **G-03** Migration strategy: API applies pending migrations on every startup in all environments; migrations remain out of the deployment pipeline; review production migration state and validate the operational procedure documented in README
 - [ ] **G-04** CI passes on GitHub (API tests, web/admin lint and build); core API tests added for image, spec metadata, bulk spec, and compare tracking
-- [ ] **G-05** Browser acceptance beyond basic sign-in/connectivity: public browse, filters, compare, images and sitemap/robots; admin BikeModel, variant, image upload/management, spec metadata, and bulk spec/grid flows
+- [ ] **G-05** Browser acceptance beyond basic sign-in/connectivity: public browse, filters, compare, images and sitemap/robots; admin BikeModel, variant (including image-presence filtering), image upload/management, spec metadata, and bulk spec/grid flows
 - [ ] **G-06** Monitoring in place: Application Insights or equivalent, alerts on failures, uptime probes for `/health/ready`
 - [ ] **G-07** Security baseline: rate limiting on auth/upload/public endpoints, security headers on all three apps, documented CSRF stance, upload type/size validation, admin audit log, decision on the admin identity provider
 - [ ] **G-10** Privacy policy and terms published; cookie consent if analytics/ads are added
@@ -134,12 +134,13 @@ Local ports: API `https://localhost:7240` (single `https` launch profile), publi
 | 2 | Admin auth & roles | API-owned Facebook PKCE, HttpOnly session, active `AdminRole` policy; role CRUD under `/api/admin/admin-roles`. First administrator is bootstrapped with `dotnet run --project apps/api/Motorcycle.Api --launch-profile https -- admin bootstrap --facebook-user-id <id> --email <email> --display-name <name>` (already done locally; do not rerun) |
 | 3 | Brand / Category / BikeModel admin | CRUD with reference-protected deletes (`409 *_referenced`); BikeModel list has brand/category filters and sortable headers that persist when navigating to variants and back |
 | 4 | Bike variant admin | CRUD, publish/unpublish, reviewed flag (`is_reviewed`), reassignment to another BikeModel (`PATCH /api/admin/bikes/{id}/model`), unique `(model_id, year, variant_name)`; delete blocked when images exist |
-| 5 | Bike image management | API-owned Azure Blob upload/delete, ordering, primary image |
+| 5 | Bike image management | API-owned Azure Blob upload/delete, ordering, primary image; image actions use accessible icon buttons with gold hover feedback |
 | 6 | Public user authentication | Facebook sign-in for `apps/web` via `/api/auth/*`; provider-agnostic `User`/`UserExternalLogin` with verified-email linking |
 | 7 | Spec metadata admin | CRUD/reorder of `spec_groups`/`spec_definitions`, global unique code, transactional rename cascade, `409` on unsafe deletes/type changes |
 | 8 | Bulk spec editing | Set one spec across many bikes (`/api/admin/bikes/spec-values`) and a multi-spec grid (`/api/admin/bikes/spec-grid`), all-or-nothing saves, filterable by brand/category/MSRP |
 | 9 | Compared-bike recommendations | `bike_comparisons` pair counter (migration `AddBikeComparisons`), `GET /api/bikes/{slug}/compared-with`, "Often compared with" on bike detail |
 | 10 | Azure production deployment | API, public web app, and admin SPA deployed to Azure App Service via GitHub Actions OIDC; production endpoints and API health/readiness checks returned HTTP 200 on 2026-10-19. API startup applies pending migrations in every environment; the legacy `Database:MigrateOnStartup` setting controls only Development seeding. Browser acceptance and release-readiness gates remain tracked separately |
+| 11 | Bike image-presence filter | Admin bike-variant grid can show bikes with images, bikes without images, or all bikes, using the existing image count |
 
 API contracts live in `docs/api.md`, architecture in `docs/architecture.md`, schema in `docs/database.md`. API unit tests: `apps/api/Motorcycle.Api.Tests` (admin controller authorization, `AdminRoleService`, `BikeAdminService`). No frontend test runner yet.
 

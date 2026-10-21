@@ -12,6 +12,7 @@ export type IconName =
   | 'up'
   | 'down'
   | 'images'
+  | 'primary'
   | 'add'
   | 'refresh'
   | 'list';
@@ -76,6 +77,7 @@ const paths: Record<IconName, ReactNode> = {
       <path d="m21 15-5-5L5 21" />
     </>
   ),
+  primary: <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />,
   add: <path d="M12 5v14M5 12h14" />,
   refresh: (
     <>
@@ -115,7 +117,7 @@ export function IconButton({
   disabled,
   badge,
 }: Props) {
-  const className = `inline-flex h-8 w-8 items-center justify-center rounded hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-30 ${
+  const className = `inline-flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-brand-gold hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-current ${
     variant === 'danger'
       ? 'text-red-700'
       : variant === 'primary'
@@ -123,7 +125,7 @@ export function IconButton({
       : variant === 'success'
         ? 'text-green-700'
       : variant === 'gold'
-        ? 'text-brand-gold hover:bg-white/10'
+        ? 'text-brand-gold'
         : 'text-brand-button'
   }`;
   const svg = (

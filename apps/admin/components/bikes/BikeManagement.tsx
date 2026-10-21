@@ -97,6 +97,7 @@ export default function BikeManagement({
       ''
   );
   const [statusFilter, setStatusFilter] = useState('');
+  const [imageFilter, setImageFilter] = useState('');
   const [search, setSearch] = useState('');
   const [sortRules, setSortRules] = useState<SortRule<SortField>[]>(
     modelId
@@ -117,6 +118,10 @@ export default function BikeManagement({
         (!modelFilter || String(bike.modelId) === modelFilter) &&
         (!statusFilter ||
           (statusFilter === 'published') === bike.isPublished) &&
+        (!imageFilter ||
+          (imageFilter === 'has-images'
+            ? bike.imageCount > 0
+            : bike.imageCount === 0)) &&
         (!search ||
           ` ${bike.variantName} ${bike.year}`
             .toLowerCase()
@@ -499,13 +504,18 @@ export default function BikeManagement({
             action={
               <ClearFiltersButton
                 disabled={
-                  !search && !brandFilter && !modelFilter && !statusFilter
+                  !search &&
+                  !brandFilter &&
+                  !modelFilter &&
+                  !statusFilter &&
+                  !imageFilter
                 }
                 onClick={() => {
                   setSearch('');
                   setBrandFilter('');
                   setModelFilter('');
                   setStatusFilter('');
+                  setImageFilter('');
                 }}
               />
             }
@@ -558,6 +568,15 @@ export default function BikeManagement({
               <option value="">All statuses</option>
               <option value="published">Published</option>
               <option value="unpublished">Unpublished</option>
+            </SidebarSelect>
+            <SidebarSelect
+              label="Images"
+              value={imageFilter}
+              onChange={setImageFilter}
+            >
+              <option value="">All bikes</option>
+              <option value="has-images">Has images</option>
+              <option value="no-images">No images</option>
             </SidebarSelect>
           </SidebarGroup>
           <SortGroup

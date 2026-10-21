@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent, useEffect, useState } from 'react';
+import { IconButton } from '@/components/IconButton';
 import {
   AdminApiError,
   deleteAdminBikeImage,
@@ -154,38 +155,35 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
                   Open image
                 </a>
               </div>
-              <div className="flex flex-col gap-1 text-xs">
-                <button
-                  type="button"
-                  onClick={() => void move(index, -1)}
-                  disabled={busy || index === 0}
-                >
-                  Up
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void move(index, 1)}
-                  disabled={busy || index === images.length - 1}
-                >
-                  Down
-                </button>
+              <div className="flex items-center gap-1">
                 {!image.isPrimary && (
-                  <button
-                    type="button"
+                  <IconButton
+                    icon="primary"
+                    label="Set as primary image"
+                    variant="gold"
                     onClick={() => void makePrimary(image.id)}
                     disabled={busy}
-                  >
-                    Primary
-                  </button>
+                  />
                 )}
-                <button
-                  className="font-semibold text-red-700 underline hover:text-red-900 disabled:opacity-50"
-                  type="button"
+                <IconButton
+                  icon="up"
+                  label={`Move image ${index + 1} up`}
+                  onClick={() => void move(index, -1)}
+                  disabled={busy || index === 0}
+                />
+                <IconButton
+                  icon="down"
+                  label={`Move image ${index + 1} down`}
+                  onClick={() => void move(index, 1)}
+                  disabled={busy || index === images.length - 1}
+                />
+                <IconButton
+                  icon="delete"
+                  label="Delete image"
+                  variant="danger"
                   onClick={() => void remove(image)}
                   disabled={busy}
-                >
-                  Delete
-                </button>
+                />
               </div>
             </div>
           ))}
