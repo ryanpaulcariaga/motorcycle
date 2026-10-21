@@ -459,7 +459,7 @@ export default function BikeManagement({
                 className="text-sm font-semibold text-brand-button underline"
                 href="/admin/bulk-spec"
               >
-                Bikes Bulk Edit
+                Bulk Edit
               </a>
             )}
             <IconButton
@@ -743,6 +743,7 @@ export default function BikeManagement({
                 <select
                   className="mt-2 w-full px-3 py-2 text-brand-black"
                   id="bikeModel"
+                  autoFocus
                   required
                   value={form.modelId}
                   onChange={(event) =>

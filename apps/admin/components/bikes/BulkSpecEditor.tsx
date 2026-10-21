@@ -135,7 +135,15 @@ export default function BulkSpecEditor() {
 
   return (
     <section className="bg-brand-content p-6 shadow-lg">
-      <h1 className="text-xl font-bold">Bulk Spec Edit</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-xl font-bold">Bulk Spec Edit</h1>
+        <a
+          className="text-sm font-semibold text-brand-button underline"
+          href="/admin/bike-variants"
+        >
+          Single Edit
+        </a>
+      </div>
       <p className="mt-1 text-sm text-brand-grey">
         Filter motorcycles, then edit their specifications in an on-screen grid
         or export them to Excel.
