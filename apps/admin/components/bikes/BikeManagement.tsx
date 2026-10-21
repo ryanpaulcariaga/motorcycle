@@ -567,7 +567,7 @@ export default function BikeManagement({
           />
         </GridSidebar>
         )}
-        {loading ? (
+        {loading && bikes.length === 0 ? (
           <p className="mt-8 text-brand-grey">Loading bikes...</p>
         ) : bikes.length === 0 ? (
           <p className="mt-8 text-brand-grey">

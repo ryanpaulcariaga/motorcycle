@@ -233,7 +233,7 @@ export default function BikeModelManagement() {
             {error}
           </p>
         )}
-        {loading ? (
+        {loading && models.length === 0 ? (
           <p className="mt-8 text-brand-grey">Loading bikes...</p>
         ) : models.length === 0 ? (
           <p className="mt-8 text-brand-grey">No bikes have been added.</p>
