@@ -1,4 +1,4 @@
-import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, ReassignBikeModelRequest, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest, BikeSpecGridRow, UpdateSpecGridRequest } from "./types";
+import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeImportResult, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, ReassignBikeModelRequest, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest, BikeSpecGridRow, UpdateSpecGridRequest } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
@@ -110,6 +110,37 @@ export function getAdminBikeSpecGrid(filters: Omit<SpecValueFilters, "specCode">
     params.set("maxPrice", String(filters.maxPrice));
   }
   return apiFetch(`/api/admin/bikes/spec-grid?${params}`);
+}
+export async function exportAdminBikes(filters: Omit<SpecValueFilters, "specCode">): Promise<Blob> {
+  const params = new URLSearchParams();
+  if (filters.brandId !== undefined) {
+    params.set("brandId", String(filters.brandId));
+  }
+  if (filters.categoryId) {
+    params.set("categoryId", String(filters.categoryId));
+  }
+  if (filters.minPrice !== undefined) {
+    params.set("minPrice", String(filters.minPrice));
+  }
+  if (filters.maxPrice !== undefined) {
+    params.set("maxPrice", String(filters.maxPrice));
+  }
+  const response = await fetch(`${API_BASE_URL}/api/admin/bikes/export?${params}`, { credentials: "include" });
+  if (!response.ok) {
+    let details: ApiError = { message: response.statusText || "Export failed" };
+    try {
+      details = (await response.json()) as ApiError;
+    } catch {
+      // Preserve the status when the API has no JSON error body.
+    }
+    throw new AdminApiError(response.status, details);
+  }
+  return response.blob();
+}
+export function importAdminBikes(file: File): Promise<BikeImportResult> {
+  const body = new FormData();
+  body.append("file", file);
+  return apiFetch("/api/admin/bikes/import", { method: "POST", body });
 }
 export function updateAdminBikeSpecGrid(request: UpdateSpecGridRequest): Promise<{ updatedCount: number }> {
   return apiFetch("/api/admin/bikes/spec-grid", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });

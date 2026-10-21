@@ -5,7 +5,11 @@ namespace Motorcycle.Api.Tests.Fakes;
 
 public sealed class FakeBikeModelRepository : IBikeModelRepository
 {
-    public Task<List<BikeModel>> GetAllAsync(CancellationToken ct = default) => Task.FromResult(new List<BikeModel>());
+    public Task<List<BikeModel>> GetAllAsync(CancellationToken ct = default) => Task.FromResult(new List<BikeModel>
+    {
+        new() { Id = 1, Name = "Ninja 400", Brand = new Brand { Id = 1, Name = "Kawasaki" } },
+        new() { Id = 2, Name = "Ninja 650", Brand = new Brand { Id = 1, Name = "Kawasaki" } }
+    });
 
     public Task<BikeModel?> GetByIdAsync(int id, CancellationToken ct = default) =>
         Task.FromResult<BikeModel?>(id switch

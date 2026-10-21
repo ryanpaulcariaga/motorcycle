@@ -63,6 +63,7 @@ builder.Services.AddScoped<IBrandAdminService, BrandAdminService>();
 builder.Services.AddScoped<ICategoryAdminService, CategoryAdminService>();
 builder.Services.AddScoped<IBikeModelService, BikeModelService>();
 builder.Services.AddScoped<IBikeAdminService, BikeAdminService>();
+builder.Services.AddScoped<IBikeImportService, BikeImportService>();
 builder.Services.AddScoped<IBikeImageAdminService, BikeImageAdminService>();
 builder.Services.AddScoped<IUserAuthService, UserAuthService>();
 builder.Services.AddScoped<ISpecGroupAdminService, SpecGroupAdminService>();

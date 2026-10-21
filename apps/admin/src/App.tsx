@@ -52,9 +52,9 @@ function AdminShell({ session }: { session: AdminSession }) {
   const isAdministratorsActive =
     pathname === '/admin' || pathname === '/admin/roles';
   const isBikesActive = pathname === '/admin/bike-models' || match !== null;
-  const isVariantsActive = pathname === '/admin/bike-variants';
+  const isVariantsActive =
+    pathname === '/admin/bike-variants' || pathname === '/admin/bulk-spec';
   const isSpecificationsActive = pathname === '/admin/specs';
-  const isBulkSpecActive = pathname === '/admin/bulk-spec';
   const isBrandsActive = pathname === '/admin/brands';
   const isCategoriesActive = pathname === '/admin/categories';
   const content = match ? (
@@ -139,13 +139,6 @@ function AdminShell({ session }: { session: AdminSession }) {
               href="/admin/categories"
             >
               Categories
-            </a>
-            <a
-              aria-current={isBulkSpecActive ? 'page' : undefined}
-              className={`mt-2 block px-3 py-2 font-semibold ${isBulkSpecActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
-              href="/admin/bulk-spec"
-            >
-              Bikes Bulk Edit
             </a>
             <a
               aria-current={isAdministratorsActive ? 'page' : undefined}

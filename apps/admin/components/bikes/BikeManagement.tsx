@@ -453,7 +453,15 @@ export default function BikeManagement({
               <h1 className="mt-2 text-xl font-bold">Bike Variants</h1>
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            {!embedded && modelId === undefined && (
+              <a
+                className="text-sm font-semibold text-brand-button underline"
+                href="/admin/bulk-spec"
+              >
+                Bikes Bulk Edit
+              </a>
+            )}
             <IconButton
               icon="refresh"
               label="Refresh"

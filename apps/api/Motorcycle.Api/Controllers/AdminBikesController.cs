@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Motorcycle.Api.Services;
 using Motorcycle.Application.DTOs;
 using Motorcycle.Application.Interfaces;
 using Motorcycle.Application.Services;
@@ -12,7 +13,49 @@ namespace Motorcycle.Api.Controllers;
 public sealed class AdminBikesController : ControllerBase
 {
     private readonly IBikeAdminService _service;
-    public AdminBikesController(IBikeAdminService service) => _service = service;
+    private readonly IBikeImportService _importService;
+    private const long MaxImportBytes = 5 * 1024 * 1024;
+
+    public AdminBikesController(IBikeAdminService service, IBikeImportService importService)
+    {
+        _service = service;
+        _importService = importService;
+    }
+
+    [HttpGet("export")]
+    public async Task<IActionResult> Export([FromQuery] int? brandId, [FromQuery] int? categoryId, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, CancellationToken ct)
+    {
+        if (brandId.HasValue && brandId <= 0) {
+            return BadRequest(new { message = "Brand must be a positive ID." });
+        }
+
+        var export = await _importService.GetExportAsync(brandId, categoryId, minPrice, maxPrice, ct);
+        return File(BikeWorkbook.Build(export), BikeWorkbook.ContentType, $"bikes-{DateTime.UtcNow:yyyyMMdd-HHmmss}.xlsx");
+    }
+
+    [HttpPost("import")]
+    [RequestSizeLimit(MaxImportBytes + 1024 * 1024)]
+    public async Task<IActionResult> Import(IFormFile? file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0) {
+            return BadRequest(new { message = "Choose an .xlsx file to import." });
+        }
+
+        if (file.Length > MaxImportBytes || !file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase)) {
+            return BadRequest(new { message = "The file must be an .xlsx workbook no larger than 5 MB." });
+        }
+
+        try {
+            BikeImportRequest request;
+            await using (var stream = file.OpenReadStream()) {
+                request = BikeWorkbook.Read(stream);
+            }
+
+            return Ok(await _importService.ImportAsync(request, ct));
+        } catch (BikeImportValidationException ex) {
+            return BadRequest(new { message = ex.Message, errors = ex.Errors });
+        }
+    }
 
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<BikeAdminListItemDto>>> GetAll([FromQuery] int? modelId, CancellationToken ct) =>

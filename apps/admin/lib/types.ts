@@ -9,9 +9,22 @@ export type AdminRole = {
   updatedAt: string;
 };
 
+export type BikeImportError = {
+  row: number;
+  column: string;
+  message: string;
+};
+
+export type BikeImportResult = {
+  created: number;
+  updated: number;
+  unchanged: number;
+};
+
 export type ApiError = {
   code?: string;
   message: string;
+  errors?: BikeImportError[];
   fieldErrors?: Record<string, string[]>;
   dependentCount?: number;
   affectedBikeCount?: number;
