@@ -32,7 +32,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 
 | Area | Status | Evidence | Gap / next action | Ref |
 |---|---|---|---|---|
-| Product functionality | ✅ | Feature Log items 1–9 and 11 work locally; item 10 is live | Browser acceptance of bulk spec and admin flows | G-05 |
+| Product functionality | ✅ | Feature Log items 1–9 and 11 work locally; item 10 is live; compare search suggestions render below the search field without obscuring comparison content | Browser acceptance of bulk spec and admin flows | G-05 |
 | Azure infrastructure | ✅ | Resource group, PostgreSQL, Storage, Key Vault, plan, 3 Web Apps | None | |
 | Deployment pipeline | ✅ | `ci.yml` (PRs, reused) and `deploy.yml` (push to `master`: CI, then per-app OIDC deploy to Azure); OIDC setup done and deployment succeeded 2026-10-19 (run #39211828423); production HTTP checks passed for all three apps and API health/readiness; operator confirmed database/storage connectivity and working Facebook sign-in on 2026-10-20; `scripts/setup-azure-oidc.ps1` creates the identity and federated credential (parameterized for future dev/QA) | Detailed browser acceptance of catalog content/images, sitemap/robots, and admin CRUD workflows | G-01, TODO-2, TODO-3, G-05 |
 | Configuration and secrets | 🔄 | Key Vault references for DB and Storage strings; admin Facebook App ID/secret added to API App Service configuration (operator-confirmed 2026-10-19); production frontend URL variables configured; operator confirmed Facebook sign-in works (2026-10-20); Swagger off outside Development unless `Swagger__Enabled=true`; deploy secrets via OIDC (no stored credentials) | Verify Facebook secret is Key Vault-backed, Meta review/data-use requirements, and production domain/HTTPS policy | G-02 |
@@ -54,7 +54,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 - [ ] **G-02** Production configuration complete: Facebook app production redirect URIs, review/data-use, CORS origins, GitHub variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, `VITE_API_URL`, and HTTPS/custom-domain policy. Facebook sign-in and core endpoint connectivity are operator-confirmed (2026-10-20); verify the remaining configuration and policy items before closing.
 - [ ] **G-03** Migration strategy: API applies pending migrations on every startup in all environments; migrations remain out of the deployment pipeline; review production migration state and validate the operational procedure documented in README
 - [ ] **G-04** CI passes on GitHub (API tests, web/admin lint and build); core API tests added for image, spec metadata, bulk spec, and compare tracking
-- [ ] **G-05** Browser acceptance beyond basic sign-in/connectivity: public browse, filters, compare, images and sitemap/robots; admin BikeModel, variant (including image-presence filtering), image upload/management, spec metadata, and bulk spec/grid flows
+- [ ] **G-05** Browser acceptance beyond basic sign-in/connectivity: public browse, filters, compare (search suggestions now push comparison content down rather than overlaying it), images and sitemap/robots; admin BikeModel, variant (including image-presence filtering), image upload/management, spec metadata, and bulk spec/grid flows
 - [ ] **G-06** Monitoring in place: Application Insights or equivalent, alerts on failures, uptime probes for `/health/ready`
 - [ ] **G-07** Security baseline: rate limiting on auth/upload/public endpoints, security headers on all three apps, documented CSRF stance, upload type/size validation, admin audit log, decision on the admin identity provider
 - [ ] **G-10** Privacy policy and terms published; cookie consent if analytics/ads are added
@@ -122,6 +122,8 @@ Other open work: automated tests for image service/controller, spec metadata, bu
 
 Resolved 2026-10-19: Serilog console logging and request logging; global ProblemDetails exception handler; `/health` and `/health/ready`; `sitemap.xml`, `robots.txt`, `not-found`, `loading`, and `error` pages in `apps/web`; `ci.yml`; single auto-deploy pipeline `deploy.yml` (push to `master`: CI then per-app deploy via Azure OIDC, replacing the placeholder `deploy-api/web/admin.yml`); `apps/web` switched to Next.js standalone output for App Service; lint errors in `apps/web/components/Header.tsx` fixed. Lookup endpoint caching (10 minutes) and Development-only Swagger already existed.
 
+Resolved 2026-10-22: Compare-bike search suggestions render in normal document flow so they do not cover comparison images or specifications; toggling Advanced search clears the search textbox and its results, hiding Advanced search focuses the textbox, and opening it focuses Brand. Advanced filters lay out as Brand/Category, Year from/to, Min/Max price, then Clear filters on its own row.
+
 ### Local Development Quick Reference
 
 Local ports: API `https://localhost:7240` (single `https` launch profile), public web `https://localhost:3000` (custom HTTPS server `apps/web/server.mjs`), admin SPA `https://localhost:3001`. The API owns the admin callback `https://localhost:7240/api/admin/auth/facebook/callback`. Local API secrets use `dotnet user-secrets` on `apps/api/Motorcycle.Api` (`UserSecretsId: motorcycle-api-local`). Local access to the Azure PostgreSQL server needs your current public IP in its firewall rules or the API fails with "Failed to connect ... :5432". Stop a running API before `dotnet test` or `dotnet build` or DLLs are locked. Azure deployment steps are in [README.md](README.md#deploying-to-azure).
@@ -130,7 +132,7 @@ Local ports: API `https://localhost:7240` (single `https` launch profile), publi
 
 | # | Feature | Summary |
 |---|---|---|
-| 1 | Public catalog & comparison | Browse/search/filter bikes, detail page, N-bike compare with grouped specs (`/api/bikes`, `/api/bikes/{slug}`, `/api/bikes/compare`, `/api/spec-groups`, `/api/brands`, `/api/categories`). Compare tracking is limited to published bikes |
+| 1 | Public catalog & comparison | Browse/search/filter bikes, detail page, N-bike compare with grouped specs (`/api/bikes`, `/api/bikes/{slug}`, `/api/bikes/compare`, `/api/spec-groups`, `/api/brands`, `/api/categories`). Compare search suggestions flow below the search field without obscuring comparison content. Compare tracking is limited to published bikes |
 | 2 | Admin auth & roles | API-owned Facebook PKCE, HttpOnly session, active `AdminRole` policy; role CRUD under `/api/admin/admin-roles`. First administrator is bootstrapped with `dotnet run --project apps/api/Motorcycle.Api --launch-profile https -- admin bootstrap --facebook-user-id <id> --email <email> --display-name <name>` (already done locally; do not rerun) |
 | 3 | Brand / Category / BikeModel admin | CRUD with reference-protected deletes (`409 *_referenced`); BikeModel list has brand/category filters and sortable headers that persist when navigating to variants and back |
 | 4 | Bike variant admin | CRUD, publish/unpublish, reviewed flag (`is_reviewed`), reassignment to another BikeModel (`PATCH /api/admin/bikes/{id}/model`), unique `(model_id, year, variant_name)`; delete blocked when images exist |

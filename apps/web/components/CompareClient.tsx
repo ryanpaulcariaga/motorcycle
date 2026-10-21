@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Button from '@/components/Button';
 import { getBikes, getBrands, getCategories } from '@/lib/api';
@@ -49,6 +49,14 @@ export default function CompareClient({
   const [searchResults, setSearchResults] = useState<BikeListItemDto[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const brandSelectRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (showAdvanced) {
+      brandSelectRef.current?.focus();
+    }
+  }, [showAdvanced]);
   const [brands, setBrands] = useState<BrandDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [filters, setFilters] = useState({
@@ -176,6 +184,7 @@ export default function CompareClient({
 
         <div className="relative">
           <input
+            ref={searchInputRef}
             type="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -184,7 +193,14 @@ export default function CompareClient({
           />
           <button
             type="button"
-            onClick={() => setShowAdvanced((open) => !open)}
+            onClick={() => {
+              setSearchTerm('');
+              setSearchResults([]);
+              if (showAdvanced) {
+                searchInputRef.current?.focus();
+              }
+              setShowAdvanced((open) => !open);
+            }}
             aria-expanded={showAdvanced}
             className="mt-2 text-xs font-semibold text-brand-button hover:underline"
           >
@@ -195,6 +211,7 @@ export default function CompareClient({
               <label className="flex flex-col gap-1 text-xs">
                 Brand
                 <select
+                  ref={brandSelectRef}
                   value={filters.brandId}
                   onChange={(e) => setFilter('brandId', e.target.value)}
                   className="border border-zinc-300 bg-white px-2 py-2 text-sm"
@@ -231,18 +248,21 @@ export default function CompareClient({
                   ['priceMax', 'Max price'],
                 ] as const
               ).map(([key, label]) => (
-                <label key={key} className="flex flex-col gap-1 text-xs">
-                  {label}
-                  <input
-                    type="number"
-                    min={0}
-                    value={filters[key]}
-                    onChange={(e) => setFilter(key, e.target.value)}
-                    className="border border-zinc-300 px-2 py-2 text-sm"
-                  />
-                </label>
+                <Fragment key={key}>
+                  <label className="flex flex-col gap-1 text-xs">
+                    {label}
+                    <input
+                      type="number"
+                      min={0}
+                      value={filters[key]}
+                      onChange={(e) => setFilter(key, e.target.value)}
+                      className="border border-zinc-300 px-2 py-2 text-sm"
+                    />
+                  </label>
+                  {key === 'yearMax' && <div className="hidden md:block" />}
+                </Fragment>
               ))}
-              <div className="flex items-end">
+              <div className="col-span-full flex items-end">
                 <button
                   type="button"
                   onClick={clearFilters}
@@ -255,7 +275,7 @@ export default function CompareClient({
             </div>
           )}
           {canSearch && (
-            <div className="absolute z-10 mt-1 w-full max-h-64 overflow-y-auto border border-zinc-200 bg-white shadow-md">
+            <div className="mt-1 w-full max-h-64 overflow-y-auto border border-zinc-200 bg-white shadow-md">
               {isSearching && (
                 <p className="p-2 text-xs text-brand-grey">Searching...</p>
               )}
