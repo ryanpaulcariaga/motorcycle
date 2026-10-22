@@ -117,7 +117,7 @@ export function IconButton({
   disabled,
   badge,
 }: Props) {
-  const className = `inline-flex h-8 w-8 items-center justify-center rounded transition-colors hover:bg-brand-gold hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-current ${
+  const className = `inline-flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-brand-gold hover:text-brand-black disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-current ${
     variant === 'danger'
       ? 'text-red-700'
       : variant === 'primary'

@@ -85,7 +85,7 @@ export function ClearFiltersButton({
 }
 
 const iconButton =
-  'px-2 py-1 text-sm hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent';
+  'px-1 py-1 text-sm hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent';
 
 export function SortGroup<K extends string>({
   fields,
