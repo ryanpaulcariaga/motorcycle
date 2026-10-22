@@ -99,7 +99,7 @@ function AdminShell({ session }: { session: AdminSession }) {
           </button>
         </div>
       </header>
-      <div className="mx-auto grid max-w-7xl gap-6 p-4 md:grid-cols-[14rem_minmax(0,1fr)] md:p-8">
+      <div className="mx-auto grid max-w-7xl gap-6 p-4 md:grid-cols-[17.5rem_minmax(0,1fr)] md:p-8">
         <aside className="h-fit space-y-4 self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
           <nav className="bg-brand-sidebar p-4 text-white">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-gold">

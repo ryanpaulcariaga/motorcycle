@@ -56,9 +56,10 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
       <div className="flex flex-col md:flex-row md:items-start gap-6">
         <Sidebar>
           <SidebarSection title="Brand">
-            <div className="flex flex-col">
+            <div className="grid grid-cols-2 gap-0 [&>a]:mt-0 [&>a]:px-2 [&>a]:py-1 [&>a:first-child]:col-span-2 [&>a:first-child]:mb-1 [&>a:first-child]:border-b [&>a:first-child]:border-white/20">
               <SidebarLink
                 href={buildFilterHref({ brandId: undefined, page: undefined })}
+                active={!params.brandId}
               >
                 All Brands
               </SidebarLink>
@@ -66,6 +67,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                 <SidebarLink
                   key={brand.id}
                   href={buildFilterHref({ brandId: brand.id, page: undefined })}
+                  active={params.brandId === String(brand.id)}
                 >
                   {brand.name}
                 </SidebarLink>
@@ -74,12 +76,13 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
           </SidebarSection>
 
           <SidebarSection title="Category">
-            <div className="flex flex-col">
+            <div className="grid grid-cols-2 gap-0 [&>a]:mt-0 [&>a:first-child]:col-span-2 [&>a]:px-2 [&>a]:py-1 [&>a:first-child]:mb-1 [&>a:first-child]:border-b [&>a:first-child]:border-white/20">
               <SidebarLink
                 href={buildFilterHref({
                   categoryId: undefined,
                   page: undefined,
                 })}
+                active={!params.categoryId}
               >
                 All Categories
               </SidebarLink>
@@ -90,6 +93,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                     categoryId: category.id,
                     page: undefined,
                   })}
+                  active={params.categoryId === String(category.id)}
                 >
                   {category.name}
                 </SidebarLink>

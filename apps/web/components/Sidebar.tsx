@@ -22,7 +22,7 @@ export default function Sidebar({ children }: SidebarProps) {
       </button>
 
       <aside
-        className={`${isOpen ? 'block' : 'hidden'} md:block w-full md:w-56 shrink-0 text-white`}
+        className={`${isOpen ? 'block' : 'hidden'} md:block w-full md:w-[17.5rem] shrink-0 text-white`}
       >
         <div className="space-y-4">{children}</div>
       </aside>
@@ -33,14 +33,21 @@ export default function Sidebar({ children }: SidebarProps) {
 export function SidebarLink({
   href,
   children,
+  compact = false,
+  active = false,
 }: {
   href: string;
   children: ReactNode;
+  compact?: boolean;
+  active?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="mt-2 block px-3 py-2 font-semibold first:mt-0 hover:bg-white/10"
+      aria-current={active ? 'page' : undefined}
+      className={`block px-3 first:mt-0 hover:bg-white/10 ${
+        compact ? 'mt-1 py-1.5 text-sm font-normal' : 'mt-2 py-2 font-semibold'
+      } ${active ? 'bg-white/10' : ''}`}
     >
       {children}
     </Link>
