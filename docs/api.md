@@ -259,7 +259,7 @@ Spec-group/spec-definition management is documented above.
 Stage 3 provides protected image management under `/api/admin/bikes/{bikeId}/images`:
 
 - `GET` lists assigned images in `sortOrder` order.
-- `POST` accepts a multipart `file` upload (JPEG, PNG, WebP, or GIF; maximum 10 MiB). The API uploads it to the configured Azure Blob `images` container and stores the public URL in `bike_images`.
+- `POST` accepts a multipart `file` upload (JPEG, PNG, WebP, or GIF; maximum 10 MiB). The API checks that the file signature matches the declared image type before uploading it to the configured Azure Blob `images` container and storing its public URL in `bike_images`.
 - `PATCH /{imageId}/primary` makes one image primary and clears the primary flag from its siblings.
 - `PUT /order` accepts `{ "imageIds": [3, 1, 2] }` and persists the complete image order.
 - `DELETE /{imageId}` removes the database assignment and the corresponding Blob object.

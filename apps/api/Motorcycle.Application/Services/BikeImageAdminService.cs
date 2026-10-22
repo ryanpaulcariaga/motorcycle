@@ -14,6 +14,7 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
         ["image/gif"] = ".gif",
     };
 
+    private static readonly byte[] PngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
     private const long MaxFileSize = 10 * 1024 * 1024;
     private readonly IBikeImageAdminRepository _repository;
     private readonly IImageStorage _storage;
@@ -45,9 +46,50 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
             throw new ArgumentException("Only JPEG, PNG, WebP, and GIF images are supported.");
         }
 
+        using var bufferedContent = content.CanSeek ? null : new MemoryStream();
+        var uploadContent = content;
+        if (bufferedContent is not null) {
+            var copyBuffer = new byte[81920];
+            int read;
+            while ((read = await content.ReadAsync(copyBuffer, ct)) > 0) {
+                if (bufferedContent.Length + read > MaxFileSize) {
+                    throw new ArgumentException("Image file must be 10 MB or smaller.");
+                }
+
+                await bufferedContent.WriteAsync(copyBuffer.AsMemory(0, read), ct);
+            }
+
+            if (bufferedContent.Length is <= 0 or > MaxFileSize) {
+                throw new ArgumentException("Image content must be non-empty and 10 MB or smaller.");
+            }
+
+            bufferedContent.Position = 0;
+            uploadContent = bufferedContent;
+        }
+
+        var initialPosition = uploadContent.Position;
+        var header = new byte[12];
+        var bytesRead = 0;
+        try {
+            while (bytesRead < header.Length) {
+                var read = await uploadContent.ReadAsync(header.AsMemory(bytesRead), ct);
+                if (read == 0) {
+                    break;
+                }
+
+                bytesRead += read;
+            }
+        } finally {
+            uploadContent.Position = initialPosition;
+        }
+
+        if (!HasExpectedSignature(contentType, header.AsSpan(0, bytesRead))) {
+            throw new ArgumentException("The image content does not match its declared file type.");
+        }
+
         var images = await _repository.GetAllAsync(bikeId, ct);
         var blobName = $"bikes/{bikeId}/{Guid.NewGuid():N}{extension}";
-        var stored = await _storage.UploadAsync(content, blobName, contentType, ct);
+        var stored = await _storage.UploadAsync(uploadContent, blobName, contentType, ct);
         var image = new BikeImage
         {
             BikeId = bikeId,
@@ -59,6 +101,29 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
         await _repository.AddAsync(image, ct);
         await _repository.SaveChangesAsync(ct);
         return ToDto(image);
+    }
+
+    private static bool HasExpectedSignature(string contentType, ReadOnlySpan<byte> header)
+    {
+        if (string.Equals(contentType, "image/jpeg", StringComparison.OrdinalIgnoreCase)) {
+            return header.Length >= 3 && header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF;
+        }
+
+        if (string.Equals(contentType, "image/png", StringComparison.OrdinalIgnoreCase)) {
+            return header.Length >= PngSignature.Length && header[..PngSignature.Length].SequenceEqual(PngSignature);
+        }
+
+        if (string.Equals(contentType, "image/webp", StringComparison.OrdinalIgnoreCase)) {
+            return header.Length >= 12 &&
+                header[..4].SequenceEqual("RIFF"u8) &&
+                header.Slice(8, 4).SequenceEqual("WEBP"u8);
+        }
+
+        if (string.Equals(contentType, "image/gif", StringComparison.OrdinalIgnoreCase)) {
+            return header.StartsWith("GIF87a"u8) || header.StartsWith("GIF89a"u8);
+        }
+
+        return false;
     }
 
     public async Task<BikeImageAdminDto> SetPrimaryAsync(int bikeId, int imageId, CancellationToken ct = default)
