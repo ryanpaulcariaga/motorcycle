@@ -296,16 +296,16 @@ export default function BikeModelManagement() {
                 <table className="w-full min-w-[38rem] text-left text-sm">
                   <thead>
                     <tr className="border-b border-black/10">
-                      <th aria-sort={ariaSort('brand')} className="p-3">
+                      <th aria-sort={ariaSort('brand')} className="p-2">
                         Brand
                       </th>
-                      <th aria-sort={ariaSort('category')} className="p-3">
+                      <th aria-sort={ariaSort('category')} className="p-2">
                         Category
                       </th>
-                      <th aria-sort={ariaSort('name')} className="p-3">
+                      <th aria-sort={ariaSort('name')} className="p-2">
                         Model
                       </th>
-                      <th className="p-3">
+                      <th className="p-2">
                         <span className="sr-only">Actions</span>
                       </th>
                     </tr>
@@ -317,10 +317,10 @@ export default function BikeModelManagement() {
                     key={model.id}
                     onClick={() => setLastTouchedId(model.id)}
                   >
-                        <td className="p-3">{model.brandName}</td>
-                        <td className="p-3">{model.categoryName}</td>
-                        <td className="p-3 font-semibold">{model.name}</td>
-                        <td className="p-3">
+                        <td className="p-2">{model.brandName}</td>
+                        <td className="p-2">{model.categoryName}</td>
+                        <td className="p-2 font-semibold">{model.name}</td>
+                        <td className="p-2">
                           <div className="flex items-center justify-end gap-1">
                             <IconButton
                               icon="edit"

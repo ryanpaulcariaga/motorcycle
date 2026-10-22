@@ -195,10 +195,10 @@ export default function RoleManagement() {
             <table className="w-full min-w-[52rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
-                  <th className="p-3">Identity</th>
-                  <th className="p-3">Name</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">
+                  <th className="p-2">Identity</th>
+                  <th className="p-2">Name</th>
+                  <th className="p-2">Status</th>
+                  <th className="p-2">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
@@ -210,19 +210,19 @@ export default function RoleManagement() {
                     key={role.id}
                     onClick={() => setLastTouchedId(role.id)}
                   >
-                    <td className="p-3">
+                    <td className="p-2">
                       <div className="font-semibold">{role.facebookUserId}</div>
                       <div className="text-brand-grey">
                         {role.emailSnapshot ?? 'No email snapshot'}
                       </div>
                     </td>
-                    <td className="p-3">
+                    <td className="p-2">
                       {role.displayNameSnapshot ?? 'No display name'}
                     </td>
-                    <td className="p-3">
+                    <td className="p-2">
                       {role.isActive ? 'Active' : 'Inactive'}
                     </td>
-                    <td className="p-3 text-right">
+                    <td className="p-2 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <IconButton
                           icon="edit"

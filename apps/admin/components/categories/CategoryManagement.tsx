@@ -151,10 +151,10 @@ export default function CategoryManagement() {
             <table className="w-full min-w-[34rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
-                  <th className="p-3">Name</th>
-                  <th className="p-3">Models</th>
-                  <th className="p-3">Bikes</th>
-                  <th className="p-3">
+                  <th className="p-2">Name</th>
+                  <th className="p-2">Models</th>
+                  <th className="p-2">Bikes</th>
+                  <th className="p-2">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
@@ -166,10 +166,10 @@ export default function CategoryManagement() {
                     key={category.id}
                     onClick={() => setLastTouchedId(category.id)}
                   >
-                    <td className="p-3 font-semibold">{category.name}</td>
-                    <td className="p-3">{category.modelCount}</td>
-                    <td className="p-3">{category.bikeCount}</td>
-                    <td className="p-3">
+                    <td className="p-2 font-semibold">{category.name}</td>
+                    <td className="p-2">{category.modelCount}</td>
+                    <td className="p-2">{category.bikeCount}</td>
+                    <td className="p-2">
                       <div className="flex items-center justify-end gap-1">
                         <IconButton
                           icon="edit"

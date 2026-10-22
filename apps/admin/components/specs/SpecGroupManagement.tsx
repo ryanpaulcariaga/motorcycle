@@ -203,11 +203,11 @@ export default function SpecGroupManagement() {
               <table className="w-full min-w-[42rem] text-left text-sm">
                 <thead>
                   <tr className="border-b border-black/10">
-                    <th className="p-3">Order</th>
-                    <th className="p-3">Code</th>
-                    <th className="p-3">Name</th>
-                    <th className="p-3">Definitions</th>
-                    <th className="p-3">
+                    <th className="p-2">Order</th>
+                    <th className="p-2">Code</th>
+                    <th className="p-2">Name</th>
+                    <th className="p-2">Definitions</th>
+                    <th className="p-2">
                       <span className="sr-only">Actions</span>
                     </th>
                   </tr>
@@ -219,7 +219,7 @@ export default function SpecGroupManagement() {
                       key={group.id}
                       onClick={() => setLastTouchedId(group.id)}
                     >
-                      <td className="p-3">
+                      <td className="p-2">
                         <button
                           className="mr-1 disabled:opacity-30"
                           disabled={index === 0}
@@ -243,8 +243,8 @@ export default function SpecGroupManagement() {
                           &darr;
                         </button>
                       </td>
-                      <td className="p-3 font-mono text-xs">{group.code}</td>
-                      <td className="p-3">
+                      <td className="p-2 font-mono text-xs">{group.code}</td>
+                      <td className="p-2">
                         <button
                           className="font-semibold text-brand-button underline"
                           onClick={() => setSelectedGroupId(group.id)}
@@ -252,8 +252,8 @@ export default function SpecGroupManagement() {
                           {group.name}
                         </button>
                       </td>
-                      <td className="p-3">{group.definitionCount}</td>
-                      <td className="p-3">
+                      <td className="p-2">{group.definitionCount}</td>
+                      <td className="p-2">
                         <div className="flex items-center justify-end gap-1">
                           <IconButton
                             icon="edit"

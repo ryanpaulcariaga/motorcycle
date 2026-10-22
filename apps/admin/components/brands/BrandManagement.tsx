@@ -150,10 +150,10 @@ export default function BrandManagement() {
             <table className="w-full min-w-[34rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
-                  <th className="p-3">Name</th>
-                  <th className="p-3">Models</th>
-                  <th className="p-3">Bikes</th>
-                  <th className="p-3">
+                  <th className="p-2">Name</th>
+                  <th className="p-2">Models</th>
+                  <th className="p-2">Bikes</th>
+                  <th className="p-2">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
@@ -165,10 +165,10 @@ export default function BrandManagement() {
                     key={brand.id}
                     onClick={() => setLastTouchedId(brand.id)}
                   >
-                    <td className="p-3 font-semibold">{brand.name}</td>
-                    <td className="p-3">{brand.modelCount}</td>
-                    <td className="p-3">{brand.bikeCount}</td>
-                    <td className="p-3">
+                    <td className="p-2 font-semibold">{brand.name}</td>
+                    <td className="p-2">{brand.modelCount}</td>
+                    <td className="p-2">{brand.bikeCount}</td>
+                    <td className="p-2">
                       <div className="flex items-center justify-end gap-1">
                         <IconButton
                           icon="edit"

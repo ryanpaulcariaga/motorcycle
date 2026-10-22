@@ -608,7 +608,7 @@ export default function BikeManagement({
                   {sortHeader('msrp', 'MSRP')}
                   {sortHeader('status', 'Status')}
                   {sortHeader('reviewed', 'Reviewed')}
-                  <th className="p-3">
+                  <th className="p-2">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
@@ -620,10 +620,10 @@ export default function BikeManagement({
                     key={bike.id}
                     onClick={() => setLastTouchedId(bike.id)}
                   >
-                    <td className="p-3">{bike.year}</td>
-                    <td className="p-3">{bike.brandName}</td>
-                    <td className="p-3 font-semibold">{bike.variantName}</td>
-                    <td className="p-3">
+                    <td className="p-2">{bike.year}</td>
+                    <td className="p-2">{bike.brandName}</td>
+                    <td className="p-2 font-semibold">{bike.variantName}</td>
+                    <td className="p-2">
                       <span className="inline-flex items-center gap-2">
                         {bike.modelName}
                         <button
@@ -655,12 +655,12 @@ export default function BikeManagement({
                         </button>
                       </span>
                     </td>
-                    <td className="p-3">
+                    <td className="p-2">
                       {bike.msrpPrice
                         ? `$${bike.msrpPrice.toLocaleString()}`
                         : '—'}
                     </td>
-                    <td className="p-3">
+                    <td className="p-2">
                       <button
                         type="button"
                         role="switch"
@@ -678,7 +678,7 @@ export default function BikeManagement({
                         />
                       </button>
                     </td>
-                    <td className="p-3">
+                    <td className="p-2">
                       <button
                         type="button"
                         role="switch"
@@ -693,7 +693,7 @@ export default function BikeManagement({
                         />
                       </button>
                     </td>
-                    <td className="p-3">
+                    <td className="p-2">
                       <div className="flex items-center justify-end gap-1">
                         <IconButton
                           icon="edit"

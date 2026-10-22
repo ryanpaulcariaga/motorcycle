@@ -263,12 +263,12 @@ export default function SpecDefinitionManagement({
             <table className="w-full min-w-[50rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
-                  <th className="p-3">Order</th>
-                  <th className="p-3">Code</th>
-                  <th className="p-3">Label</th>
-                  <th className="p-3">Type</th>
-                  <th className="p-3">Bikes</th>
-                  <th className="p-3">
+                  <th className="p-2">Order</th>
+                  <th className="p-2">Code</th>
+                  <th className="p-2">Label</th>
+                  <th className="p-2">Type</th>
+                  <th className="p-2">Bikes</th>
+                  <th className="p-2">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
@@ -280,7 +280,7 @@ export default function SpecDefinitionManagement({
                     key={definition.id}
                     onClick={() => setLastTouchedId(definition.id)}
                   >
-                    <td className="p-3">
+                    <td className="p-2">
                       <button
                         className="mr-1 disabled:opacity-30"
                         disabled={index === 0}
@@ -304,19 +304,19 @@ export default function SpecDefinitionManagement({
                         &darr;
                       </button>
                     </td>
-                    <td className="p-3 font-mono text-xs">{definition.code}</td>
-                    <td className="p-3">
+                    <td className="p-2 font-mono text-xs">{definition.code}</td>
+                    <td className="p-2">
                       {definition.label}
                       {definition.unit ? ` (${definition.unit})` : ''}
                     </td>
-                    <td className="p-3">
+                    <td className="p-2">
                       {definition.dataType}
                       {definition.isFilterable
                         ? ` / ${definition.filterType}`
                         : ''}
                     </td>
-                    <td className="p-3">{definition.bikesWithValueCount}</td>
-                    <td className="p-3">
+                    <td className="p-2">{definition.bikesWithValueCount}</td>
+                    <td className="p-2">
                       <div className="flex items-center justify-end gap-1">
                         <IconButton
                           icon="edit"

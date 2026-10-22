@@ -88,3 +88,7 @@ button:focus-visible {
 .text-red-700.underline:hover {
   color: #7f1d1d;
 }
+
+.spec-grid .rdg-cell {
+  padding-inline: 6px;
+}

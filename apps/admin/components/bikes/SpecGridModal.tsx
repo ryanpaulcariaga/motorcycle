@@ -440,7 +440,7 @@ export default function SpecGridModal({
       </div>
       <DataGrid
         aria-label="Motorcycle specifications"
-        className="rdg-light mt-4 h-[55vh] text-sm"
+        className="rdg-light spec-grid mt-4 h-[55vh] text-sm"
         columns={columns}
         headerRowHeight={48}
         rowKeyGetter={(row) => row.id}

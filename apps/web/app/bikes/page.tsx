@@ -108,7 +108,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
             <p className="text-sm text-brand-grey">{totalCount} bikes</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {bikes.map((bike) => (
               <Link
                 key={bike.id}
@@ -125,7 +125,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                     />
                   )}
                 </div>
-                <div className="p-3">
+                <div className="p-2">
                   <p className="text-xs text-brand-grey">{bike.categoryName}</p>
                   <p className="font-semibold">
                     {bike.brandName} - {bike.variantName}
