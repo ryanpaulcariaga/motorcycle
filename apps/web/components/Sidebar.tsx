@@ -33,21 +33,19 @@ export default function Sidebar({ children }: SidebarProps) {
 export function SidebarLink({
   href,
   children,
-  compact = false,
   active = false,
 }: {
   href: string;
   children: ReactNode;
-  compact?: boolean;
   active?: boolean;
 }) {
   return (
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
-      className={`block px-3 first:mt-0 hover:bg-white/10 ${
-        compact ? 'mt-1 py-1.5 text-sm font-normal' : 'mt-2 py-2 font-semibold'
-      } ${active ? 'bg-white/10' : ''}`}
+      className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 hover:bg-white/10 ${
+        active ? 'bg-white/10' : ''
+      }`}
     >
       {children}
     </Link>
@@ -64,7 +62,7 @@ export function SidebarSection({
 }) {
   return (
     <section className="bg-brand-sidebar p-4">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-gold">
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-brand-gold">
         {title}
       </h2>
       <div>{children}</div>

@@ -66,7 +66,6 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                   <SidebarLink
                     key={other.id}
                     href={`/bikes/${other.slug}`}
-                    compact
                   >
                     {other.variantName}
                   </SidebarLink>
@@ -75,7 +74,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
             </SidebarSection>
           )}
           <SidebarSection title="Brands">
-            <div className="grid grid-cols-2 gap-0 [&>a]:mt-0 [&>a]:px-2 [&>a]:py-1 [&>a:first-child]:col-span-2 [&>a:first-child]:mb-1 [&>a:first-child]:border-b [&>a:first-child]:border-white/20">
+            <div className="flex flex-col">
               <SidebarLink href="/bikes">All Brands</SidebarLink>
               {brands.map((brand) => (
                 <SidebarLink key={brand.id} href={`/bikes?brandId=${brand.id}`}>

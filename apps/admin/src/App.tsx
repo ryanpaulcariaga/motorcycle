@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GridSidebarSlot } from '@/components/GridSidebar';
 import BikeModelManagement from '@/components/bike-models/BikeModelManagement';
 import CategoryManagement from '@/components/categories/CategoryManagement';
@@ -101,48 +101,48 @@ function AdminShell({ session }: { session: AdminSession }) {
       </header>
       <div className="mx-auto grid max-w-7xl gap-6 p-4 md:grid-cols-[17.5rem_minmax(0,1fr)] md:p-8">
         <aside className="h-fit space-y-4 self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
-          <nav className="bg-brand-sidebar p-4 text-white">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-gold">
+          <nav className="bg-brand-sidebar p-4 text-white/80">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-brand-gold">
               Catalog
             </p>
             <a
               aria-current={isVariantsActive ? 'page' : undefined}
-              className={`block px-3 py-2 font-semibold ${isVariantsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isVariantsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
               href="/admin/bike-variants"
             >
               Bikes
             </a>
             <a
               aria-current={isBikesActive ? 'page' : undefined}
-              className={`mt-2 block px-3 py-2 font-semibold ${isBikesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isBikesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
               href="/admin/bike-models"
             >
               Bikes Model
             </a>
             <a
               aria-current={isSpecificationsActive ? 'page' : undefined}
-              className={`mt-2 block px-3 py-2 font-semibold ${isSpecificationsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isSpecificationsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
               href="/admin/specs"
             >
               Specifications
             </a>
             <a
               aria-current={isBrandsActive ? 'page' : undefined}
-              className={`mt-2 block px-3 py-2 font-semibold ${isBrandsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isBrandsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
               href="/admin/brands"
             >
               Brands
             </a>
             <a
               aria-current={isCategoriesActive ? 'page' : undefined}
-              className={`mt-2 block px-3 py-2 font-semibold ${isCategoriesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isCategoriesActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
               href="/admin/categories"
             >
               Categories
             </a>
             <a
               aria-current={isAdministratorsActive ? 'page' : undefined}
-              className={`mt-2 block px-3 py-2 font-semibold ${isAdministratorsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isAdministratorsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
               href="/admin/roles"
             >
               Administrators

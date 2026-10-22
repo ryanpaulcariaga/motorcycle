@@ -22,24 +22,20 @@ export default async function Home() {
       <div className="flex flex-col md:flex-row md:items-start gap-6">
         <Sidebar>
           <SidebarSection title="Brands">
-            <div className="grid grid-cols-2 gap-0 [&>a]:mt-0 [&>a]:px-2 [&>a]:py-1 [&>a:first-child]:col-span-2 [&>a:first-child]:mb-1 [&>a:first-child]:border-b [&>a:first-child]:border-white/20">
-              <SidebarLink href="/bikes">All Brands</SidebarLink>
+            <div className="flex flex-col">
               {brands.map((brand) => (
                 <SidebarLink key={brand.id} href={`/bikes?brandId=${brand.id}`}>
                   {brand.name}
                 </SidebarLink>
               ))}
             </div>
+            <SidebarLink href="/bikes">All Brands</SidebarLink>
           </SidebarSection>
 
           <SidebarSection title="Latest Devices">
             <div className="flex flex-col">
               {latestBikes.slice(0, 5).map((bike) => (
-                <SidebarLink
-                  key={bike.id}
-                  href={`/bikes/${bike.slug}`}
-                  compact
-                >
+                <SidebarLink key={bike.id} href={`/bikes/${bike.slug}`}>
                   {bike.variantName}
                 </SidebarLink>
               ))}
@@ -63,7 +59,6 @@ export default async function Home() {
                   <SidebarLink
                     key={`${bikeA.id}-${bikeB.id}`}
                     href={`/compare?ids=${bikeA.id},${bikeB.id}`}
-                    compact
                   >
                     {bikeA.variantName} vs {bikeB.variantName}
                   </SidebarLink>
