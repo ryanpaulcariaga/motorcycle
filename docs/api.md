@@ -85,6 +85,7 @@ Get detailed motorcycle info + all images.
 #### GET /api/bikes/compare?ids=id1,id2,id3
 
 Compare multiple motorcycles side-by-side.
+Bike results are returned in the same order as the requested `ids`, so the compare view follows the order bikes were added. Duplicate IDs are included only once.
 
 **Response**:
 ```json

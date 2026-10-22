@@ -87,7 +87,13 @@ public class BikeService : IBikeService
 
     public async Task<CompareResultDto> CompareBikesAsync(List<int> bikeIds, CancellationToken ct = default)
     {
-        var bikes = await _bikeRepository.GetByIdsAsync(bikeIds, ct);
+        var bikesById = (await _bikeRepository.GetByIdsAsync(bikeIds, ct))
+            .ToDictionary(bike => bike.Id);
+        var bikes = bikeIds
+            .Distinct()
+            .Where(bikesById.ContainsKey)
+            .Select(id => bikesById[id])
+            .ToList();
         var specGroups = await _specGroupRepository.GetAllWithDefinitionsAsync(ct);
 
         var result = new CompareResultDto
