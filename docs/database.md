@@ -53,6 +53,12 @@ CREATE TABLE bike_images (
   id SERIAL PRIMARY KEY,
   bike_id INT NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
   blob_url VARCHAR(2048) NOT NULL,
+  small_url VARCHAR(2048),
+  medium_url VARCHAR(2048),
+  large_url VARCHAR(2048),
+  xl_url VARCHAR(2048),
+  width INT NOT NULL DEFAULT 0,
+  height INT NOT NULL DEFAULT 0,
   sort_order INT NOT NULL,
   is_primary BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW()
@@ -249,7 +255,7 @@ The relationship should support multiple dealers per motorcycle and multiple mot
 - **GIN Index**: General JSONB filtering via `specs @> ...` or `specs ? 'key'` syntax.
 - **No category-spec scoping**: All specs available for all bike variants; admin manages per-variant spec values. Future: add optional `category_id` to `spec_definitions` if needed.
 - **Administration writes**: The admin site changes catalog data only through protected API operations. It introduces no separate catalog store; EF Core migrations remain the source of truth for schema changes. BikeModel deletion is checked for dependent `bikes.model_id` references before persistence to prevent the existing cascade from removing variants. Bike variant CRUD (`/api/admin/bikes`) is implemented the same way: `(model_id, year, variant_name)` is enforced unique at the database and application layers, and variant deletion is checked for dependent `bike_images.bike_id` references (hard delete, blocked with `409 bike_referenced` when images exist).
-- **Image management**: `bike_images` remains the relationship and ordering source for assigned motorcycle images. The API enforces a single primary image per motorcycle and owns Azure Blob Storage upload/delete access. Stage 3 image upload, assignment, ordering, primary selection, and deletion are implemented without a schema migration; the provisioned `images` container is public-read for catalog images.
+- **Image management**: `bike_images` remains the relationship and ordering source for assigned motorcycle images. The API enforces a single primary image per motorcycle and owns Azure Blob Storage upload/delete access. Image dimensions and nullable small/medium/large/xl WebP URLs are persisted alongside the original URL; older rows use zero dimensions and null variants until the explicit backfill command inspects them. The provisioned `images` container is public-read for catalog images.
 - **Advertising is isolated from catalog data**: sponsored placements must not be stored as bike ranking signals or mixed into organic comparison responses. Future advertising tables should reference context and placement keys, not mutate bike specs or search ordering.
 
 See [api.md](api.md) and [architecture.md](architecture.md) for design rationale.

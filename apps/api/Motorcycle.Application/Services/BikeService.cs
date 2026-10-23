@@ -98,15 +98,20 @@ public class BikeService : IBikeService
 
         var result = new CompareResultDto
         {
-            Bikes = bikes.Select(b => new CompareBikeSummaryDto
+            Bikes = bikes.Select(b =>
             {
-                Id = b.Id,
-                ModelId = b.ModelId,
-                ModelName = b.Model.Name,
-                VariantName = b.VariantName,
-                BrandName = b.Model.Brand.Name,
-                Slug = b.Slug,
-                PrimaryImageUrl = b.Images.FirstOrDefault(i => i.IsPrimary)?.BlobUrl ?? b.Images.FirstOrDefault()?.BlobUrl
+                var primaryImage = GetPrimaryImage(b);
+                return new CompareBikeSummaryDto
+                {
+                    Id = b.Id,
+                    ModelId = b.ModelId,
+                    ModelName = b.Model.Name,
+                    VariantName = b.VariantName,
+                    BrandName = b.Model.Brand.Name,
+                    Slug = b.Slug,
+                    PrimaryImageUrl = primaryImage?.BlobUrl,
+                    PrimaryImageVariants = ToVariants(primaryImage)
+                };
             }).ToList()
         };
 
@@ -197,19 +202,24 @@ public class BikeService : IBikeService
         return sorted.ToList();
     }
 
-    private static BikeListItemDto ToListItemDto(Bike bike) => new()
+    private static BikeListItemDto ToListItemDto(Bike bike)
     {
-        Id = bike.Id,
-        ModelId = bike.ModelId,
-        ModelName = bike.Model.Name,
-        VariantName = bike.VariantName,
-        Year = bike.Year,
-        MsrpPrice = bike.MsrpPrice,
-        Slug = bike.Slug,
-        BrandName = bike.Model.Brand.Name,
-        CategoryName = bike.Model.Category.Name,
-        PrimaryImageUrl = bike.Images.FirstOrDefault(i => i.IsPrimary)?.BlobUrl ?? bike.Images.FirstOrDefault()?.BlobUrl
-    };
+        var primaryImage = GetPrimaryImage(bike);
+        return new BikeListItemDto
+        {
+            Id = bike.Id,
+            ModelId = bike.ModelId,
+            ModelName = bike.Model.Name,
+            VariantName = bike.VariantName,
+            Year = bike.Year,
+            MsrpPrice = bike.MsrpPrice,
+            Slug = bike.Slug,
+            BrandName = bike.Model.Brand.Name,
+            CategoryName = bike.Model.Category.Name,
+            PrimaryImageUrl = primaryImage?.BlobUrl,
+            PrimaryImageVariants = ToVariants(primaryImage)
+        };
+    }
 
     private static BikeDetailDto ToDetailDto(Bike bike, List<SpecGroup> specGroups)
     {
@@ -226,7 +236,16 @@ public class BikeService : IBikeService
             CategoryName = bike.Model.Category.Name,
             Images = bike.Images
                 .OrderBy(i => i.SortOrder)
-                .Select(i => new BikeImageDto { Id = i.Id, BlobUrl = i.BlobUrl, SortOrder = i.SortOrder, IsPrimary = i.IsPrimary })
+                .Select(i => new BikeImageDto
+                {
+                    Id = i.Id,
+                    BlobUrl = i.BlobUrl,
+                    Width = i.Width,
+                    Height = i.Height,
+                    Variants = ToVariants(i),
+                    SortOrder = i.SortOrder,
+                    IsPrimary = i.IsPrimary
+                })
                 .ToList()
         };
 
@@ -255,4 +274,12 @@ public class BikeService : IBikeService
 
         return dto;
     }
+
+    private static BikeImage? GetPrimaryImage(Bike bike) =>
+        bike.Images.FirstOrDefault(image => image.IsPrimary) ?? bike.Images.FirstOrDefault();
+
+    private static BikeImageVariantsDto? ToVariants(BikeImage? image) =>
+        image is null || image.SmallUrl is null && image.MediumUrl is null && image.LargeUrl is null && image.XlUrl is null
+            ? null
+            : new BikeImageVariantsDto(image.SmallUrl, image.MediumUrl, image.LargeUrl, image.XlUrl);
 }

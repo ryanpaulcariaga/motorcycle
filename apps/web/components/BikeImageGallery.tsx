@@ -104,10 +104,11 @@ export default function BikeImageGallery({
               onClick={(event) => openImage(0, event.currentTarget)}
             >
               <Image
-                src={images[0].blobUrl}
+                src={images[0].variants?.large ?? images[0].blobUrl}
                 alt={alt}
                 fill
                 className="object-cover"
+                sizes="(max-width: 1023px) 100vw, 50vw"
                 priority
               />
             </button>
@@ -124,10 +125,11 @@ export default function BikeImageGallery({
                 onClick={(event) => openImage(index + 1, event.currentTarget)}
               >
                 <Image
-                  src={image.blobUrl}
+                  src={image.variants?.small ?? image.blobUrl}
                   alt={alt}
                   fill
                   className="object-cover"
+                  sizes="25vw"
                 />
               </button>
             ))}
@@ -200,7 +202,7 @@ export default function BikeImageGallery({
                 style={{ transform: `scale(${zoom})` }}
               >
                 <Image
-                  src={activeImage.blobUrl}
+                  src={activeImage.variants?.xl ?? activeImage.variants?.large ?? activeImage.blobUrl}
                   alt={alt}
                   fill
                   sizes="100vw"

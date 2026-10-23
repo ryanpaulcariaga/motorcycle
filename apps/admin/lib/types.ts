@@ -148,6 +148,16 @@ export type BikeImage = {
   blobUrl: string;
   sortOrder: number;
   isPrimary: boolean;
+  width: number;
+  height: number;
+  variants: BikeImageVariants | null;
+};
+
+export type BikeImageVariants = {
+  small: string | null;
+  medium: string | null;
+  large: string | null;
+  xl: string | null;
 };
 
 export type SpecGroupAdmin = {

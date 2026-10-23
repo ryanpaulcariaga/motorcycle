@@ -29,18 +29,30 @@ public sealed class AzureBlobImageStorage : IImageStorage
         return new StoredImage(blobName, blob.Uri.AbsoluteUri);
     }
 
+    public async Task<byte[]> DownloadAsync(string blobUrl, CancellationToken ct = default)
+    {
+        var blob = GetBlobClient(blobUrl);
+        var response = await blob.DownloadContentAsync(ct);
+        return response.Value.Content.ToArray();
+    }
+
     public async Task DeleteAsync(string blobUrl, CancellationToken ct = default)
     {
+        await GetBlobClient(blobUrl).DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, cancellationToken: ct);
+    }
+
+    private BlobClient GetBlobClient(string blobUrl)
+    {
         if (!Uri.TryCreate(blobUrl, UriKind.Absolute, out var uri)) {
-            return;
+            throw new ArgumentException("Image URL is not a valid absolute URL.", nameof(blobUrl));
         }
 
         var segments = uri.AbsolutePath.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
         if (segments.Length < 2 || !string.Equals(segments[0], _containerName, StringComparison.OrdinalIgnoreCase)) {
-            return;
+            throw new ArgumentException("Image URL does not belong to the configured storage container.", nameof(blobUrl));
         }
 
         var blobName = string.Join('/', segments.Skip(1).Select(Uri.UnescapeDataString));
-        await _container.DeleteBlobIfExistsAsync(blobName, DeleteSnapshotsOption.IncludeSnapshots, cancellationToken: ct);
+        return _container.GetBlobClient(blobName);
     }
 }

@@ -48,7 +48,7 @@ Next.js public app             Vite React SPA
         └─ protected admin write endpoints
   ↓ (EF Core + Npgsql)
 PostgreSQL Database
-  ↓ (image URLs stored in JSONB)
+  ↕ (image URL metadata in relational columns)
 Azure Blob Storage (images served via public URL)
 ```
 
@@ -59,6 +59,8 @@ Azure Blob Storage (images served via public URL)
 The first administrator is created through an operator-only bootstrap command after the `admin_roles` migration is applied. Subsequent administrator provisioning, activation, and deactivation happen through the protected role-management API.
 
 Stage 2 adds Bike (year/trim variant) CRUD and publication management under `/api/admin/bikes`, so administrators can create, edit, publish/unpublish, and delete variants beneath an existing BikeModel; editing a published variant applies immediately without an unpublish step, and deletion is a hard delete blocked only when the variant has assigned images. Stage 3 adds API-owned Azure Blob upload, image assignment, ordering, primary-image selection, and deletion under `/api/admin/bikes/{bikeId}/images`; the admin browser never receives database or storage credentials.
+
+Image processing runs in Infrastructure behind the Application `IImageProcessor` interface. Uploads must be 4:3 landscape (±2%) and at least 1200 pixels wide; the admin SPA crops in the browser before upload; the API creates metadata-stripped WebP copies with 320, 640, 1280, and 2048-pixel longest edges, capped at the source size (never upscaled) so all four always exist, while retaining the uploaded original for zoom. Variant URLs and source dimensions are stored on `bike_images` and exposed through the public and admin DTOs. Public pages select small variants for thumbnails, medium for cards/compare, large for the detail image, and xl, then large, then the original for zoom (a missing size falls back to the next smaller variant, then the original). Operators can run `dotnet run --project apps/api/Motorcycle.Api -- images backfill-variants` to process existing images; undersized images remain original-only and are flagged in admin.
 
 Spec metadata management adds protected CRUD for `SpecGroup`/`SpecDefinition` under `/api/admin/spec-groups`/`/api/admin/spec-definitions`, including group/definition reordering. Because `SpecDefinition.Code` is the literal JSON key read from every `Bike.Specs` row, its uniqueness is enforced globally (not per-group), and renaming it triggers a transactional rename-cascade across every affected bike so no data is silently orphaned; deleting a group with definitions, deleting a definition bikes still hold values for, or changing a `dataType` incompatibly with existing bike values are all hard-blocked with a `409` conflict rather than silently discarding data.
 

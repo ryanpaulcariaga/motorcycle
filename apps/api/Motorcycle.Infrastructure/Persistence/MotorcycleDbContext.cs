@@ -107,6 +107,10 @@ public class MotorcycleDbContext : DbContext
         {
             bi.HasKey(x => x.Id);
             bi.Property(x => x.BlobUrl).IsRequired().HasMaxLength(2048);
+            bi.Property(x => x.SmallUrl).HasMaxLength(2048);
+            bi.Property(x => x.MediumUrl).HasMaxLength(2048);
+            bi.Property(x => x.LargeUrl).HasMaxLength(2048);
+            bi.Property(x => x.XlUrl).HasMaxLength(2048);
             bi.HasIndex(x => x.BikeId);
         });
 

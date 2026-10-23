@@ -11,9 +11,11 @@ import {
   uploadAdminBikeImage,
 } from '@/lib/api';
 import type { BikeImage } from '@/lib/types';
+import ImageCropper, { IMAGE_ASPECT, MIN_IMAGE_WIDTH } from './ImageCropper';
 
 export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
   const [images, setImages] = useState<BikeImage[]>([]);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -40,10 +42,37 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
     if (!file) {
       return;
     }
+
+    let dimensions: ImageBitmap;
+    try {
+      dimensions = await createImageBitmap(file);
+    } catch {
+      setError('Unable to read image dimensions. Choose a valid image file.');
+      return;
+    }
+    const { width, height } = dimensions;
+    dimensions.close();
+    if (Math.min(width, height * IMAGE_ASPECT) < MIN_IMAGE_WIDTH) {
+      setError(
+        `A 4:3 crop of this image would be under ${MIN_IMAGE_WIDTH} pixels wide. Choose a larger image.`
+      );
+      return;
+    }
+
+    setError(null);
+    if (Math.abs(width / height / IMAGE_ASPECT - 1) <= 0.01) {
+      await send(file);
+    } else {
+      setPendingFile(file);
+    }
+  }
+
+  async function send(file: File) {
     setBusy(true);
     setError(null);
     try {
       await uploadAdminBikeImage(bikeId, file);
+      setPendingFile(null);
       await load();
     } catch (cause) {
       setError(
@@ -111,16 +140,30 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
         className="mt-4 block text-sm font-bold text-brand-button"
         htmlFor="bike-image-upload"
       >
-        Upload image
+        Upload image (10 MiB max)
       </label>
+      <p className="mt-1 text-xs text-brand-grey">
+        Upload the largest, highest-quality version available. Images are
+        saved as 4:3 landscape and must be at least 1200 pixels wide after
+        cropping; you can position and zoom the crop before uploading. Smaller
+        WebP variants are generated automatically.
+      </p>
       <input
         className="mt-2 block w-full cursor-pointer text-sm file:mr-3 file:cursor-pointer file:border-0 file:bg-brand-button file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-brand-sidebar disabled:cursor-not-allowed disabled:opacity-60"
         id="bike-image-upload"
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
         onChange={(event) => void upload(event)}
-        disabled={busy}
+        disabled={busy || pendingFile !== null}
       />
+      {pendingFile && (
+        <ImageCropper
+          file={pendingFile}
+          busy={busy}
+          onCancel={() => setPendingFile(null)}
+          onConfirm={(cropped) => void send(cropped)}
+        />
+      )}
       {error && (
         <p className="mt-3 text-sm text-red-200" role="alert">
           {error}
@@ -136,7 +179,7 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
               key={image.id}
             >
               <img
-                src={image.blobUrl}
+                src={image.variants?.small ?? image.blobUrl}
                 alt="Bike"
                 width={80}
                 height={56}
@@ -146,6 +189,37 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
                 {image.isPrimary && (
                   <p className="font-bold text-brand-button">Primary</p>
                 )}
+                <p className="text-brand-grey">
+                  {image.width > 0 && image.height > 0
+                    ? `${image.width} × ${image.height} px`
+                    : 'Dimensions not recorded'}
+                </p>
+                <p className="text-brand-grey">
+                  Download:{' '}
+                  {[
+                    ['Original', image.blobUrl],
+                    ['320', image.variants?.small],
+                    ['640', image.variants?.medium],
+                    ['1280', image.variants?.large],
+                    ['2048', image.variants?.xl],
+                  ]
+                    .filter((item): item is [string, string] => Boolean(item[1]))
+                    .map(([label, url], linkIndex) => (
+                      <span key={label}>
+                        {linkIndex > 0 && ', '}
+                        <a
+                          className="font-semibold text-brand-button underline"
+                          href={url}
+                          download
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {label}
+                        </a>
+                      </span>
+                    ))}
+                  {image.variants ? ' px' : ''}
+                </p>
                 <a
                   className="block truncate text-sm font-semibold text-brand-button underline"
                   href={image.blobUrl}

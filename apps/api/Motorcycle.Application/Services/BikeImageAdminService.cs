@@ -1,3 +1,4 @@
+using System.Runtime.ExceptionServices;
 using Motorcycle.Application.DTOs;
 using Motorcycle.Application.Interfaces;
 using Motorcycle.Domain;
@@ -16,13 +17,18 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
 
     private static readonly byte[] PngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
     private const long MaxFileSize = 10 * 1024 * 1024;
+    private const int MinimumLongEdge = 1200;
+    private const double RequiredAspectRatio = 4.0 / 3.0;
+    private const double AspectRatioTolerance = 0.02;
     private readonly IBikeImageAdminRepository _repository;
     private readonly IImageStorage _storage;
+    private readonly IImageProcessor _processor;
 
-    public BikeImageAdminService(IBikeImageAdminRepository repository, IImageStorage storage)
+    public BikeImageAdminService(IBikeImageAdminRepository repository, IImageStorage storage, IImageProcessor processor)
     {
         _repository = repository;
         _storage = storage;
+        _processor = processor;
     }
 
     public async Task<IReadOnlyList<BikeImageAdminDto>> GetAllAsync(int bikeId, CancellationToken ct = default)
@@ -46,61 +52,163 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
             throw new ArgumentException("Only JPEG, PNG, WebP, and GIF images are supported.");
         }
 
-        using var bufferedContent = content.CanSeek ? null : new MemoryStream();
-        var uploadContent = content;
-        if (bufferedContent is not null) {
-            var copyBuffer = new byte[81920];
-            int read;
-            while ((read = await content.ReadAsync(copyBuffer, ct)) > 0) {
-                if (bufferedContent.Length + read > MaxFileSize) {
-                    throw new ArgumentException("Image file must be 10 MB or smaller.");
-                }
-
-                await bufferedContent.WriteAsync(copyBuffer.AsMemory(0, read), ct);
+        using var bufferedContent = new MemoryStream();
+        var copyBuffer = new byte[81920];
+        int read;
+        while ((read = await content.ReadAsync(copyBuffer, ct)) > 0) {
+            if (bufferedContent.Length + read > MaxFileSize) {
+                throw new ArgumentException("Image file must be 10 MB or smaller.");
             }
 
-            if (bufferedContent.Length is <= 0 or > MaxFileSize) {
-                throw new ArgumentException("Image content must be non-empty and 10 MB or smaller.");
-            }
-
-            bufferedContent.Position = 0;
-            uploadContent = bufferedContent;
+            await bufferedContent.WriteAsync(copyBuffer.AsMemory(0, read), ct);
         }
 
-        var initialPosition = uploadContent.Position;
+        if (bufferedContent.Length is <= 0 or > MaxFileSize) {
+            throw new ArgumentException("Image content must be non-empty and 10 MB or smaller.");
+        }
+
+        var imageBytes = bufferedContent.ToArray();
         var header = new byte[12];
-        var bytesRead = 0;
-        try {
-            while (bytesRead < header.Length) {
-                var read = await uploadContent.ReadAsync(header.AsMemory(bytesRead), ct);
-                if (read == 0) {
-                    break;
-                }
-
-                bytesRead += read;
-            }
-        } finally {
-            uploadContent.Position = initialPosition;
-        }
+        imageBytes.AsSpan(0, Math.Min(imageBytes.Length, header.Length)).CopyTo(header);
+        var bytesRead = Math.Min(imageBytes.Length, header.Length);
 
         if (!HasExpectedSignature(contentType, header.AsSpan(0, bytesRead))) {
             throw new ArgumentException("The image content does not match its declared file type.");
         }
 
+        ProcessedImage processed;
+        try {
+            using var imageStream = new MemoryStream(imageBytes, writable: false);
+            processed = _processor.CreateVariants(imageStream);
+        } catch (InvalidDataException exception) {
+            throw new ArgumentException(exception.Message, nameof(content), exception);
+        }
+
+        if (processed.Width < MinimumLongEdge) {
+            throw new ArgumentException($"Image must be a landscape image at least {MinimumLongEdge} pixels wide.");
+        }
+
+        var ratio = (double)processed.Width / processed.Height;
+        if (Math.Abs(ratio / RequiredAspectRatio - 1) > AspectRatioTolerance) {
+            throw new ArgumentException("Image must have a 4:3 landscape aspect ratio.");
+        }
+
         var images = await _repository.GetAllAsync(bikeId, ct);
-        var blobName = $"bikes/{bikeId}/{Guid.NewGuid():N}{extension}";
-        var stored = await _storage.UploadAsync(uploadContent, blobName, contentType, ct);
+        var assetPath = $"bikes/{bikeId}/{Guid.NewGuid():N}";
         var image = new BikeImage
         {
             BikeId = bikeId,
-            BlobUrl = stored.BlobUrl,
+            Width = processed.Width,
+            Height = processed.Height,
             SortOrder = images.Count == 0 ? 1 : images.Max(x => x.SortOrder) + 1,
             IsPrimary = images.Count == 0,
         };
 
-        await _repository.AddAsync(image, ct);
-        await _repository.SaveChangesAsync(ct);
+        var uploaded = new List<StoredImage>();
+        try {
+            using var original = new MemoryStream(imageBytes, writable: false);
+            var storedOriginal = await _storage.UploadAsync(original, $"{assetPath}/original{extension}", contentType, ct);
+            uploaded.Add(storedOriginal);
+            image.BlobUrl = storedOriginal.BlobUrl;
+
+            foreach (var variant in processed.Variants) {
+                using var variantStream = new MemoryStream(variant.Value, writable: false);
+                var storedVariant = await _storage.UploadAsync(variantStream, $"{assetPath}/{variant.Key}.webp", "image/webp", ct);
+                uploaded.Add(storedVariant);
+                SetVariantUrl(image, variant.Key, storedVariant.BlobUrl);
+            }
+
+            await _repository.AddAsync(image, ct);
+            await _repository.SaveChangesAsync(ct);
+        } catch (Exception uploadFailure) {
+            var cleanupFailures = new List<Exception>();
+            foreach (var stored in uploaded) {
+                try {
+                    await _storage.DeleteAsync(stored.BlobUrl, ct);
+                } catch (Exception cleanupFailure) {
+                    cleanupFailures.Add(cleanupFailure);
+                }
+            }
+
+            if (cleanupFailures.Count > 0) {
+                throw new AggregateException("Image upload failed and one or more uploaded blobs could not be removed.", [uploadFailure, .. cleanupFailures]);
+            }
+
+            ExceptionDispatchInfo.Capture(uploadFailure).Throw();
+            throw;
+        }
+
         return ToDto(image);
+    }
+
+    public async Task<BikeImageVariantBackfillResult> BackfillVariantsAsync(CancellationToken ct = default)
+    {
+        var images = await _repository.GetAllForVariantBackfillAsync(ct);
+        var lowResolutionImages = 0;
+        foreach (var image in images) {
+            if (image.Width > 0 && image.Height > 0) {
+                if (Math.Max(image.Width, image.Height) < MinimumLongEdge) {
+                    lowResolutionImages++;
+                    continue;
+                }
+
+                if (HasAllAvailableVariants(image)) {
+                    continue;
+                }
+            }
+
+            var originalBytes = await _storage.DownloadAsync(image.BlobUrl, ct);
+            ProcessedImage processed;
+            using (var original = new MemoryStream(originalBytes, writable: false)) {
+                processed = _processor.CreateVariants(original);
+            }
+
+            image.Width = processed.Width;
+            image.Height = processed.Height;
+            if (Math.Max(processed.Width, processed.Height) < MinimumLongEdge) {
+                lowResolutionImages++;
+                await _repository.SaveChangesAsync(ct);
+                continue;
+            }
+
+            var uploaded = new List<StoredImage>();
+            try {
+                foreach (var variant in processed.Variants) {
+                    if (GetVariantUrl(image, variant.Key) is not null) {
+                        continue;
+                    }
+
+                    using var variantStream = new MemoryStream(variant.Value, writable: false);
+                    var stored = await _storage.UploadAsync(
+                        variantStream,
+                        $"bikes/{image.BikeId}/image-{image.Id}/{variant.Key}.webp",
+                        "image/webp",
+                        ct);
+                    uploaded.Add(stored);
+                    SetVariantUrl(image, variant.Key, stored.BlobUrl);
+                }
+
+                await _repository.SaveChangesAsync(ct);
+            } catch (Exception backfillFailure) {
+                var cleanupFailures = new List<Exception>();
+                foreach (var stored in uploaded) {
+                    try {
+                        await _storage.DeleteAsync(stored.BlobUrl, ct);
+                    } catch (Exception cleanupFailure) {
+                        cleanupFailures.Add(cleanupFailure);
+                    }
+                }
+
+                if (cleanupFailures.Count > 0) {
+                    throw new AggregateException("Variant backfill failed and one or more uploaded blobs could not be removed.", [backfillFailure, .. cleanupFailures]);
+                }
+
+                ExceptionDispatchInfo.Capture(backfillFailure).Throw();
+                throw;
+            }
+        }
+
+        return new BikeImageVariantBackfillResult(images.Count, lowResolutionImages);
     }
 
     private static bool HasExpectedSignature(string contentType, ReadOnlySpan<byte> header)
@@ -162,7 +270,19 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
         var image = await _repository.GetByIdAsync(bikeId, imageId, ct) ?? throw new KeyNotFoundException("Image was not found.");
         _repository.Remove(image);
         await _repository.SaveChangesAsync(ct);
-        await _storage.DeleteAsync(image.BlobUrl, ct);
+
+        var failures = new List<Exception>();
+        foreach (var blobUrl in new[] { image.BlobUrl }.Concat(GetVariantUrls(image))) {
+            try {
+                await _storage.DeleteAsync(blobUrl, ct);
+            } catch (Exception exception) {
+                failures.Add(exception);
+            }
+        }
+
+        if (failures.Count > 0) {
+            throw new AggregateException("Image record was deleted, but one or more image blobs could not be removed.", failures);
+        }
     }
 
     private async Task EnsureBikeExistsAsync(int bikeId, CancellationToken ct)
@@ -172,5 +292,49 @@ public sealed class BikeImageAdminService : IBikeImageAdminService
         }
     }
 
-    private static BikeImageAdminDto ToDto(BikeImage image) => new(image.Id, image.BlobUrl, image.SortOrder, image.IsPrimary);
+    private static BikeImageAdminDto ToDto(BikeImage image) =>
+        new(image.Id, image.BlobUrl, image.SortOrder, image.IsPrimary, image.Width, image.Height, ToVariants(image));
+
+    private static BikeImageVariantsDto? ToVariants(BikeImage image) =>
+        image.SmallUrl is null && image.MediumUrl is null && image.LargeUrl is null && image.XlUrl is null
+            ? null
+            : new BikeImageVariantsDto(image.SmallUrl, image.MediumUrl, image.LargeUrl, image.XlUrl);
+
+    private static IEnumerable<string> GetVariantUrls(BikeImage image) =>
+        new[] { image.SmallUrl, image.MediumUrl, image.LargeUrl, image.XlUrl }.OfType<string>();
+
+    private static string? GetVariantUrl(BikeImage image, string name) => name switch
+    {
+        "small" => image.SmallUrl,
+        "medium" => image.MediumUrl,
+        "large" => image.LargeUrl,
+        "xl" => image.XlUrl,
+        _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown image variant."),
+    };
+
+    private static void SetVariantUrl(BikeImage image, string name, string url)
+    {
+        switch (name) {
+            case "small":
+                image.SmallUrl = url;
+                break;
+            case "medium":
+                image.MediumUrl = url;
+                break;
+            case "large":
+                image.LargeUrl = url;
+                break;
+            case "xl":
+                image.XlUrl = url;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown image variant.");
+        }
+    }
+
+    private static bool HasAllAvailableVariants(BikeImage image) =>
+        image.SmallUrl is not null &&
+        image.MediumUrl is not null &&
+        image.LargeUrl is not null &&
+        image.XlUrl is not null;
 }

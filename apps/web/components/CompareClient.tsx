@@ -293,10 +293,11 @@ export default function CompareClient({
                   <span className="relative h-8 w-10 shrink-0 bg-zinc-100 overflow-hidden">
                     {bike.primaryImageUrl && (
                       <Image
-                        src={bike.primaryImageUrl}
+                        src={bike.primaryImageVariants?.small ?? bike.primaryImageUrl}
                         alt={`${bike.brandName} - ${bike.variantName}`}
                         fill
                         className="object-cover"
+                        sizes="40px"
                       />
                     )}
                   </span>
@@ -442,10 +443,11 @@ function BikeHeader({ bike }: { bike: CompareResultDto['bikes'][number] }) {
       <div className="relative aspect-[4/3] mb-2 bg-zinc-100 overflow-hidden">
         {bike.primaryImageUrl && (
           <Image
-            src={bike.primaryImageUrl}
+            src={bike.primaryImageVariants?.medium ?? bike.primaryImageUrl}
             alt={`${bike.brandName} - ${bike.variantName}`}
             fill
             className="object-cover"
+            sizes="(max-width: 640px) 100vw, 33vw"
           />
         )}
       </div>

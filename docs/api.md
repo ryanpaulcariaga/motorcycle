@@ -45,6 +45,12 @@ Imported motorcycles use year `0` when the source does not identify one; year fi
       "msrpPrice": 4699,
       "slug": "kawasaki-ninja-400-2024",
       "primaryImageUrl": "https://blobs.example.com/kawasaki-ninja-400.jpg",
+      "primaryImageVariants": {
+        "small": "https://blobs.example.com/kawasaki-ninja-400/small.webp",
+        "medium": "https://blobs.example.com/kawasaki-ninja-400/medium.webp",
+        "large": "https://blobs.example.com/kawasaki-ninja-400/large.webp",
+        "xl": null
+      },
       "specs": { "cc": "399", "horsepower": "45" }
     }
   ],
@@ -70,7 +76,20 @@ Get detailed motorcycle info + all images.
   "msrpPrice": 4699,
   "slug": "kawasaki-ninja-400-2024",
   "images": [
-    { "url": "https://blobs.example.com/...", "sortOrder": 1, "isPrimary": true }
+    {
+      "id": 1,
+      "blobUrl": "https://blobs.example.com/kawasaki-ninja-400/original.jpg",
+      "width": 1920,
+      "height": 1080,
+      "variants": {
+        "small": "https://blobs.example.com/kawasaki-ninja-400/small.webp",
+        "medium": "https://blobs.example.com/kawasaki-ninja-400/medium.webp",
+        "large": "https://blobs.example.com/kawasaki-ninja-400/large.webp",
+        "xl": null
+      },
+      "sortOrder": 1,
+      "isPrimary": true
+    }
   ],
   "specsGrouped": {
     "Engine": {
@@ -271,12 +290,14 @@ Spec-group/spec-definition management is documented above.
 Stage 3 provides protected image management under `/api/admin/bikes/{bikeId}/images`:
 
 - `GET` lists assigned images in `sortOrder` order.
-- `POST` accepts a multipart `file` upload (JPEG, PNG, WebP, or GIF; maximum 10 MiB). The API checks that the file signature matches the declared image type before uploading it to the configured Azure Blob `images` container and storing its public URL in `bike_images`.
+- `POST` accepts a multipart `file` upload (JPEG, PNG, WebP, or GIF; maximum 10 MiB). The API checks the file signature and decoded dimensions, rejects images that are narrower than 1200 pixels or not 4:3 landscape (±2%; the admin SPA crops to 4:3 before upload), then stores the original plus 320/640/1280/2048-pixel-long-edge WebP variants. Sizes larger than the source are written at the source's native size (never upscaled), so every variant is always present for new uploads and backfilled images. Variant metadata is stripped; any failed upload is reported and already-uploaded blobs are cleaned up. The DTO returns original dimensions and nullable URLs for each available variant.
 - `PATCH /{imageId}/primary` makes one image primary and clears the primary flag from its siblings.
 - `PUT /order` accepts `{ "imageIds": [3, 1, 2] }` and persists the complete image order.
-- `DELETE /{imageId}` removes the database assignment and the corresponding Blob object.
+- `DELETE /{imageId}` removes the database assignment and the original and variant Blob objects.
 
 All image endpoints require the `ActiveAdministrator` policy. Storage credentials remain server-side in `Storage:ConnectionString`; the admin browser only receives public image URLs.
+
+Run `dotnet run --project apps/api/Motorcycle.Api -- images backfill-variants` to generate variants for existing images. Images with a longest side under 1200 pixels retain only their original and are marked in admin with their dimensions and missing variants so an administrator can replace them.
 
 ### Future Advertising API
 

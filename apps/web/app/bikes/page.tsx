@@ -118,10 +118,11 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                 <div className="relative aspect-[4/3] bg-zinc-100">
                   {bike.primaryImageUrl && (
                     <Image
-                      src={bike.primaryImageUrl}
+                      src={bike.primaryImageVariants?.medium ?? bike.primaryImageUrl}
                       alt={`${bike.brandName} - ${bike.variantName}`}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                   )}
                 </div>

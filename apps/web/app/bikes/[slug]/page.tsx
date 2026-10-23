@@ -147,10 +147,11 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                     <div className="relative h-20 w-28 shrink-0 bg-zinc-100 overflow-hidden">
                       {other.primaryImageUrl && (
                         <Image
-                          src={other.primaryImageUrl}
+                          src={other.primaryImageVariants?.small ?? other.primaryImageUrl}
                           alt={`${other.brandName} - ${other.variantName}`}
                           fill
                           className="object-cover"
+                          sizes="112px"
                         />
                       )}
                     </div>

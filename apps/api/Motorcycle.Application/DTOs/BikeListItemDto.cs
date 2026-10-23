@@ -12,4 +12,5 @@ public class BikeListItemDto
     public string BrandName { get; set; } = string.Empty;
     public string CategoryName { get; set; } = string.Empty;
     public string? PrimaryImageUrl { get; set; }
+    public BikeImageVariantsDto? PrimaryImageVariants { get; set; }
 }

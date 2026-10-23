@@ -4,6 +4,7 @@ using Motorcycle.Infrastructure.Repositories;
 using Motorcycle.Infrastructure.Filtering;
 using Motorcycle.Infrastructure.Storage;
 using Motorcycle.Infrastructure.Auth;
+using Motorcycle.Infrastructure.Images;
 using Motorcycle.Application.Interfaces;
 using Motorcycle.Application.Services;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,7 @@ builder.Services.AddScoped<IBikeModelRepository, BikeModelRepository>();
 builder.Services.AddScoped<IBikeAdminRepository, BikeAdminRepository>();
 builder.Services.AddScoped<IBikeImageAdminRepository, BikeImageAdminRepository>();
 builder.Services.AddScoped<IImageStorage, AzureBlobImageStorage>();
+builder.Services.AddScoped<IImageProcessor, MagickImageProcessor>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISpecGroupAdminRepository, SpecGroupAdminRepository>();
 builder.Services.AddScoped<ISpecDefinitionAdminRepository, SpecDefinitionAdminRepository>();
@@ -168,6 +170,12 @@ if (AdminBootstrapCommand.IsRequested(args)) {
 if (DbSeedCommand.IsRequested(args)) {
     using var commandScope = app.Services.CreateScope();
     await DbSeedCommand.RunAsync(commandScope.ServiceProvider, args);
+    return;
+}
+
+if (BikeImageVariantBackfillCommand.IsRequested(args)) {
+    using var commandScope = app.Services.CreateScope();
+    await BikeImageVariantBackfillCommand.RunAsync(commandScope.ServiceProvider);
     return;
 }
 

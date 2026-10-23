@@ -19,8 +19,18 @@ export interface CategoryDto {
 export interface BikeImageDto {
   id: number;
   blobUrl: string;
+  width: number;
+  height: number;
+  variants: BikeImageVariantsDto | null;
   sortOrder: number;
   isPrimary: boolean;
+}
+
+export interface BikeImageVariantsDto {
+  small: string | null;
+  medium: string | null;
+  large: string | null;
+  xl: string | null;
 }
 
 export interface BikeListItemDto {
@@ -34,6 +44,7 @@ export interface BikeListItemDto {
   brandName: string;
   categoryName: string;
   primaryImageUrl: string | null;
+  primaryImageVariants: BikeImageVariantsDto | null;
 }
 
 export interface SpecValueDto {
@@ -101,6 +112,7 @@ export interface CompareBikeSummaryDto {
   brandName: string;
   slug: string;
   primaryImageUrl: string | null;
+  primaryImageVariants: BikeImageVariantsDto | null;
 }
 
 export interface CompareSpecRowDto {

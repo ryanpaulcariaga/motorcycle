@@ -6,4 +6,7 @@ public sealed record BikeImageAdminDto(
     int Id,
     string BlobUrl,
     int SortOrder,
-    bool IsPrimary);
+    bool IsPrimary,
+    int Width,
+    int Height,
+    BikeImageVariantsDto? Variants);

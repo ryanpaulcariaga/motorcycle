@@ -17,6 +17,9 @@ public sealed class BikeImageAdminRepository : IBikeImageAdminRepository
     public Task<List<BikeImage>> GetAllAsync(int bikeId, CancellationToken ct = default) =>
         _context.BikeImages.Where(x => x.BikeId == bikeId).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToListAsync(ct);
 
+    public Task<List<BikeImage>> GetAllForVariantBackfillAsync(CancellationToken ct = default) =>
+        _context.BikeImages.OrderBy(x => x.Id).ToListAsync(ct);
+
     public Task<BikeImage?> GetByIdAsync(int bikeId, int imageId, CancellationToken ct = default) =>
         _context.BikeImages.SingleOrDefaultAsync(x => x.BikeId == bikeId && x.Id == imageId, ct);
 

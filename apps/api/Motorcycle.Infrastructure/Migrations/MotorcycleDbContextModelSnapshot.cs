@@ -260,13 +260,41 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<int>("Height")
+                        .HasColumnType("integer")
+                        .HasColumnName("height");
+
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean")
                         .HasColumnName("is_primary");
 
+                    b.Property<string>("LargeUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("large_url");
+
+                    b.Property<string>("MediumUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("medium_url");
+
+                    b.Property<string>("SmallUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("small_url");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer")
                         .HasColumnName("sort_order");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer")
+                        .HasColumnName("width");
+
+                    b.Property<string>("XlUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("xl_url");
 
                     b.HasKey("Id")
                         .HasName("pk_bike_images");

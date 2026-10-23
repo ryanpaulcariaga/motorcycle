@@ -13,9 +13,9 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 10 of 89 tasks done · 79 not started.**
+**Progress: 17 of 89 tasks done · 1 in progress · 71 not started.**
 
-**Next up:** T-11 to T-15 (finish tests and CI), then T-25 and T-26 (client IP, API security headers).
+**Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by T-25 and T-26 (client IP, API security headers).
 
 ## Idea intake and triage
 
@@ -49,6 +49,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin |
+| F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
 
 ## Features (planned)
 
@@ -169,18 +170,18 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 
 ### Image sizes (responsive variants)
 
-Today one original is stored per image and used everywhere, so grids and thumbnails download full-size files. On upload, the API will generate several resized copies so each place on the site loads only the size it needs. Resizing only goes down, so admins must upload the largest, highest-quality picture they have.
+The API stores the uploaded original and generates smaller copies for the public catalog, so grids and thumbnails do not download full-size files. Resizing only goes down; admins must upload the largest, highest-quality picture they have.
 
 | # | Status | Task | Notes | Gate |
 |---|---|---|---|---|
-| T-78 | ⬜ | Decide sizes and rules; record in `docs/design-decisions.md` | Proposed widths: small 320, medium 640, large 1280, xl 2048 px, plus the original kept for zoom. Never upscale: skip any size larger than the source. Keep aspect ratio, use WebP (or JPEG fallback), strip metadata. Map each use to a size: list/grid and thumbnails = small/medium, detail = large, gallery zoom = xl/original | G-09 |
-| T-79 | ⬜ | Minimum upload size validation (API) | Reject images below a minimum (proposed 1600 px on the long side, tune in T-78) with a clear error, so every size is a downscale and nothing is blurry. Add tests next to `BikeImageAdminServiceTests.cs` | G-09 |
-| T-80 | ⬜ | Generate and store variants on upload (API) | Use an image library in Infrastructure behind an Application interface. Store variants as separate blobs under the same image id; delete them all when an image is deleted or replaced. Never fail an upload silently if a variant fails | G-09 |
-| T-81 | ⬜ | Schema and DTO changes | Migration to record variant URLs or sizes per image; expose them in the image DTOs and mirror in the TypeScript types of both apps. Update `docs/database.md` and `docs/api.md` | G-09 |
-| T-82 | ⬜ | Backfill existing images | Explicit command that creates variants for images already uploaded; images below the minimum keep only their original and are flagged in admin | G-09 |
-| T-83 | ⬜ | Use the right size in the public web app | Grid/list and compare use small/medium, detail uses large, zoom uses xl/original. Pass `sizes` to `next/image`; check `remotePatterns` | G-09 |
-| T-84 | ⬜ | Admin upload guidance and preview | Show the minimum size and "upload the largest version" hint, validate dimensions in the form before upload, and show which variants exist. Admin lists use small thumbnails, matching the public look | G-09 |
-| T-85 | ⬜ | Verify the gain | Compare image bytes and mobile LCP on `/bikes` before and after (ties to T-59) | G-09 |
+| T-78 | ✅ | Decide sizes and rules; record in `docs/design-decisions.md` | Long-edge sizes 320, 640, 1280, and 2048 px; WebP variants, never upscaled (larger sizes are native-size copies so all four always exist), 1200 px minimum, original retained for zoom | G-09 |
+| T-79 | ✅ | Minimum upload size validation (API) | API rejects images narrower than 1200 px or outside 4:3 (±2%); admin crops to 4:3 (drag/zoom/cancel via `react-easy-crop`, `ImageCropper.tsx`) before upload. Covered by `BikeImageAdminServiceTests.cs` | G-09 |
+| T-80 | ✅ | Generate and store variants on upload (API) | Infrastructure processor creates separate WebP blobs; upload failures clean up stored blobs and image deletion removes all variants | G-09 |
+| T-81 | ✅ | Schema and DTO changes | Migration records variant URLs and source dimensions; API DTOs and both frontend TypeScript contracts updated; docs updated | G-09 |
+| T-82 | ✅ | Backfill existing images | `dotnet run --project apps/api/Motorcycle.Api -- images backfill-variants`; low-resolution images stay original-only and are flagged in admin | G-09 |
+| T-83 | ✅ | Use the right size in the public web app | Cards/compare use small or medium, detail uses large, zoom uses xl/original; `sizes` provided and existing remote patterns cover Blob Storage | G-09 |
+| T-84 | ✅ | Admin upload guidance and preview | Guidance, pre-upload size check, source dimensions, and available variants are displayed; admin thumbnails prefer small | G-09 |
+| T-85 | 🔄 | Verify the gain | Variants are implemented; production before/after image-byte comparison and mobile LCP measurement on `/bikes` remain | G-09 |
 
 ### After launch
 
@@ -219,6 +220,8 @@ Today one original is stored per image and used everywhere, so grids and thumbna
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-10-23** — Implemented responsive image variants: API processing, schema/DTOs, backfill command, admin upload guidance, and public size selection. Production image-byte and mobile-LCP measurement remains (T-85).
 
 **2026-10-23 (later)** — Added accepted post-launch plans for catalog data transparency/correction reports and shareable/saved comparisons. Clarified success metrics and catalog verification work; no code changed.
 
