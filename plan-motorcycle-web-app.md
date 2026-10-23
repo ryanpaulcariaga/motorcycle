@@ -223,7 +223,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
 
-**2026-10-24** — Added compact icon-led bike search to the public header with live API-backed suggestions and submitted search results on `/bikes`; kept the header controls on one row at mobile widths, anchored desktop navigation to the right edge, and made suggested model/variant names explicit while suppressing browser autocomplete.
+**2026-10-24** — Added compact icon-led bike search to the public header with live API-backed suggestions and submitted search results on `/bikes`; kept the header controls on one row at mobile widths, anchored desktop navigation to the right edge, and compacted search spacing with variant-only suggestion names. Fixed result-row sizing and text contrast, and prevented browser saved-form autocomplete from covering suggestions.
 
 **2026-10-24** — Removed the redundant "Open image" link from admin image management and moved the Original download link after 2048.
 

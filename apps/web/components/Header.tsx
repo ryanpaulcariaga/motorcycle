@@ -129,8 +129,8 @@ export default function Header() {
 
   return (
     <header className="bg-brand-header text-white">
-      <div className="flex min-h-16 w-full flex-nowrap items-center justify-between gap-3 px-3 py-4 sm:px-6 md:gap-6">
-        <div className="flex min-w-0 flex-nowrap items-center gap-3 md:gap-6">
+      <div className="flex min-h-16 w-full flex-nowrap items-center justify-between gap-2 px-3 py-2 sm:px-4 md:gap-4">
+        <div className="flex min-w-0 flex-nowrap items-center gap-2 md:gap-4">
           <Link href="/" className="shrink-0 font-bold tracking-wide">
             MotoCompare
           </Link>
@@ -151,104 +151,99 @@ export default function Header() {
               }
             }}
           >
-          <div className="relative flex">
-            <input
-              id="header-bike-search"
-              name="search"
-              type="text"
-              aria-label="Search"
-              autoComplete="new-password"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder=""
-              className="min-w-0 flex-1 border border-white/20 bg-white/10 py-2 pl-3 pr-10 text-sm text-white placeholder:text-white/60 focus:border-brand-gold focus:outline-none focus:ring-2 focus:ring-brand-gold"
-            />
-            <button
-              type="submit"
-              aria-label="Search bikes"
-              className="absolute right-0 top-0 flex h-full items-center px-3 text-white/80 hover:text-brand-gold"
-            >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 20 20"
-                fill="none"
-                className="h-5 w-5"
+            <input type="hidden" name="search" value={searchTerm} />
+            <div className="relative flex">
+              <input
+                id="header-bike-search"
+                type="text"
+                aria-label="Search"
+                autoComplete="off"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder=""
+                className="min-w-0 flex-1 border border-white/20 bg-white/10 px-3 py-1.5 pr-9 text-sm text-white placeholder:text-white/60 focus:border-brand-gold focus:outline-none focus:ring-2 focus:ring-brand-gold"
+              />
+              <button
+                type="submit"
+                aria-label="Search bikes"
+                className="absolute right-0 top-0 flex h-full items-center px-2 text-white/80 hover:text-brand-gold"
               >
-                <circle
-                  cx="8.5"
-                  cy="8.5"
-                  r="5.5"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                />
-                <path
-                  d="m12.5 12.5 4 4"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-          {showSearchResults && (
-            <div
-              id="header-bike-search-results"
-              className="absolute left-0 z-50 mt-1 max-h-80 w-full max-w-xl overflow-y-auto border border-zinc-200 bg-white text-brand-black shadow-lg"
-              aria-live="polite"
-            >
-              {searchingTerm === trimmedSearchTerm && (
-                <p className="p-3 text-sm text-brand-grey">Searching bikes...</p>
-              )}
-              {searchErrorForTerm === trimmedSearchTerm && (
-                <p className="p-3 text-sm text-red-700" role="alert">
-                  {searchError}
-                </p>
-              )}
-              {resultsForTerm === trimmedSearchTerm &&
-                searchErrorForTerm !== trimmedSearchTerm &&
-                searchResults.length === 0 &&
-                searchingTerm !== trimmedSearchTerm && (
-                  <p className="p-3 text-sm text-brand-grey">No bikes found.</p>
-                )}
-              {resultsForTerm === trimmedSearchTerm &&
-                searchResults.map((bike) => (
-                  <Link
-                    key={bike.id}
-                    href={`/bikes/${bike.slug}`}
-                    onClick={() => setIsSearchFocused(false)}
-                    className="flex items-center gap-3 p-3 text-sm hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none"
-                  >
-                    <span className="relative h-10 w-12 shrink-0 overflow-hidden bg-zinc-100">
-                      {bike.primaryImageUrl && (
-                        <Image
-                          src={
-                            bike.primaryImageVariants?.small ??
-                            bike.primaryImageUrl
-                          }
-                          alt=""
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                      )}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate font-semibold">
-                        {bike.brandName} - {bike.modelName}
-                      </span>
-                      <span className="block truncate text-xs text-brand-grey">
-                        {bike.variantName} · {bike.year}
-                      </span>
-                    </span>
-                  </Link>
-                ))}
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className="h-5 w-5"
+                >
+                  <circle
+                    cx="8.5"
+                    cy="8.5"
+                    r="5.5"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                  />
+                  <path
+                    d="m12.5 12.5 4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
             </div>
-          )}
+            {showSearchResults && (
+              <div
+                id="header-bike-search-results"
+                className="absolute left-0 z-50 mt-1 max-h-80 w-full max-w-xl overflow-y-auto border border-zinc-200 bg-white text-black shadow-lg"
+                aria-live="polite"
+              >
+                {searchingTerm === trimmedSearchTerm && (
+                  <p className="p-2 text-sm text-brand-grey">Searching bikes...</p>
+                )}
+                {searchErrorForTerm === trimmedSearchTerm && (
+                  <p className="p-2 text-sm text-red-700" role="alert">
+                    {searchError}
+                  </p>
+                )}
+                {resultsForTerm === trimmedSearchTerm &&
+                  searchErrorForTerm !== trimmedSearchTerm &&
+                  searchResults.length === 0 &&
+                  searchingTerm !== trimmedSearchTerm && (
+                    <p className="p-2 text-sm text-brand-grey">No bikes found.</p>
+                  )}
+                {resultsForTerm === trimmedSearchTerm &&
+                  searchResults.map((bike) => (
+                    <Link
+                      key={bike.id}
+                      href={`/bikes/${bike.slug}`}
+                      onClick={() => setIsSearchFocused(false)}
+                      className="flex items-center gap-2 bg-white p-2 text-sm text-black hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none"
+                    >
+                      <span className="relative h-8 w-10 shrink-0 overflow-hidden bg-zinc-100">
+                        {bike.primaryImageUrl && (
+                          <Image
+                            src={
+                              bike.primaryImageVariants?.small ??
+                              bike.primaryImageUrl
+                            }
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="40px"
+                          />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate font-semibold text-black">
+                        {bike.variantName}
+                      </span>
+                    </Link>
+                  ))}
+              </div>
+            )}
           </form>
         </div>
 
         {/* Desktop nav */}
-        <nav className="ml-auto hidden shrink-0 items-center gap-6 md:flex">
+        <nav className="ml-auto hidden shrink-0 items-center gap-4 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
