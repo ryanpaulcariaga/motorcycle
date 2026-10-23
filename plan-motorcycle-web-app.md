@@ -221,6 +221,8 @@ The API stores the uploaded original and generates smaller copies for the public
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
 
+**2026-10-24** — Removed the redundant "Open image" link from admin image management and moved the Original download link after 2048.
+
 **2026-10-23** — Implemented responsive image variants: API processing, schema/DTOs, backfill command, admin upload guidance, and public size selection. Production image-byte and mobile-LCP measurement remains (T-85).
 
 **2026-10-23 (later)** — Added accepted post-launch plans for catalog data transparency/correction reports and shareable/saved comparisons. Clarified success metrics and catalog verification work; no code changed.

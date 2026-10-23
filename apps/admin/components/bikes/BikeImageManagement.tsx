@@ -197,11 +197,11 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
                 <p className="text-brand-grey">
                   Download:{' '}
                   {[
-                    ['Original', image.blobUrl],
                     ['320', image.variants?.small],
                     ['640', image.variants?.medium],
                     ['1280', image.variants?.large],
                     ['2048', image.variants?.xl],
+                    ['Original', image.blobUrl],
                   ]
                     .filter((item): item is [string, string] => Boolean(item[1]))
                     .map(([label, url], linkIndex) => (
@@ -220,14 +220,6 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
                     ))}
                   {image.variants ? ' px' : ''}
                 </p>
-                <a
-                  className="block truncate text-sm font-semibold text-brand-button underline"
-                  href={image.blobUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open image
-                </a>
               </div>
               <div className="flex items-center gap-1">
                 {!image.isPrimary && (
