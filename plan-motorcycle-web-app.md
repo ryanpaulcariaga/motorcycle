@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 17 of 89 tasks done · 1 in progress · 71 not started.**
+**Progress: 18 of 90 tasks done · 1 in progress · 71 not started.**
 
 **Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by T-25 and T-26 (client IP, API security headers).
 
@@ -50,6 +50,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
+| F-17 | ✅ Public header bike search with live suggestions and searchable browse results |
 
 ## Features (planned)
 
@@ -216,10 +217,13 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-08 | ✅ Rate limiting with tests | `RateLimitingTests.cs` |
 | T-09 | ✅ Image upload limits and signature checks with tests | `BikeImageAdminServiceTests.cs` |
 | T-10 | ✅ Admin authorization with tests | `AdminBikesControllerAuthorizationTests.cs` |
+| T-90 | ✅ Public header bike search and submitted browse results | API-backed suggestions; web lint and production build pass |
 
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-10-24** — Added compact icon-led bike search to the public header with live API-backed suggestions and submitted search results on `/bikes`; kept the header controls on one row at mobile widths, anchored desktop navigation to the right edge, and made suggested model/variant names explicit while suppressing browser autocomplete.
 
 **2026-10-24** — Removed the redundant "Open image" link from admin image management and moved the Original download link after 2048.
 

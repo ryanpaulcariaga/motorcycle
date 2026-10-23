@@ -6,6 +6,7 @@ import { getBikes, getBrands, getCategories } from '@/lib/api';
 
 interface BikesPageProps {
   searchParams: Promise<{
+    search?: string;
     brandId?: string;
     categoryId?: string;
     sortBy?: string;
@@ -29,6 +30,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
       getBikes({
         page,
         pageSize: 12,
+        search: params.search,
         brandId: params.brandId,
         categoryId: params.categoryId,
         sortBy: (params.sortBy as 'price' | 'year' | 'model_name') ?? undefined,
@@ -104,7 +106,11 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
 
         <div className="min-w-0 flex-1 bg-brand-content p-6 shadow-lg">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Browse Bikes</h1>
+            <h1 className="min-w-0 break-words text-2xl font-bold">
+              {params.search
+                ? `Search results for "${params.search}"`
+                : 'Browse Bikes'}
+            </h1>
             <p className="text-sm text-brand-grey">{totalCount} bikes</p>
           </div>
 
@@ -144,7 +150,9 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
 
           {bikes.length === 0 && (
             <p className="text-center text-brand-grey py-12">
-              No bikes match the selected filters.
+              {params.search
+                ? `No bikes found for "${params.search}".`
+                : 'No bikes match the selected filters.'}
             </p>
           )}
 
