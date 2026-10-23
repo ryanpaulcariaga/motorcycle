@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Motorcycle.Api.Common;
 using Motorcycle.Application.DTOs;
 using Motorcycle.Application.Interfaces;
 
@@ -24,6 +26,7 @@ public sealed class AdminBikeImagesController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting(RateLimitPolicies.Upload)]
     [RequestSizeLimit(10 * 1024 * 1024)]
     public async Task<ActionResult<BikeImageAdminDto>> Upload(int bikeId, IFormFile file, CancellationToken ct)
     {

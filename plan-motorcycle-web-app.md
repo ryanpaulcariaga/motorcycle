@@ -39,7 +39,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 | Database and migrations | 🔄 | API `/health/ready` returned HTTP 200; operator confirmed production database and storage connectivity (2026-10-20); API now applies migrations on every startup, independent of the development seed setting; migration and explicit update procedures documented in README | Review production migration state and validate startup migration behavior against production | G-03 |
 | Observability | 🔄 | Serilog console logs, `/health`, `/health/ready`, ProblemDetails | Application Insights, alerts, uptime probes, error tracking | G-06 |
 | Automated testing | ❌ | API unit tests include image-upload signature checks; CI defined | CI never run on GitHub; image-controller/spec/bulk/compare coverage and frontend/e2e tests remain | G-04, TODO-7 |
-| Security | 🔄 | HttpOnly Secure cookies, policy-based admin auth, CORS allow-list; image upload enforces size/type allowlists and verifies file signatures against declared types | Rate limiting, security headers, documented CSRF stance, admin audit log, admin IdP exit plan; production upload validation acceptance | G-07 |
+| Security | 🔄 | HttpOnly Secure cookies, policy-based admin auth, CORS allow-list; image upload enforces size/type allowlists and verifies file signatures; API per-IP rate limiting (general, auth, upload/import) with tests | Verify client IP forwarding in Azure, security headers, documented CSRF stance, admin audit log, admin IdP exit plan; production upload validation acceptance | G-07 |
 | Responsive and accessibility | ⚠️ | Mobile-first Tailwind, header drawer | No audit; contrast of gold/orange palette unchecked | G-08 |
 | SEO and sharing | 🔄 | Per-bike metadata, `sitemap.xml`, `robots.txt`, error pages | OpenGraph images, canonical URLs, JSON-LD | TODO-6 |
 | Performance | ⏳ | Lookup endpoints cached 10 minutes | Output caching for `/api/bikes`, Next.js revalidation, load check at 1000+ bikes | TODO-5, G-09 |
@@ -56,7 +56,7 @@ Status legend: ✅ done and verified · 🔄 partly done · ❌ not started · �
 - [ ] **G-04** CI passes on GitHub (API tests, web/admin lint and build); core API tests added for image, spec metadata, bulk spec, and compare tracking
 - [ ] **G-05** Browser acceptance beyond basic sign-in/connectivity: public browse, filters, compare (search suggestions now push comparison content down rather than overlaying it; bike order follows selection order), images and sitemap/robots; admin BikeModel, variant (including image-presence filtering), image upload/management, spec metadata, and bulk spec/grid flows. Sidebar alignment and tighter catalog/admin grid spacing were standardized across both apps on 2026-10-22; remaining browser acceptance is still open
 - [ ] **G-06** Monitoring in place: Application Insights or equivalent, alerts on failures, uptime probes for `/health/ready`
-- [ ] **G-07** Security baseline: image uploads now enforce allowed types, a 10 MiB limit, and matching JPEG/PNG/WebP/GIF signatures (API unit tests); remaining work: rate limiting on auth/upload/public endpoints, security headers on all three apps, documented CSRF stance, admin audit log, admin identity-provider decision, and production upload validation acceptance
+- [ ] **G-07** Security baseline: image uploads now enforce allowed types, a 10 MiB limit, and matching JPEG/PNG/WebP/GIF signatures (API unit tests); remaining work: verify rate limiting sees real client IPs in Azure (limits implemented 2026-10-22: general, auth, upload/import), security headers on all three apps, documented CSRF stance, admin audit log, admin identity-provider decision, and production upload validation acceptance
 - [ ] **G-10** Privacy policy and terms published; cookie consent if analytics/ads are added
 - [ ] **G-11** Backups enabled and one restore tested; rollback procedure written
 
@@ -148,6 +148,7 @@ Local ports: API `https://localhost:7240` (single `https` launch profile), publi
 | 12 | Sidebar alignment, color, and spacing | Public sidebar links use a consistent stacked layout, inset, font style, color, and vertical spacing across home, browse, and bike details; admin navigation uses the same spacing and text treatment |
 | 13 | Tighter catalog and admin grids | Reduced spacing between public bike cards and inside their text panels; tightened padding in admin management tables and the bulk specification grid |
 | 14 | Image upload signature validation | Admin image uploads verify JPEG, PNG, WebP, and GIF file signatures against the declared content type before sending content to Blob Storage |
+| 15 | API rate limiting | Per-IP fixed-window limits (`429` + `Retry-After`): general 300/min, sign-in 20/min, image upload and Excel import 30/min; configurable under `RateLimiting`; `/health` exempt. Documented in `docs/api.md` |
 
 API contracts live in `docs/api.md`, architecture in `docs/architecture.md`, schema in `docs/database.md`. API unit tests: `apps/api/Motorcycle.Api.Tests` (admin controller authorization, admin services, bike import, image-upload signature validation). No frontend test runner yet.
 

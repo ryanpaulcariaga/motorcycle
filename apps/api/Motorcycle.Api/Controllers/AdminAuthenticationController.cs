@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Motorcycle.Api.Common;
 using Motorcycle.Application.Interfaces;
@@ -34,6 +35,7 @@ public sealed class AdminAuthenticationController : ControllerBase
         _httpClientFactory = httpClientFactory;
     }
 
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     [HttpGet("facebook")]
     public IActionResult StartFacebookSignIn()
     {
@@ -65,6 +67,7 @@ public sealed class AdminAuthenticationController : ControllerBase
         return Redirect($"{FacebookAuthorizeUrl}?{new FormUrlEncodedContent(parameters).ReadAsStringAsync().GetAwaiter().GetResult()}");
     }
 
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     [HttpGet("facebook/callback")]
     public async Task<IActionResult> CompleteFacebookSignIn([FromQuery] string? code, [FromQuery] string? state, CancellationToken ct)
     {

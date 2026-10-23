@@ -154,6 +154,9 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddApiRateLimiting(builder.Configuration);
+var rateLimitingEnabled = builder.Configuration.GetValue<bool?>("RateLimiting:Enabled") ?? true;
+
 var app = builder.Build();
 
 if (AdminBootstrapCommand.IsRequested(args)) {
@@ -203,6 +206,10 @@ if (swaggerEnabled) {
 }
 
 app.UseCors(CorsPolicy);
+if (rateLimitingEnabled) {
+    app.UseRateLimiter();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

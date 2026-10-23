@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Motorcycle.Api.Common;
 using Motorcycle.Api.Services;
 using Motorcycle.Application.DTOs;
 using Motorcycle.Application.Interfaces;
@@ -34,6 +36,7 @@ public sealed class AdminBikesController : ControllerBase
     }
 
     [HttpPost("import")]
+    [EnableRateLimiting(RateLimitPolicies.Upload)]
     [RequestSizeLimit(MaxImportBytes + 1024 * 1024)]
     public async Task<IActionResult> Import(IFormFile? file, CancellationToken ct)
     {

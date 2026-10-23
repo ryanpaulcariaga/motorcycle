@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Motorcycle.Api.Common;
 using Motorcycle.Application.DTOs;
@@ -39,6 +40,7 @@ public sealed class UserAuthenticationController : ControllerBase
         _userAuthService = userAuthService;
     }
 
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     [HttpGet("{provider}")]
     public IActionResult StartSignIn(string provider)
     {
@@ -59,6 +61,7 @@ public sealed class UserAuthenticationController : ControllerBase
         return Redirect(authProvider.BuildAuthorizationUrl(config, state, challenge));
     }
 
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     [HttpGet("{provider}/callback")]
     public async Task<IActionResult> CompleteSignIn(string provider, [FromQuery] string? code, [FromQuery] string? state, CancellationToken ct)
     {

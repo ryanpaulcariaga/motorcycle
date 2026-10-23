@@ -155,6 +155,18 @@ Get all spec groups and their definitions (drives filter UI + compare labels).
 - `GET /health/ready` returns `200` when the database is reachable, otherwise `503` (readiness).
 - Unhandled server errors return an RFC 7807 `application/problem+json` `500` response without exception details; details go to the Serilog console log.
 
+### Rate Limiting
+
+Requests are limited per client IP using fixed one-minute windows; excess requests receive `429 Too Many Requests` with a `Retry-After` header. `/health` routes are exempt.
+
+| Scope | Default | Setting |
+|---|---|---|
+| All other requests | 300/min | `RateLimiting:GeneralPerMinute` |
+| Sign-in start and callback (`/api/auth/{provider}`, `/api/admin/auth/facebook`, and their callbacks) | 20/min | `RateLimiting:AuthPerMinute` |
+| Admin image upload and bike Excel import | 30/min | `RateLimiting:UploadPerMinute` |
+
+Defaults are set in `appsettings.json`; `appsettings.Development.json` raises them so local work and bulk uploads are not throttled. Override in Azure with app settings such as `RateLimiting__AuthPerMinute`. `RateLimiting:Enabled=false` disables limiting. Limits are keyed on the connection's remote IP; behind Azure App Service the client IP is only correct when forwarded headers are processed (`ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`, which App Service Linux sets for .NET by default). Verify after deployment, since otherwise all clients would share one bucket.
+
 ### Database Connectivity Test
 
 `TestController` runs a `SELECT ... LIMIT 1` against `bikes` and returns a JSON boolean: `true` when a row was returned, `false` when the table is empty or the query fails (the error is swallowed). Remove or restrict these before production use.
