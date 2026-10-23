@@ -116,7 +116,7 @@ For app-specific configuration, see [apps/web/README.md](apps/web/README.md).
 
 ## Feature Development
 
-[plan-motorcycle-web-app.md](plan-motorcycle-web-app.md) is the living project document: decisions, implementation status, feature log, operational notes, and backlog. Update it whenever work ships. Feature-by-feature `specs/` folders are no longer used; the SpecKit tooling (`.specify/` and `.github/skills/speckit-*`) is kept only for possible future use.
+[plan-motorcycle-web-app.md](plan-motorcycle-web-app.md) is the living document listing built features and remaining tasks. Update it whenever work ships. Design decisions are in [docs/design-decisions.md](docs/design-decisions.md); Azure resources, URLs, and deployment troubleshooting are in [docs/operations.md](docs/operations.md). Feature-by-feature `specs/` folders are no longer used; the SpecKit tooling (`.specify/` and `.github/skills/speckit-*`) is kept only for possible future use.
 
 When implementing a feature:
 1. Check the plan's release status, gates, and work register
@@ -130,7 +130,7 @@ See [apps/admin/README.md](apps/admin/README.md) for the admin SPA, including lo
 
 ## Deploying to Azure
 
-> **Status (2026-10-19):** all three production apps are deployed in Azure. Smoke checks over HTTPS returned HTTP 200 for the public catalog (`/bikes`), admin homepage (`/`), API liveness (`/health`), and API readiness (`/health/ready`). See [plan-motorcycle-web-app.md](plan-motorcycle-web-app.md#release-status-at-a-glance) for release readiness and remaining validation gates.
+> **Status (2026-10-19):** all three production apps are deployed in Azure. Smoke checks over HTTPS returned HTTP 200 for the public catalog (`/bikes`), admin homepage (`/`), API liveness (`/health`), and API readiness (`/health/ready`). See [plan-motorcycle-web-app.md](plan-motorcycle-web-app.md#status) for release readiness and remaining validation gates.
 >
 > - Public web: <https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net/>
 > - Admin: <https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net/>
@@ -230,7 +230,7 @@ Repeat the production setup with these changes. Everything else stays the same.
 - **Operator-confirmed (2026-10-20):** production database and storage connectivity work, and Facebook sign-in works.
 - Confirm `https://motorcycle-web-prod-bmhpb4hbbah9e7dy.southeastasia-01.azurewebsites.net/bikes` lists bikes with images; verify `/sitemap.xml` and `/robots.txt` use the production host.
 - Validate the admin catalog workflows, including image upload/management, specs, and bulk edits, in a browser at <https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net/>.
-- Create the first administrator with the bootstrap command in the plan's Feature Log if the production database has none.
+- Create the first administrator with the bootstrap command in [docs/operations.md](docs/operations.md#first-administrator) if the production database has none.
 
 ### Manual deployment (fallback)
 
@@ -306,7 +306,7 @@ Compress-Archive -Path publish\* -DestinationPath api.zip -Force
 az webapp deploy -g motorcycle-prod-rg -n motorcycle-api-prod --src-path api.zip --type zip
 ```
 
-Verify: `https://<api-host>/health` returns `200` and `https://<api-host>/health/ready` returns `200` (database reachable). Create the first administrator with the bootstrap command in the plan's Feature Log if the production database has none.
+Verify: `https://<api-host>/health` returns `200` and `https://<api-host>/health/ready` returns `200` (database reachable). Create the first administrator with the bootstrap command in [docs/operations.md](docs/operations.md#first-administrator) if the production database has none.
 
 ### M3. Deploy the public web app
 
