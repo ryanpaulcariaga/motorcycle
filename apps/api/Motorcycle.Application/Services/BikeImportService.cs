@@ -34,9 +34,20 @@ public sealed class BikeImportService : IBikeImportService
         decimal? MsrpPrice,
         Dictionary<string, object?> Specs);
 
-    public async Task<BikeExportDto> GetExportAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default)
+    public async Task<BikeExportDto> GetExportAsync(
+        int? brandId,
+        int? categoryId,
+        decimal? minPrice,
+        decimal? maxPrice,
+        CancellationToken ct = default,
+        string? sortBy = null,
+        string sortDirection = "asc")
     {
-        var columns = (await _specGroupRepository.GetAllWithDefinitionsAsync(ct))
+        var specGroups = await _specGroupRepository.GetAllWithDefinitionsAsync(ct);
+        var definitions = specGroups
+            .SelectMany(g => g.Definitions)
+            .ToDictionary(d => d.Code, d => d);
+        var columns = specGroups
             .OrderBy(g => g.SortOrder)
             .SelectMany(g => g.Definitions.OrderBy(d => d.SortOrder).Select(d => new BikeExportColumnDto(d.Code, d.Label, d.DataType, d.Unit, g.Name)))
             .ToList();
@@ -51,6 +62,7 @@ public sealed class BikeImportService : IBikeImportService
             b.MsrpPrice,
             b.IsPublished,
             b.Specs.ToDictionary(s => s.Key, s => (object?)s.Value))).ToList();
+        rows = BikeSpecGridSorter.Sort(rows, sortBy, sortDirection, definitions).ToList();
         return new BikeExportDto(columns, rows);
     }
 

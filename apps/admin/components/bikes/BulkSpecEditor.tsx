@@ -23,6 +23,8 @@ export default function BulkSpecEditor() {
   const [categoryId, setCategoryId] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [sortBy, setSortBy] = useState('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [bikes, setBikes] = useState<BikeSpecGridRow[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -54,11 +56,15 @@ export default function BulkSpecEditor() {
     };
   }
 
+  function currentSort() {
+    return sortBy ? { sortBy, sortDirection } : undefined;
+  }
+
   async function exportExcel() {
     setExporting(true);
     setError(null);
     try {
-      const blob = await exportAdminBikes(currentFilters());
+      const blob = await exportAdminBikes(currentFilters(), currentSort());
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -118,7 +124,7 @@ export default function BulkSpecEditor() {
     setLoading(true);
     setError(null);
     try {
-      const result = await getAdminBikeSpecGrid(currentFilters());
+      const result = await getAdminBikeSpecGrid(currentFilters(), currentSort());
       setBikes(result);
       setLoaded(true);
       setModalOpen(result.length > 0);
@@ -146,7 +152,7 @@ export default function BulkSpecEditor() {
       </div>
       <p className="mt-1 text-sm text-brand-grey">
         Filter motorcycles, then edit their specifications in an on-screen grid
-        or export them to Excel.
+        or export them to Excel. The selected sort order applies to both.
       </p>
       <form
         className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
@@ -220,6 +226,57 @@ export default function BulkSpecEditor() {
               onChange={(e) => setMaxPrice(e.target.value)}
             />
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold" htmlFor="bulk-sort">
+            Sort by
+          </label>
+          <select
+            className={inputClass}
+            id="bulk-sort"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="">Original order</option>
+            <option value="bike">Motorcycle</option>
+            <option value="brand">Brand</option>
+            <option value="model">Model</option>
+            <option value="variant">Variant</option>
+            <option value="year">Year</option>
+            <option value="category">Category</option>
+            <option value="msrp">MSRP</option>
+            {specGroups.map((group) =>
+              group.definitions.map((definition) => (
+                <option
+                  key={definition.code}
+                  value={`spec:${definition.code}`}
+                >
+                  {group.name} · {definition.label}
+                  {definition.unit ? ` (${definition.unit})` : ''}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
+        <div>
+          <label
+            className="block text-sm font-semibold"
+            htmlFor="bulk-sort-direction"
+          >
+            Direction
+          </label>
+          <select
+            className={inputClass}
+            disabled={!sortBy}
+            id="bulk-sort-direction"
+            value={sortDirection}
+            onChange={(e) =>
+              setSortDirection(e.target.value === 'desc' ? 'desc' : 'asc')
+            }
+          >
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
         </div>
         <div className="flex flex-wrap gap-3 sm:col-span-2 lg:col-span-4">
           <button

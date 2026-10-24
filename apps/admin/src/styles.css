@@ -92,3 +92,8 @@ button:focus-visible {
 .spec-grid .rdg-cell {
   padding-inline: 6px;
 }
+
+.spec-grid .rdg-cell.spec-grid-readonly-cell {
+  background-color: #f4f4f5;
+  color: #52525b;
+}

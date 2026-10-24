@@ -161,4 +161,24 @@ public class BikeImportServiceTests
         var result = await service.ImportAsync(request);
         Assert.Equal(new BikeImportResultDto(0, 0, 1), result);
     }
+
+    [Fact]
+    public async Task GetExportAsync_SortsSpecificationValuesNumericallyInRequestedDirection()
+    {
+        var (service, repository) = CreateService();
+        var higher = await AddBikeAsync(repository, "Higher");
+        higher.Specs["engine_displacement_cc"] = 650;
+        var lower = await AddBikeAsync(repository, "Lower");
+        lower.Specs["engine_displacement_cc"] = 350;
+
+        var export = await service.GetExportAsync(
+            null,
+            null,
+            null,
+            null,
+            sortBy: "spec:engine_displacement_cc",
+            sortDirection: "desc");
+
+        Assert.Equal(new[] { higher.Id, lower.Id }, export.Rows.Select(row => row.Id));
+    }
 }

@@ -7,7 +7,7 @@ public interface IBikeAdminService
     Task<IReadOnlyList<BikeAdminListItemDto>> GetAllAsync(int? modelId, CancellationToken ct = default);
     Task<IReadOnlyList<BikeSpecValueItemDto>> GetSpecValuesAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, string specCode, CancellationToken ct = default);
     Task<int> UpdateSingleSpecAsync(UpdateSingleSpecRequest request, CancellationToken ct = default);
-    Task<IReadOnlyList<BikeSpecGridRowDto>> GetSpecGridAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default);
+    Task<IReadOnlyList<BikeSpecGridRowDto>> GetSpecGridAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default, string? sortBy = null, string sortDirection = "asc");
     Task<int> UpdateSpecGridAsync(UpdateSpecGridRequest request, CancellationToken ct = default);
     Task<BikeAdminDetailDto> GetByIdAsync(int id, CancellationToken ct = default);
     Task<BikeAdminDetailDto> CreateAsync(CreateBikeRequest request, CancellationToken ct = default);

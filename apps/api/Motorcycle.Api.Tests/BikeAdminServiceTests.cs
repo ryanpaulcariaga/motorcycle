@@ -91,6 +91,33 @@ public class BikeAdminServiceTests
 
         Assert.Equal(399, Assert.Single(rows).Specs["engine_displacement_cc"]);
     }
+
+    [Fact]
+    public async Task GetSpecGridAsync_SortsSpecificationValuesNumericallyAndKeepsEmptyValuesLast()
+    {
+        var (service, repository) = CreateService();
+        var higher = NewBike("Higher");
+        higher.Specs["engine_displacement_cc"] = 650;
+        var missing = NewBike("Missing");
+        missing.Specs.Remove("engine_displacement_cc");
+        var lower = NewBike("Lower");
+        lower.Specs["engine_displacement_cc"] = 350;
+        await repository.AddAsync(higher);
+        await repository.AddAsync(missing);
+        await repository.AddAsync(lower);
+
+        var ascending = await service.GetSpecGridAsync(null, null, null, null, sortBy: "spec:engine_displacement_cc");
+        var descending = await service.GetSpecGridAsync(
+            null,
+            null,
+            null,
+            null,
+            sortBy: "spec:engine_displacement_cc",
+            sortDirection: "desc");
+
+        Assert.Equal(new[] { lower.Id, higher.Id, missing.Id }, ascending.Select(row => row.Id));
+        Assert.Equal(new[] { higher.Id, lower.Id, missing.Id }, descending.Select(row => row.Id));
+    }
     [Fact]
     public async Task CreateAsync_WithValidData_PersistsUnpublishedBike()
     {

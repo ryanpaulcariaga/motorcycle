@@ -25,14 +25,25 @@ public sealed class AdminBikesController : ControllerBase
     }
 
     [HttpGet("export")]
-    public async Task<IActionResult> Export([FromQuery] int? brandId, [FromQuery] int? categoryId, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, CancellationToken ct)
+    public async Task<IActionResult> Export(
+        [FromQuery] int? brandId,
+        [FromQuery] int? categoryId,
+        [FromQuery] decimal? minPrice,
+        [FromQuery] decimal? maxPrice,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? sortDirection,
+        CancellationToken ct)
     {
         if (brandId.HasValue && brandId <= 0) {
             return BadRequest(new { message = "Brand must be a positive ID." });
         }
 
-        var export = await _importService.GetExportAsync(brandId, categoryId, minPrice, maxPrice, ct);
-        return File(BikeWorkbook.Build(export), BikeWorkbook.ContentType, $"bikes-{DateTime.UtcNow:yyyyMMdd-HHmmss}.xlsx");
+        try {
+            var export = await _importService.GetExportAsync(brandId, categoryId, minPrice, maxPrice, ct, sortBy, sortDirection ?? "asc");
+            return File(BikeWorkbook.Build(export), BikeWorkbook.ContentType, $"bikes-{DateTime.UtcNow:yyyyMMdd-HHmmss}.xlsx");
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPost("import")]
@@ -91,13 +102,24 @@ public sealed class AdminBikesController : ControllerBase
     }
 
     [HttpGet("spec-grid")]
-    public async Task<ActionResult<IReadOnlyList<BikeSpecGridRowDto>>> GetSpecGrid([FromQuery] int? brandId, [FromQuery] int? categoryId, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<BikeSpecGridRowDto>>> GetSpecGrid(
+        [FromQuery] int? brandId,
+        [FromQuery] int? categoryId,
+        [FromQuery] decimal? minPrice,
+        [FromQuery] decimal? maxPrice,
+        [FromQuery] string? sortBy,
+        [FromQuery] string? sortDirection,
+        CancellationToken ct)
     {
         if (brandId.HasValue && brandId <= 0) {
             return BadRequest(new { message = "Brand must be a positive ID." });
         }
 
-        return Ok(await _service.GetSpecGridAsync(brandId, categoryId, minPrice, maxPrice, ct));
+        try {
+            return Ok(await _service.GetSpecGridAsync(brandId, categoryId, minPrice, maxPrice, ct, sortBy, sortDirection ?? "asc"));
+        } catch (ArgumentException ex) {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("spec-grid")]

@@ -87,10 +87,17 @@ public sealed class BikeAdminService : IBikeAdminService
         return request.Values.Count;
     }
 
-    public async Task<IReadOnlyList<BikeSpecGridRowDto>> GetSpecGridAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default)
+    public async Task<IReadOnlyList<BikeSpecGridRowDto>> GetSpecGridAsync(
+        int? brandId,
+        int? categoryId,
+        decimal? minPrice,
+        decimal? maxPrice,
+        CancellationToken ct = default,
+        string? sortBy = null,
+        string sortDirection = "asc")
     {
         var bikes = await _repository.GetForSpecEditAsync(brandId, categoryId, minPrice, maxPrice, ct);
-        return bikes.Select(b => new BikeSpecGridRowDto(
+        var rows = bikes.Select(b => new BikeSpecGridRowDto(
             b.Id,
             b.Model?.Name ?? string.Empty,
             b.Model?.Brand?.Name ?? string.Empty,
@@ -100,6 +107,12 @@ public sealed class BikeAdminService : IBikeAdminService
             b.MsrpPrice,
             b.IsPublished,
             b.Specs.ToDictionary(s => s.Key, s => (object?)s.Value))).ToList();
+        if (string.IsNullOrWhiteSpace(sortBy)) {
+            return rows;
+        }
+
+        var definitions = await GetDefinitionsByCodeAsync(ct);
+        return BikeSpecGridSorter.Sort(rows, sortBy, sortDirection, definitions);
     }
 
     public async Task<int> UpdateSpecGridAsync(UpdateSpecGridRequest request, CancellationToken ct = default)

@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 18 of 90 tasks done · 1 in progress · 71 not started.**
+**Progress: 19 of 91 tasks done · 1 in progress · 71 not started.**
 
 **Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by T-25 and T-26 (client IP, API security headers).
 
@@ -45,7 +45,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-07 | ✅ Admin: Bike variant CRUD, publish, reviewed flag, move to another model, image-presence filter |
 | F-08 | ✅ Admin: image upload, ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management |
-| F-10 | ✅ Admin: Bulk Spec Edit, spec grid, Excel export/import |
+| F-10 | ✅ Admin: Bulk Spec Edit, spec grid, shared sorting, Excel export/import |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin |
@@ -218,10 +218,13 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-09 | ✅ Image upload limits and signature checks with tests | `BikeImageAdminServiceTests.cs` |
 | T-10 | ✅ Admin authorization with tests | `AdminBikesControllerAuthorizationTests.cs` |
 | T-90 | ✅ Public header bike search and submitted browse results | API-backed suggestions; web lint and production build pass |
+| T-91 | ✅ Add shared sorting to Bulk Spec Edit | Main-page sort selection applies to both the grid and Excel export |
 
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-10-25** — Added main-page sorting to Bulk Spec Edit; one selection orders both the on-screen grid and Excel export by motorcycle fields or specification values. The grid's Motorcycle column displays only the variant name, and non-editable identifying cells are shaded gray.
 
 **2026-10-24** — Added compact icon-led bike search to the public header with live API-backed suggestions and submitted search results on `/bikes`; kept the header controls on one row at mobile widths, anchored desktop navigation to the right edge, and compacted search spacing with variant-only suggestion names. Fixed result-row sizing and text contrast, and prevented browser saved-form autocomplete from covering suggestions.
 

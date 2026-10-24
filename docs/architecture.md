@@ -66,6 +66,8 @@ Spec metadata management adds protected CRUD for `SpecGroup`/`SpecDefinition` un
 
 Bulk single-spec editing lets an administrator set one specification across many bikes (optionally filtered by brand, category, and MSRP range) through `GET`/`PUT /api/admin/bikes/spec-values`; values are validated against the definition's `dataType` and saved all-or-nothing in one transaction, with no schema change.
 
+Bulk Spec Edit sorting is selected alongside the page filters and applied by the shared API to both the spreadsheet grid and Excel export. It supports motorcycle fields or a specification value, with type-aware numeric/boolean ordering and blank values last.
+
 ### Public User Authentication Boundary
 
 `apps/web` users sign in through the same shared API under `/api/auth`, using a session model that is architecturally identical to the admin one (OAuth Authorization Code + PKCE completed by the API, provider tokens never reaching the browser) but functionally separate: any active external identity may sign in — there is no manual allowlist or `AdminRole`-style approval step — and the session uses its own `UserAuth` cookie scheme (`mc_user_session`) and `AuthenticatedUser` authorization policy, distinct from `AdminAuth`/`ActiveAdministrator`.

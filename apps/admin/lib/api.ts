@@ -102,7 +102,9 @@ export function getAdminBikeSpecValues(filters: SpecValueFilters): Promise<BikeS
 export function updateAdminBikeSpecValues(request: UpdateSingleSpecRequest): Promise<{ updatedCount: number }> {
   return apiFetch("/api/admin/bikes/spec-values", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
 }
-export function getAdminBikeSpecGrid(filters: Omit<SpecValueFilters, "specCode">): Promise<BikeSpecGridRow[]> {
+type BikeGridSort = { sortBy: string; sortDirection: "asc" | "desc" };
+
+export function getAdminBikeSpecGrid(filters: Omit<SpecValueFilters, "specCode">, sort?: BikeGridSort): Promise<BikeSpecGridRow[]> {
   const params = new URLSearchParams();
   if (filters.brandId !== undefined) {
     params.set("brandId", String(filters.brandId));
@@ -115,10 +117,14 @@ export function getAdminBikeSpecGrid(filters: Omit<SpecValueFilters, "specCode">
   }
   if (filters.maxPrice !== undefined) {
     params.set("maxPrice", String(filters.maxPrice));
+  }
+  if (sort?.sortBy) {
+    params.set("sortBy", sort.sortBy);
+    params.set("sortDirection", sort.sortDirection);
   }
   return apiFetch(`/api/admin/bikes/spec-grid?${params}`);
 }
-export async function exportAdminBikes(filters: Omit<SpecValueFilters, "specCode">): Promise<Blob> {
+export async function exportAdminBikes(filters: Omit<SpecValueFilters, "specCode">, sort?: BikeGridSort): Promise<Blob> {
   const params = new URLSearchParams();
   if (filters.brandId !== undefined) {
     params.set("brandId", String(filters.brandId));
@@ -131,6 +137,10 @@ export async function exportAdminBikes(filters: Omit<SpecValueFilters, "specCode
   }
   if (filters.maxPrice !== undefined) {
     params.set("maxPrice", String(filters.maxPrice));
+  }
+  if (sort?.sortBy) {
+    params.set("sortBy", sort.sortBy);
+    params.set("sortDirection", sort.sortDirection);
   }
   const response = await fetch(`${API_BASE_URL}/api/admin/bikes/export?${params}`, { credentials: "include" });
   if (!response.ok) {
