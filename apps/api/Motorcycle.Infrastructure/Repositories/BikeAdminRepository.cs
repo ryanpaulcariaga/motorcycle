@@ -56,6 +56,9 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
     public Task<bool> VariantExistsAsync(int modelId, int year, string variantName, int? excludingId = null, CancellationToken ct = default) =>
         _context.Bikes.AnyAsync(x => x.ModelId == modelId && x.Year == year && x.VariantName == variantName && (!excludingId.HasValue || x.Id != excludingId.Value), ct);
 
+    public Task<bool> VariantExistsOutsideIdsAsync(int modelId, int year, string variantName, IReadOnlyCollection<int> excludedIds, CancellationToken ct = default) =>
+        _context.Bikes.AnyAsync(x => x.ModelId == modelId && x.Year == year && x.VariantName == variantName && !excludedIds.Contains(x.Id), ct);
+
     public Task<int> CountDependentImagesAsync(int bikeId, CancellationToken ct = default) =>
         _context.BikeImages.CountAsync(x => x.BikeId == bikeId, ct);
 

@@ -34,7 +34,24 @@ type SpecDefinition = SpecGroup['definitions'][number];
 type GridRow = Omit<BikeSpecGridRow, 'specs'> & {
   cells: Record<string, string>;
   saved: Record<string, string>;
+  coreCells: { variantName: string; year: string; msrpPrice: string };
+  savedCoreCells: { variantName: string; year: string; msrpPrice: string };
 };
+
+type CoreField = keyof GridRow['coreCells'];
+
+function coreFieldForColumn(key: string): CoreField | undefined {
+  switch (key) {
+    case 'core:variantName':
+      return 'variantName';
+    case 'core:year':
+      return 'year';
+    case 'core:msrpPrice':
+      return 'msrpPrice';
+    default:
+      return undefined;
+  }
+}
 
 function toText(value: unknown): string {
   return value === null || value === undefined ? '' : String(value);
@@ -45,7 +62,12 @@ function toGridRow(bike: BikeSpecGridRow): GridRow {
   const cells = Object.fromEntries(
     Object.entries(specs).map(([code, value]) => [code, toText(value)])
   );
-  return { ...rest, cells, saved: cells };
+  const coreCells = {
+    variantName: bike.variantName,
+    year: String(bike.year),
+    msrpPrice: toText(bike.msrpPrice),
+  };
+  return { ...rest, cells, saved: cells, coreCells, savedCoreCells: coreCells };
 }
 
 function normalize(raw: string, def: SpecDefinition | undefined): string {
@@ -102,6 +124,20 @@ function isDirty(row: GridRow, code: string): boolean {
   return (row.cells[code] ?? '') !== (row.saved[code] ?? '');
 }
 
+function isCoreDirty(row: GridRow, field: CoreField): boolean {
+  return row.coreCells[field] !== row.savedCoreCells[field];
+}
+
+function isInvalidCoreValue(field: CoreField, value: string): boolean {
+  if (field === 'variantName') {
+    return value.trim().length < 1 || value.trim().length > 255;
+  }
+  if (field === 'year') {
+    return value.trim() === '' || !/^\d+$/.test(value.trim());
+  }
+  return value.trim() !== '' && !Number.isFinite(Number(value));
+}
+
 function CellEditor({
   row,
   column,
@@ -110,7 +146,7 @@ function CellEditor({
   definition,
 }: RenderEditCellProps<GridRow> & { definition: SpecDefinition }) {
   const value = row.cells[column.key] ?? '';
-  const label = `${definition.label} for ${row.brandName} ${row.variantName} ${row.year}`;
+  const label = `${definition.label} for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`;
   const commit = (next: string, close: boolean) =>
     onRowChange({ ...row, cells: { ...row.cells, [column.key]: next } }, close);
 
@@ -141,6 +177,35 @@ function CellEditor({
       onChange={(e) => commit(e.target.value, false)}
       onBlur={() => onClose(true, false)}
       onFocus={(e) => e.target.select()}
+    />
+  );
+}
+
+function CoreCellEditor({
+  row,
+  onRowChange,
+  onClose,
+  field,
+}: RenderEditCellProps<GridRow> & { field: CoreField }) {
+  const label = `${field === 'variantName' ? 'Motorcycle' : field === 'year' ? 'Year' : 'MSRP'} for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`;
+  return (
+    <input
+      aria-label={label}
+      autoFocus
+      className="h-full w-full px-2"
+      inputMode={field === 'year' ? 'numeric' : field === 'msrpPrice' ? 'decimal' : 'text'}
+      value={row.coreCells[field]}
+      onChange={(event) =>
+        onRowChange(
+          {
+            ...row,
+            coreCells: { ...row.coreCells, [field]: event.target.value },
+          },
+          false
+        )
+      }
+      onBlur={() => onClose(true, false)}
+      onFocus={(event) => event.target.select()}
     />
   );
 }
@@ -179,6 +244,9 @@ export default function SpecGridModal({
       rows.reduce(
         (total, row) =>
           total +
+          (Object.keys(row.coreCells) as CoreField[]).filter((field) =>
+            isCoreDirty(row, field)
+          ).length +
           Object.keys({ ...row.cells, ...row.saved }).filter((code) =>
             isDirty(row, code)
           ).length,
@@ -207,7 +275,7 @@ export default function SpecGridModal({
     const term = search.trim().toLowerCase();
     return term
       ? rows.filter((row) =>
-          `${row.brandName} ${row.modelName} ${row.variantName} ${row.year}`
+          `${row.brandName} ${row.modelName} ${row.coreCells.variantName} ${row.coreCells.year}`
             .toLowerCase()
             .includes(term)
         )
@@ -217,34 +285,62 @@ export default function SpecGridModal({
   const columns = useMemo<readonly ColumnOrColumnGroup<GridRow>[]>(() => {
     const fixed: Column<GridRow>[] = [
       {
-        key: 'bike',
+        key: 'core:variantName',
         name: 'Motorcycle',
         frozen: true,
         resizable: true,
         width: 260,
-        cellClass: 'spec-grid-readonly-cell',
-        renderCell: ({ row }) => row.variantName,
+        editable: true,
+        cellClass: (row) => {
+          if (isInvalidCoreValue('variantName', row.coreCells.variantName)) {
+            return 'bg-red-100';
+          }
+          return isCoreDirty(row, 'variantName') ? 'bg-yellow-100' : '';
+        },
+        renderCell: ({ row }) => row.coreCells.variantName,
+        renderEditCell: (props) => (
+          <CoreCellEditor {...props} field="variantName" />
+        ),
       },
       {
-        key: 'year',
+        key: 'core:year',
         name: 'Year',
         width: 70,
-        cellClass: 'spec-grid-readonly-cell',
-        renderCell: ({ row }) => row.year,
+        editable: true,
+        cellClass: (row) => {
+          if (isInvalidCoreValue('year', row.coreCells.year)) {
+            return 'bg-red-100';
+          }
+          return isCoreDirty(row, 'year') ? 'bg-yellow-100' : '';
+        },
+        renderCell: ({ row }) => row.coreCells.year,
+        renderEditCell: (props) => <CoreCellEditor {...props} field="year" />,
       },
       {
-        key: 'category',
+        key: 'meta:category',
         name: 'Category',
         width: 120,
         cellClass: 'spec-grid-readonly-cell',
         renderCell: ({ row }) => row.categoryName,
       },
       {
-        key: 'msrp',
+        key: 'core:msrpPrice',
         name: 'MSRP',
         width: 100,
-        cellClass: 'spec-grid-readonly-cell',
-        renderCell: ({ row }) => row.msrpPrice?.toLocaleString() ?? '—',
+        editable: true,
+        cellClass: (row) => {
+          if (isInvalidCoreValue('msrpPrice', row.coreCells.msrpPrice)) {
+            return 'bg-red-100';
+          }
+          return isCoreDirty(row, 'msrpPrice') ? 'bg-yellow-100' : '';
+        },
+        renderCell: ({ row }) =>
+          row.coreCells.msrpPrice === ''
+            ? '—'
+            : Number(row.coreCells.msrpPrice).toLocaleString(),
+        renderEditCell: (props) => (
+          <CoreCellEditor {...props} field="msrpPrice" />
+        ),
       },
     ];
     const groups: ColumnOrColumnGroup<GridRow>[] = specGroups
@@ -304,6 +400,15 @@ export default function SpecGridModal({
     { row, column }: CellCopyArgs<GridRow>,
     event: React.ClipboardEvent<HTMLDivElement>
   ) {
+    const coreField = coreFieldForColumn(column.key);
+    if (coreField) {
+      event.clipboardData.setData(
+        'text/plain',
+        row.coreCells[coreField]
+      );
+      event.preventDefault();
+      return;
+    }
     if (!definitions.has(column.key)) {
       return;
     }
@@ -315,6 +420,15 @@ export default function SpecGridModal({
     { row, column }: CellPasteArgs<GridRow>,
     event: React.ClipboardEvent<HTMLDivElement>
   ): GridRow {
+    const coreField = coreFieldForColumn(column.key);
+    if (coreField) {
+      const text =
+        event.clipboardData.getData('text/plain').split(/\r?\n/)[0] ?? '';
+      return {
+        ...row,
+        coreCells: { ...row.coreCells, [coreField]: text },
+      };
+    }
     const def = definitions.get(column.key);
     if (!def) {
       return row;
@@ -327,6 +441,16 @@ export default function SpecGridModal({
   }
 
   function onFill({ columnKey, sourceRow, targetRow }: FillEvent<GridRow>) {
+    const coreField = coreFieldForColumn(columnKey);
+    if (coreField) {
+      return {
+        ...targetRow,
+        coreCells: {
+          ...targetRow.coreCells,
+          [coreField]: sourceRow.coreCells[coreField],
+        },
+      };
+    }
     if (!definitions.has(columnKey)) {
       return targetRow;
     }
@@ -341,7 +465,11 @@ export default function SpecGridModal({
 
   function discard() {
     setRows((current) =>
-      current.map((row) => ({ ...row, cells: { ...row.saved } }))
+      current.map((row) => ({
+        ...row,
+        cells: { ...row.saved },
+        coreCells: { ...row.savedCoreCells },
+      }))
     );
     setNotice(null);
     setError(null);
@@ -349,7 +477,44 @@ export default function SpecGridModal({
 
   async function save() {
     const changes: { bikeId: number; specCode: string; value: unknown }[] = [];
+    const bikeChanges: {
+      bikeId: number;
+      variantName: string;
+      year: number;
+      msrpPrice: number | null;
+    }[] = [];
+    let coreChangeCount = 0;
     for (const row of rows) {
+      const dirtyCoreFields = (Object.keys(row.coreCells) as CoreField[]).filter(
+        (field) => isCoreDirty(row, field)
+      );
+      for (const field of dirtyCoreFields) {
+        if (isInvalidCoreValue(field, row.coreCells[field])) {
+          const label =
+            field === 'variantName'
+              ? 'Motorcycle'
+              : field === 'year'
+                ? 'Year'
+                : 'MSRP';
+          setError(
+            `${label} "${row.coreCells[field]}" is not valid for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}.`
+          );
+          return;
+        }
+      }
+      if (dirtyCoreFields.length > 0) {
+        bikeChanges.push({
+          bikeId: row.id,
+          variantName: row.coreCells.variantName.trim(),
+          year: Number(row.coreCells.year),
+          msrpPrice:
+            row.coreCells.msrpPrice.trim() === ''
+              ? null
+              : Number(row.coreCells.msrpPrice),
+        });
+        coreChangeCount += dirtyCoreFields.length;
+      }
+
       for (const code of Object.keys({ ...row.cells, ...row.saved })) {
         if (!isDirty(row, code)) {
           continue;
@@ -361,7 +526,7 @@ export default function SpecGridModal({
         const text = row.cells[code] ?? '';
         if (isInvalid(text, def)) {
           setError(
-            `"${text}" is not valid for ${def.label} on ${row.brandName} ${row.variantName} ${row.year}.`
+            `"${text}" is not valid for ${def.label} on ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}.`
           );
           return;
         }
@@ -372,7 +537,8 @@ export default function SpecGridModal({
         });
       }
     }
-    if (changes.length === 0) {
+    const changeCount = changes.length + coreChangeCount;
+    if (changeCount === 0) {
       return;
     }
 
@@ -380,12 +546,35 @@ export default function SpecGridModal({
     setError(null);
     setNotice(null);
     try {
-      const { updatedCount } = await updateAdminBikeSpecGrid({ changes });
+      const { updatedCount } = await updateAdminBikeSpecGrid({
+        changes,
+        bikeChanges,
+      });
       setRows((current) =>
-        current.map((row) => ({ ...row, saved: { ...row.cells } }))
+        current.map((row) => {
+          const coreCells = {
+            variantName: row.coreCells.variantName.trim(),
+            year: String(Number(row.coreCells.year)),
+            msrpPrice:
+              row.coreCells.msrpPrice.trim() === ''
+                ? ''
+                : String(Number(row.coreCells.msrpPrice)),
+          };
+          return {
+            ...row,
+            variantName: coreCells.variantName,
+            year: Number(coreCells.year),
+            msrpPrice:
+              coreCells.msrpPrice === '' ? null : Number(coreCells.msrpPrice),
+            cells: { ...row.cells },
+            saved: { ...row.cells },
+            coreCells,
+            savedCoreCells: coreCells,
+          };
+        })
       );
       setNotice(
-        `Saved ${changes.length} change${changes.length === 1 ? '' : 's'} across ${updatedCount} motorcycle${updatedCount === 1 ? '' : 's'}.`
+        `Saved ${changeCount} change${changeCount === 1 ? '' : 's'} across ${updatedCount} motorcycle${updatedCount === 1 ? '' : 's'}.`
       );
     } catch (cause) {
       setError(
@@ -411,8 +600,9 @@ export default function SpecGridModal({
   return (
     <Modal title={title} error={error} fullWidth onClose={requestClose}>
       <p className="mt-4 text-sm text-brand-grey">
-        Double-click or press Enter to edit, paste with Ctrl+V, and drag the
-        fill handle to copy a value down. Changes are saved together.
+        Motorcycle, year, MSRP, and specifications are editable; category is
+        read-only. Double-click or press Enter to edit, paste with Ctrl+V, and
+        drag the fill handle to copy a value down. Changes are saved together.
       </p>
       {notice && (
         <p

@@ -117,35 +117,67 @@ public sealed class BikeAdminService : IBikeAdminService
 
     public async Task<int> UpdateSpecGridAsync(UpdateSpecGridRequest request, CancellationToken ct = default)
     {
-        if (request.Changes is null || request.Changes.Count == 0) {
+        var specChanges = request.Changes ?? [];
+        var bikeChanges = request.BikeChanges ?? [];
+        if (specChanges.Count == 0 && bikeChanges.Count == 0) {
             return 0;
         }
 
         var definitions = await GetDefinitionsByCodeAsync(ct);
-        foreach (var change in request.Changes) {
+        foreach (var change in specChanges) {
             if (string.IsNullOrWhiteSpace(change.SpecCode) || !definitions.ContainsKey(change.SpecCode)) {
                 throw new ArgumentException($"Unrecognized specification code '{change.SpecCode}'.", nameof(request));
             }
         }
 
-        if (request.Changes.Select(c => (c.BikeId, c.SpecCode)).Distinct().Count() != request.Changes.Count) {
+        if (specChanges.Select(c => (c.BikeId, c.SpecCode)).Distinct().Count() != specChanges.Count) {
             throw new ArgumentException("Each bike and specification may appear only once.", nameof(request));
         }
 
         // Validate every value before mutating so a bad cell rejects the whole batch.
-        foreach (var change in request.Changes) {
+        foreach (var change in specChanges) {
             BikeValidators.ValidateSpecs(new Dictionary<string, object?> { [change.SpecCode] = change.Value }, definitions);
         }
 
-        var bikeIds = request.Changes.Select(c => c.BikeId).Distinct().ToList();
+        if (bikeChanges.Select(change => change.BikeId).Distinct().Count() != bikeChanges.Count) {
+            throw new ArgumentException("Each bike may appear only once in bike changes.", nameof(request));
+        }
+
+        var normalizedBikeChanges = bikeChanges.Select(change =>
+        {
+            var (variantName, year) = BikeValidators.ValidateCore(change.VariantName, change.Year);
+            return (change.BikeId, VariantName: variantName, Year: year, change.MsrpPrice);
+        }).ToList();
+
+        var bikeIds = specChanges.Select(c => c.BikeId).Concat(bikeChanges.Select(c => c.BikeId)).Distinct().ToList();
         var bikes = (await _repository.GetByIdsAsync(bikeIds, ct)).ToDictionary(b => b.Id);
         var missing = bikeIds.Where(id => !bikes.ContainsKey(id)).ToList();
         if (missing.Count > 0) {
             throw new KeyNotFoundException($"Bike(s) not found: {string.Join(", ", missing)}.");
         }
 
+        var bikeChangeIds = bikeChanges.Select(change => change.BikeId).ToList();
+        foreach (var change in normalizedBikeChanges) {
+            var bike = bikes[change.BikeId];
+            if (await _repository.VariantExistsOutsideIdsAsync(
+                bike.ModelId,
+                change.Year,
+                change.VariantName,
+                bikeChangeIds,
+                ct)) {
+                throw new ArgumentException("A bike with this model, year, and variant name already exists.", nameof(request));
+            }
+        }
+        var duplicateTargetVariants = normalizedBikeChanges
+            .GroupBy(change => (ModelId: bikes[change.BikeId].ModelId, change.Year, change.VariantName))
+            .Where(group => group.Count() > 1)
+            .ToList();
+        if (duplicateTargetVariants.Count > 0) {
+            throw new ArgumentException("Bike changes contain duplicate model, year, and variant name combinations.", nameof(request));
+        }
+
         var now = DateTime.UtcNow;
-        foreach (var group in request.Changes.GroupBy(c => c.BikeId)) {
+        foreach (var group in specChanges.GroupBy(c => c.BikeId)) {
             var bike = bikes[group.Key];
             var specs = new Dictionary<string, object>(bike.Specs);
             foreach (var change in group) {
@@ -158,6 +190,14 @@ public sealed class BikeAdminService : IBikeAdminService
             }
 
             bike.Specs = specs;
+            bike.UpdatedAt = now;
+        }
+
+        foreach (var change in normalizedBikeChanges) {
+            var bike = bikes[change.BikeId];
+            bike.VariantName = change.VariantName;
+            bike.Year = change.Year;
+            bike.MsrpPrice = change.MsrpPrice;
             bike.UpdatedAt = now;
         }
 

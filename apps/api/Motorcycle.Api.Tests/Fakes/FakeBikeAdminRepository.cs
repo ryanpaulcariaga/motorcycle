@@ -34,6 +34,9 @@ public sealed class FakeBikeAdminRepository : IBikeAdminRepository
     public Task<bool> VariantExistsAsync(int modelId, int year, string variantName, int? excludingId = null, CancellationToken ct = default) =>
         Task.FromResult(_bikes.Any(b => b.ModelId == modelId && b.Year == year && b.VariantName == variantName && (!excludingId.HasValue || b.Id != excludingId.Value)));
 
+    public Task<bool> VariantExistsOutsideIdsAsync(int modelId, int year, string variantName, IReadOnlyCollection<int> excludedIds, CancellationToken ct = default) =>
+        Task.FromResult(_bikes.Any(b => b.ModelId == modelId && b.Year == year && b.VariantName == variantName && !excludedIds.Contains(b.Id)));
+
     public Task<int> CountDependentImagesAsync(int bikeId, CancellationToken ct = default) =>
         Task.FromResult(_dependentImageCounts.GetValueOrDefault(bikeId, 0));
 

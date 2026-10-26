@@ -45,7 +45,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-07 | ✅ Admin: Bike variant CRUD, publish, reviewed flag, move to another model, image-presence filter |
 | F-08 | ✅ Admin: image upload, ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management |
-| F-10 | ✅ Admin: Bulk Spec Edit, spec grid, shared sorting, Excel export/import |
+| F-10 | ✅ Admin: Bulk Spec Edit, editable motorcycle/year/MSRP grid fields, shared sorting, Excel export/import |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin |
@@ -223,6 +223,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-10-25** — Made the Bulk Spec Edit grid support updating the motorcycle variant name, year, and MSRP together with specifications. Category remains read-only because it is shared by all variants of a BikeModel.
 
 **2026-10-25** — Added main-page sorting to Bulk Spec Edit; one selection orders both the on-screen grid and Excel export by motorcycle fields or specification values. The grid's Motorcycle column displays only the variant name, and non-editable identifying cells are shaded gray.
 

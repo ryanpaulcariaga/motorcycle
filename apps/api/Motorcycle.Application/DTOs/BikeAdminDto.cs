@@ -57,7 +57,11 @@ public sealed record BikeSpecGridRowDto(
 
 public sealed record BikeSpecGridCellUpdate(int BikeId, string SpecCode, object? Value);
 
-public sealed record UpdateSpecGridRequest(List<BikeSpecGridCellUpdate> Changes);
+public sealed record BikeSpecGridBikeUpdate(int BikeId, string VariantName, int Year, decimal? MsrpPrice);
+
+public sealed record UpdateSpecGridRequest(
+    List<BikeSpecGridCellUpdate>? Changes,
+    List<BikeSpecGridBikeUpdate>? BikeChanges = null);
 
 public sealed record CreateBikeRequest(
     int ModelId,

@@ -10,6 +10,7 @@ public interface IBikeAdminRepository
     Task<Bike?> GetByIdAsync(int id, CancellationToken ct = default);
     Task<bool> BikeModelExistsAsync(int modelId, CancellationToken ct = default);
     Task<bool> VariantExistsAsync(int modelId, int year, string variantName, int? excludingId = null, CancellationToken ct = default);
+    Task<bool> VariantExistsOutsideIdsAsync(int modelId, int year, string variantName, IReadOnlyCollection<int> excludedIds, CancellationToken ct = default);
     Task<int> CountDependentImagesAsync(int bikeId, CancellationToken ct = default);
     Task AddAsync(Bike bike, CancellationToken ct = default);
     void Remove(Bike bike);

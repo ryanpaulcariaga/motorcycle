@@ -42,6 +42,46 @@ public class BikeAdminServiceTests
     }
 
     [Fact]
+    public async Task UpdateSpecGridAsync_UpdatesMotorcycleYearAndMsrp()
+    {
+        var (service, repository) = CreateService();
+        var bike = NewBike("A");
+        await repository.AddAsync(bike);
+
+        var count = await service.UpdateSpecGridAsync(new UpdateSpecGridRequest(
+            null,
+            new() { new(bike.Id, "Touring", 2025, 7299.95m) }));
+
+        Assert.Equal(1, count);
+        Assert.Equal("Touring", bike.VariantName);
+        Assert.Equal(2025, bike.Year);
+        Assert.Equal(7299.95m, bike.MsrpPrice);
+    }
+
+    [Fact]
+    public async Task UpdateSpecGridAsync_WithDuplicateCoreValues_LeavesAllChangesUnchanged()
+    {
+        var (service, repository) = CreateService();
+        var first = NewBike("A");
+        var second = NewBike("B");
+        await repository.AddAsync(first);
+        await repository.AddAsync(second);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.UpdateSpecGridAsync(new UpdateSpecGridRequest(
+                new() { new(first.Id, "abs", true) },
+                new()
+                {
+                    new(first.Id, "Shared", 2025, 7000m),
+                    new(second.Id, "Shared", 2025, 7000m)
+                })));
+
+        Assert.Equal("A", first.VariantName);
+        Assert.Equal("B", second.VariantName);
+        Assert.False(first.Specs.ContainsKey("abs"));
+    }
+
+    [Fact]
     public async Task UpdateSpecGridAsync_WithInvalidValue_LeavesAllBikesUnchanged()
     {
         var (service, repository) = CreateService();

@@ -140,7 +140,13 @@ export type BikeSpecGridRow = {
 };
 
 export type UpdateSpecGridRequest = {
-  changes: { bikeId: number; specCode: string; value: unknown }[];
+  changes?: { bikeId: number; specCode: string; value: unknown }[];
+  bikeChanges?: {
+    bikeId: number;
+    variantName: string;
+    year: number;
+    msrpPrice: number | null;
+  }[];
 };
 
 export type BikeImage = {
