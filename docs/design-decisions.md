@@ -39,7 +39,7 @@ Why the system is built the way it is, plus the quality targets reviewed against
 - Alt text for bike images; table headers/scopes for spec and compare tables; accessible announcements for async save/error states in admin.
 
 **SEO and sharing**
-- Implemented: per-bike metadata, `sitemap.xml`, `robots.txt`, error/loading/not-found pages. Open: OpenGraph/Twitter images, canonical URLs, JSON-LD (`Product`).
+- Implemented: per-bike metadata and OpenGraph/Twitter previews, generated site-wide social images, canonical URLs, JSON-LD (`Product`), `sitemap.xml`, `robots.txt`, and error/loading/not-found pages.
 - Slugs are immutable on edit; define redirect or `410`/`404` behavior for unpublished or deleted bikes.
 
 **Performance**

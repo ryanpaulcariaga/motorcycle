@@ -3,6 +3,7 @@ import Image from 'next/image';
 import PageShell from '@/components/PageShell';
 import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
 import { getBikes, getBrands, getCategories } from '@/lib/api';
+import type { Metadata } from 'next';
 
 interface BikesPageProps {
   searchParams: Promise<{
@@ -15,8 +16,23 @@ interface BikesPageProps {
   }>;
 }
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Browse Bikes',
+  description: 'Browse and compare motorcycle models, variants, and specifications.',
+  alternates: { canonical: '/bikes' },
+  openGraph: {
+    title: 'Browse Bikes | MotoCompare',
+    description: 'Browse and compare motorcycle models, variants, and specifications.',
+    url: '/bikes',
+    type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Browse Bikes | MotoCompare',
+    description: 'Browse and compare motorcycle models, variants, and specifications.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export const dynamic = 'force-dynamic';

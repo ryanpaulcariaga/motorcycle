@@ -6,6 +6,7 @@ import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
 import Button from '@/components/Button';
 import BikeImageGallery from '@/components/BikeImageGallery';
 import { getBikeBySlug, getBrands, getComparedWith } from '@/lib/api';
+import { SITE_URL } from '@/lib/site';
 import type { Metadata } from 'next';
 
 interface BikeDetailPageProps {
@@ -18,12 +19,38 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const bike = await getBikeBySlug(slug);
+    const title = `${bike.brandName} - ${bike.variantName} (${bike.year})`;
+    const description = `Specs and details for the ${bike.year} ${bike.brandName} - ${bike.variantName}.`;
+    const primaryImage =
+      bike.images.find((image) => image.isPrimary) ?? bike.images[0];
+    const imageUrl = primaryImage?.blobUrl ?? `${SITE_URL}/opengraph-image`;
+    const imageAlt = `${bike.year} ${bike.brandName} - ${bike.variantName}`;
+
     return {
-      title: `${bike.brandName} - ${bike.variantName} (${bike.year})`,
-      description: `Specs and details for the ${bike.year} ${bike.brandName} - ${bike.variantName}.`,
+      title,
+      description,
+      alternates: { canonical: `/bikes/${bike.slug}` },
       openGraph: {
-        title: `${bike.brandName} - ${bike.variantName}`,
-        images: bike.images[0] ? [bike.images[0].blobUrl] : [],
+        title,
+        description,
+        url: `/bikes/${bike.slug}`,
+        siteName: 'MotoCompare',
+        type: 'website',
+        images: [
+          {
+            url: imageUrl,
+            alt: imageAlt,
+            ...(primaryImage
+              ? { width: primaryImage.width, height: primaryImage.height }
+              : {}),
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [{ url: imageUrl, alt: imageAlt }],
       },
     };
   } catch {
@@ -52,9 +79,48 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
   const highlightSpecs = groupsWithSpecs
     .flatMap((group) => group.specs)
     .slice(0, 6);
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: `${bike.year} ${bike.brandName} - ${bike.variantName}`,
+    description: `Specs and details for the ${bike.year} ${bike.brandName} - ${bike.variantName}.`,
+    url: `${SITE_URL}/bikes/${bike.slug}`,
+    brand: { '@type': 'Brand', name: bike.brandName },
+    model: bike.variantName,
+    category: bike.categoryName,
+    image: bike.images.map((image) => image.blobUrl),
+    additionalProperty: bike.specGroups.flatMap((group) =>
+      group.specs.flatMap((spec) => {
+        if (
+          spec.value === null ||
+          spec.value === undefined ||
+          typeof spec.value === 'object'
+        ) {
+          return [];
+        }
+
+        return [
+          {
+            '@type': 'PropertyValue',
+            name: spec.label,
+            value: spec.value,
+            ...(spec.unit ? { unitText: spec.unit } : {}),
+          },
+        ];
+      })
+    ),
+  };
+  const productJsonLdString = JSON.stringify(productJsonLd).replace(
+    /</g,
+    '\\u003c'
+  );
 
   return (
     <PageShell bare>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: productJsonLdString }}
+      />
       <div className="flex flex-col md:flex-row md:items-start gap-6">
         <Sidebar>
           {comparedWith.length > 0 && (

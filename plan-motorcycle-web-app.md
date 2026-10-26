@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 27 of 91 tasks done · 1 in progress · 63 not started.**
+**Progress: 30 of 91 tasks done · 1 in progress · 60 not started.**
 
 **Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -52,6 +52,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail |
+| F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 
 ## Features (planned)
 
@@ -166,9 +167,9 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 | T-62 | ⬜ | Define success metrics (traffic, compare usage, catalog completeness) | Include catalog coverage, verified-data rate, search-to-detail visits, and compare usage; define how each is measured before adding engagement features | |
 | T-63 | ⬜ | Define catalog data sourcing and verification | Define trusted sources, source attribution, and when verification dates are updated | |
 | T-64 | ⬜ | Define the `is_reviewed` publishing workflow | Include how admins verify source data and handle user-submitted correction reports | |
-| T-65 | ⬜ | SEO: OpenGraph images | | |
-| T-66 | ⬜ | SEO: canonical URLs | | |
-| T-67 | ⬜ | SEO: JSON-LD structured data | | |
+| T-65 | ✅ | SEO: OpenGraph images | Generated site-wide OpenGraph/Twitter images; bike previews use the primary catalog image | |
+| T-66 | ✅ | SEO: canonical URLs | Canonicals set for home, browse, compare, and bike detail; browse filters do not create duplicate canonicals | |
+| T-67 | ✅ | SEO: JSON-LD structured data | Bike detail pages emit Product data with brand, category, images, and available scalar specs | |
 
 ### Image sizes (responsive variants)
 
@@ -224,6 +225,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-10-26** — Completed T-65 to T-67: added generated social preview images, canonical metadata for public routes, bike-specific OpenGraph/Twitter previews, and Product JSON-LD on bike detail pages.
 
 **2026-10-25** — Made the Bulk Spec Edit grid support updating the motorcycle variant name, year, and MSRP together with specifications. Category remains read-only because it is shared by all variants of a BikeModel.
 

@@ -3,6 +3,11 @@ import Image from 'next/image';
 import PageShell from '@/components/PageShell';
 import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
 import { getBikes, getBrands, getPopularComparisons } from '@/lib/api';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
 
 export const dynamic = 'force-dynamic';
 
