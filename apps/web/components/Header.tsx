@@ -121,13 +121,17 @@ export default function Header() {
     setSession(null);
   }
 
-  function renderAccountControl(className = '') {
+  function renderAccountControl(stacked = false) {
     if (loadingSession) {
       return null;
     }
     if (session) {
       return (
-        <div className={`flex items-center gap-3 text-sm ${className}`}>
+        <div
+          className={`flex gap-3 text-sm ${
+            stacked ? 'flex-col items-end' : 'items-center'
+          }`}
+        >
           <span>{session.displayName ?? session.email ?? 'Signed in'}</span>
           <button
             type="button"
@@ -142,7 +146,7 @@ export default function Header() {
     return (
       <a
         href={facebookSignInUrl()}
-        className={`text-sm underline ${className}`}
+        className="text-sm underline"
       >
         Sign in with Facebook
       </a>
@@ -182,7 +186,10 @@ export default function Header() {
             <button
               type="button"
               aria-label="Open search"
-              onClick={() => setIsSearchOpen(true)}
+              onClick={() => {
+                setIsSearchOpen(true);
+                setIsMenuOpen(false);
+              }}
               className="flex h-9 w-9 items-center justify-center text-white/80 hover:text-brand-gold md:hidden"
             >
               <svg
@@ -351,7 +358,9 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          {renderAccountControl('self-end pt-2 border-t border-white/10 text-right')}
+          <div className="flex w-full justify-end border-t border-white/10 pt-3">
+            {renderAccountControl(true)}
+          </div>
         </nav>
       )}
     </header>
