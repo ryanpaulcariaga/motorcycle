@@ -10,11 +10,11 @@ interface PageShellProps {
 export default function PageShell({ children, bare = false }: PageShellProps) {
   return (
     <div className="flex-1 bg-brand-page">
-      <div className="mx-auto max-w-7xl p-4 md:p-8">
+      <div className="mx-auto max-w-7xl p-3 sm:p-4 md:p-8">
         {bare ? (
           children
         ) : (
-          <div className="bg-brand-content p-6 shadow-lg">
+          <div className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
             {children}
           </div>
         )}

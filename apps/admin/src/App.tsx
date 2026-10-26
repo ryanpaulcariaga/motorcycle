@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GridSidebarSlot } from '@/components/GridSidebar';
 import BikeModelManagement from '@/components/bike-models/BikeModelManagement';
 import CategoryManagement from '@/components/categories/CategoryManagement';
@@ -48,7 +48,21 @@ function SignIn({ error }: { error: string | null }) {
 
 function AdminShell({ session }: { session: AdminSession }) {
   const pathname = window.location.pathname;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const swipeStartX = useRef(0);
   const [sidebarSlot, setSidebarSlot] = useState<HTMLElement | null>(null);
+
+  // Widening past the mobile/tablet range returns the menu to its default state.
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 768px)');
+    const reset = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setIsMenuOpen(false);
+      }
+    };
+    query.addEventListener('change', reset);
+    return () => query.removeEventListener('change', reset);
+  }, []);
   const match = pathname.match(/^\/admin\/bike-models\/(\d+)\/bikes$/);
   const isAdministratorsActive =
     pathname === '/admin' || pathname === '/admin/roles' || pathname === '/admin/audit';
@@ -85,26 +99,61 @@ function AdminShell({ session }: { session: AdminSession }) {
   }
 
   return (
-    <div className="min-h-screen bg-brand-page">
-      <header className="flex min-h-16 items-center justify-between gap-4 bg-brand-header px-6 py-4 text-white">
-        <a className="font-bold tracking-wide" href="/admin">
-          MotoCompare Admin
-        </a>
-        <div className="flex items-center gap-4">
-          <span className="hidden text-sm sm:inline">
-            {session.displayName ?? session.facebookUserId}
-          </span>
+    <div className="min-h-screen overflow-x-clip bg-brand-page">
+      <header className="relative bg-brand-header text-white">
+        <div className="flex min-h-16 w-full items-center gap-4 px-4 py-3 md:px-6 md:py-4">
+          <a className="mr-auto min-w-0 truncate font-bold tracking-wide" href="/admin">
+            MotoCompare Admin
+          </a>
+          <div className="hidden shrink-0 items-center gap-4 text-sm md:flex">
+            <span className="max-w-40 truncate">
+              {session.displayName ?? session.facebookUserId}
+            </span>
+            <button className="underline" type="button" onClick={() => void signOut()}>
+              Sign out
+            </button>
+          </div>
           <button
-            className="text-sm underline"
+            aria-controls="admin-account-menu"
+            aria-expanded={isMenuOpen}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            className="shrink-0 md:hidden"
+            onClick={() => setIsMenuOpen((open) => !open)}
             type="button"
-            onClick={() => void signOut()}
           >
-            Sign out
+            <span className="mb-1 block h-0.5 w-6 bg-white" />
+            <span className="mb-1 block h-0.5 w-6 bg-white" />
+            <span className="block h-0.5 w-6 bg-white" />
           </button>
         </div>
+        {isMenuOpen && (
+          <div
+            className="flex flex-col items-end gap-3 border-t border-white/10 px-4 py-3 text-right text-sm sm:px-6 md:hidden"
+            id="admin-account-menu"
+            onTouchEnd={(event) => {
+              const deltaX = event.changedTouches[0].clientX - swipeStartX.current;
+              if (Math.abs(deltaX) > 50) {
+                setIsMenuOpen(false);
+              }
+            }}
+            onTouchStart={(event) => {
+              swipeStartX.current = event.touches[0].clientX;
+            }}
+          >
+            <span className="max-w-full truncate">
+              {session.displayName ?? session.facebookUserId}
+            </span>
+            <button className="underline" type="button" onClick={() => void signOut()}>
+              Sign out
+            </button>
+          </div>
+        )}
       </header>
-      <div className="mx-auto grid max-w-7xl gap-6 p-4 md:grid-cols-[17.5rem_minmax(0,1fr)] md:p-8">
-        <aside className="h-fit space-y-4 self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
+      <div className="mx-auto grid min-w-0 max-w-7xl gap-4 p-3 sm:p-4 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-6 md:p-8">
+        <aside
+          className="min-w-0 space-y-4 self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto"
+          id="admin-navigation"
+        >
           <nav className="bg-brand-sidebar p-4 text-white/80">
             <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-brand-gold">
               Catalog
@@ -161,7 +210,7 @@ function AdminShell({ session }: { session: AdminSession }) {
           </nav>
           <div className="space-y-4" ref={setSidebarSlot} />
         </aside>
-        <main>
+        <main className="min-w-0">
           <GridSidebarSlot.Provider value={sidebarSlot}>
             {content}
           </GridSidebarSlot.Provider>

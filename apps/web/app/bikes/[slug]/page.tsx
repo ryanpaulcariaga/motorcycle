@@ -121,7 +121,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: productJsonLdString }}
       />
-      <div className="flex flex-col md:flex-row md:items-start gap-6">
+      <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-6">
         <Sidebar>
           {comparedWith.length > 0 && (
             <SidebarSection
@@ -151,9 +151,9 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
           </SidebarSection>
         </Sidebar>
 
-        <div className="min-w-0 flex-1 bg-brand-content p-6 shadow-lg">
+        <div className="min-w-0 flex-1 bg-brand-content p-4 shadow-lg sm:p-6">
           <p className="text-sm text-brand-grey">{bike.categoryName}</p>
-          <h1 className="text-2xl sm:text-3xl font-bold">
+          <h1 className="break-words text-2xl font-bold sm:text-3xl">
             {bike.brandName} - {bike.variantName}
           </h1>
           <p className="mt-1 text-lg text-brand-grey">
@@ -257,12 +257,12 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                 <h3 className="font-semibold text-brand-button mb-2">
                   {group.name}
                 </h3>
-                <table className="w-full text-sm">
+                <table className="w-full table-fixed text-sm">
                   <tbody>
                     {group.specs.map((spec) => (
                       <tr key={spec.code} className="border-b border-zinc-100">
-                        <td className="py-1.5 text-brand-grey">{spec.label}</td>
-                        <td className="py-1.5 text-right font-medium">
+                        <td className="w-3/5 break-words py-1.5 text-brand-grey">{spec.label}</td>
+                        <td className="break-words py-1.5 text-right font-medium">
                           {spec.value !== null && spec.value !== undefined
                             ? `${spec.value}${spec.unit ? ` ${spec.unit}` : ''}`
                             : '—'}

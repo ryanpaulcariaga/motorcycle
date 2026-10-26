@@ -34,7 +34,7 @@ export default function AuditLogManagement() {
   }, [loadLogs]);
 
   return (
-    <section className="bg-brand-content p-6 shadow-lg">
+    <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold">Administrator audit log</h1>
@@ -58,7 +58,7 @@ export default function AuditLogManagement() {
         </p>
       )}
 
-      <div className="mt-5 overflow-x-auto">
+      <div className="mt-5 max-w-full overflow-x-auto">
         <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-brand-grey/30">
@@ -98,7 +98,7 @@ export default function AuditLogManagement() {
         </table>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-4 text-sm">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 text-sm">
         <span className="text-brand-grey">
           {result ? `${result.totalCount.toLocaleString()} entries` : ''}
         </span>

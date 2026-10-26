@@ -1,32 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface SidebarProps {
   children: ReactNode;
 }
 
-/** Secondary nav / filter panel. Dark brown on desktop, collapsible drawer below md. */
+/** Secondary nav / filter panel: a left column from md up, stacked above the content below it. */
 export default function Sidebar({ children }: SidebarProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
-    <>
-      <button
-        type="button"
-        className="md:hidden mb-3 bg-brand-sidebar px-3 py-2 text-sm font-semibold text-white"
-        onClick={() => setIsOpen((open) => !open)}
-      >
-        {isOpen ? 'Hide filters' : 'Show filters'}
-      </button>
-
-      <aside
-        className={`${isOpen ? 'block' : 'hidden'} md:block w-full md:w-[17.5rem] shrink-0 text-white`}
-      >
-        <div className="space-y-4">{children}</div>
-      </aside>
-    </>
+    <aside className="w-full shrink-0 text-white md:w-56">
+      <div className="space-y-4">{children}</div>
+    </aside>
   );
 }
 

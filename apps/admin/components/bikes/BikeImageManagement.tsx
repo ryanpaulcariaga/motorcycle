@@ -175,7 +175,7 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
         <div className="mt-4 space-y-3">
           {images.map((image, index) => (
             <div
-              className="flex items-center gap-3 bg-black/5 p-2"
+              className="flex flex-wrap items-center gap-3 bg-black/5 p-2"
               key={image.id}
             >
               <img
@@ -221,7 +221,7 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
                   {image.variants ? ' px' : ''}
                 </p>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="ml-auto flex items-center gap-1">
                 {!image.isPrimary && (
                   <IconButton
                     icon="primary"

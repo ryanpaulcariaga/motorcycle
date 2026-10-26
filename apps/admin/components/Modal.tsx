@@ -38,7 +38,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -46,13 +46,13 @@ export default function Modal({
       }}
     >
       <div
-        className={`flex max-h-full w-full flex-col bg-white text-brand-black shadow-2xl ${fullWidth ? 'max-w-[96vw]' : extraWide ? 'max-w-5xl' : wide ? 'max-w-2xl' : 'max-w-md'}`}
+        className={`flex max-h-[calc(100dvh-1rem)] w-full min-w-0 flex-col bg-white text-brand-black shadow-2xl sm:max-h-[calc(100dvh-2rem)] ${fullWidth ? 'max-w-[96vw]' : extraWide ? 'max-w-5xl' : wide ? 'max-w-2xl' : 'max-w-md'}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}
       >
-        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-black/10 bg-brand-sidebar px-6 py-4 text-white">
-          <h2 className="text-lg font-bold">{title}</h2>
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-black/10 bg-brand-sidebar px-4 py-4 text-white sm:px-6">
+          <h2 className="break-words text-lg font-bold">{title}</h2>
           <button
             className="text-2xl leading-none"
             type="button"
@@ -62,7 +62,7 @@ export default function Modal({
             &times;
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-6">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 sm:px-6">
           {error && (
             <p
               className="mt-4 whitespace-pre-line border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
@@ -80,7 +80,7 @@ export default function Modal({
 
 export function ModalFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky bottom-0 z-10 mt-6 flex gap-3 border-t border-black/10 bg-white py-4">
+    <div className="sticky bottom-0 z-10 mt-6 flex flex-col-reverse gap-3 border-t border-black/10 bg-white py-4 sm:flex-row">
       {children}
     </div>
   );

@@ -166,7 +166,7 @@ export default function CompareClient({
             {selected.map((bike) => (
               <span
                 key={bike.id}
-                className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-brand-button text-white"
+                className="flex max-w-full items-center gap-1.5 break-words bg-brand-button px-2.5 py-1.5 text-xs text-white"
               >
                 {bike.label}
                 <button
@@ -207,7 +207,7 @@ export default function CompareClient({
             {showAdvanced ? 'Hide advanced search' : 'Advanced search'}
           </button>
           {showAdvanced && (
-            <div className="mt-2 grid grid-cols-2 gap-3 border border-zinc-200 p-3 text-sm md:grid-cols-3">
+            <div className="mt-2 grid grid-cols-1 gap-3 border border-zinc-200 p-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
               <label className="flex flex-col gap-1 text-xs">
                 Brand
                 <select
@@ -317,50 +317,94 @@ export default function CompareClient({
           Search and add two or more bikes above to compare specs.
         </p>
       ) : (
-        compareResult.bikes.length <= MAX_COLUMN_BIKES ? (
-          <table className="w-full table-fixed text-sm border-collapse">
-            <thead>
-              <tr>
-                <th className="w-1/4 text-left p-2 border-b border-zinc-200 align-bottom">
-                  Spec
-                </th>
-                {columnSlots.map((bike, index) => (
-                  <th
-                    key={bike?.id ?? `empty-${index}`}
-                    className="w-1/4 p-2 border-b border-zinc-200 text-left align-top"
-                  >
-                    {bike && <BikeHeader bike={bike} />}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {compareResult.specGroups.map((group) => (
-                <Fragment key={group.code}>
-                  <tr>
-                    <td
-                      colSpan={MAX_COLUMN_BIKES + 1}
-                      className="pt-4 pb-1 font-semibold text-brand-button"
-                    >
+        <>
+        {compareResult.bikes.length > 2 && (
+          <div className="space-y-4 md:hidden">
+            {compareResult.bikes.map((bike) => (
+              <section key={bike.id} className="border border-zinc-200 p-3">
+                <BikeHeader bike={bike} />
+                {compareResult.specGroups.map((group) => (
+                  <div key={group.code} className="mt-3">
+                    <h3 className="pb-1 text-sm font-semibold text-brand-button">
                       {group.name}
-                    </td>
-                  </tr>
-                  {group.rows.map((row) => (
-                    <tr key={row.code} className="border-b border-zinc-100">
-                      <td className="p-2 text-brand-grey">{row.label}</td>
-                      {columnSlots.map((bike, index) => (
-                        <td key={bike?.id ?? `empty-${index}`} className="p-2">
-                          {bike
-                            ? formatValue(row.valuesByBikeId[bike.id], row.unit)
-                            : null}
-                        </td>
+                    </h3>
+                    <dl className="text-sm">
+                      {group.rows.map((row) => (
+                        <div
+                          key={row.code}
+                          className="flex justify-between gap-4 border-b border-zinc-100 py-1"
+                        >
+                          <dt className="text-brand-grey">{row.label}</dt>
+                          <dd className="min-w-0 text-right">
+                            {formatValue(row.valuesByBikeId[bike.id], row.unit)}
+                          </dd>
+                        </div>
                       ))}
-                    </tr>
+                    </dl>
+                  </div>
+                ))}
+              </section>
+            ))}
+          </div>
+        )}
+        <div className={compareResult.bikes.length > 2 ? 'hidden md:block' : ''}>
+        {compareResult.bikes.length <= MAX_COLUMN_BIKES ? (
+          <div className="overflow-x-auto">
+            <table className="w-full table-fixed border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="w-[30%] text-left p-2 border-b border-zinc-200 align-bottom md:w-1/4">
+                    Spec
+                  </th>
+                  {columnSlots.map((bike, index) => (
+                    <th
+                      key={bike?.id ?? `empty-${index}`}
+                      className={`p-2 md:w-1/4 border-b border-zinc-200 text-left align-top ${
+                        bike ? '' : 'hidden md:table-cell'
+                      }`}
+                    >
+                      {bike && <BikeHeader bike={bike} />}
+                    </th>
                   ))}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+                </tr>
+              </thead>
+              <tbody>
+                {compareResult.specGroups.map((group) => (
+                  <Fragment key={group.code}>
+                    <tr>
+                      <td
+                        colSpan={compareResult.bikes.length + 1}
+                        className="pt-4 pb-1 font-semibold text-brand-button md:hidden"
+                      >
+                        {group.name}
+                      </td>
+                      <td
+                        colSpan={MAX_COLUMN_BIKES + 1}
+                        className="hidden pt-4 pb-1 font-semibold text-brand-button md:table-cell"
+                      >
+                        {group.name}
+                      </td>
+                    </tr>
+                    {group.rows.map((row) => (
+                      <tr key={row.code} className="border-b border-zinc-100">
+                        <td className="p-2 text-brand-grey">{row.label}</td>
+                        {columnSlots.map((bike, index) => (
+                          <td
+                            key={bike?.id ?? `empty-${index}`}
+                            className={`p-2 break-words ${bike ? '' : 'hidden md:table-cell'}`}
+                          >
+                            {bike
+                              ? formatValue(row.valuesByBikeId[bike.id], row.unit)
+                              : null}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="text-sm border-collapse">
@@ -416,7 +460,9 @@ export default function CompareClient({
               </tbody>
             </table>
           </div>
-        )
+        )}
+        </div>
+        </>
       )}
 
       {selected.length > 0 && (

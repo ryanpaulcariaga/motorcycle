@@ -628,7 +628,7 @@ export default function SpecGridModal({
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <input
           aria-label="Search motorcycles"
-          className="w-64 border border-black/20 px-3 py-2 text-sm"
+          className="w-full border border-black/20 px-3 py-2 text-sm sm:w-64"
           placeholder="Search motorcycles..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -639,7 +639,7 @@ export default function SpecGridModal({
       </div>
       <DataGrid
         aria-label="Motorcycle specifications"
-        className="rdg-light spec-grid mt-4 h-[55vh] text-sm"
+        className="rdg-light spec-grid mt-4 h-[55vh] w-full min-w-0 text-sm"
         columns={columns}
         headerRowHeight={48}
         rowKeyGetter={(row) => row.id}

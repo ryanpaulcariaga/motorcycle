@@ -441,8 +441,8 @@ export default function BikeManagement({
 
   return (
     <div>
-      <section className="bg-brand-content p-6 shadow-lg">
-        <div className="flex items-center justify-between gap-4">
+      <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             {modelId !== undefined && !embedded && (
               <a
@@ -597,7 +597,7 @@ export default function BikeManagement({
             No bike variants match the selected filters.
           </p>
         ) : (
-          <div className="mt-6 overflow-x-auto">
+          <div className="mt-6 max-w-full overflow-x-auto">
             <table className="w-full min-w-[52rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
@@ -608,7 +608,7 @@ export default function BikeManagement({
                   {sortHeader('msrp', 'MSRP')}
                   {sortHeader('status', 'Status')}
                   {sortHeader('reviewed', 'Reviewed')}
-                  <th className="p-2">
+                  <th className="relative p-2">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>

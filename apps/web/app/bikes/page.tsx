@@ -71,7 +71,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
 
   return (
     <PageShell bare>
-      <div className="flex flex-col md:flex-row md:items-start gap-6">
+      <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-6">
         <Sidebar>
           <SidebarSection title="Brand">
             <div className="flex flex-col">
@@ -120,14 +120,14 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
           </SidebarSection>
         </Sidebar>
 
-        <div className="min-w-0 flex-1 bg-brand-content p-6 shadow-lg">
-          <div className="flex items-center justify-between mb-4">
+        <div className="min-w-0 flex-1 bg-brand-content p-4 shadow-lg sm:p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h1 className="min-w-0 break-words text-2xl font-bold">
               {params.search
                 ? `Search results for "${params.search}"`
                 : 'Browse Bikes'}
             </h1>
-            <p className="text-sm text-brand-grey">{totalCount} bikes</p>
+            <p className="shrink-0 text-sm text-brand-grey">{totalCount} bikes</p>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -173,7 +173,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
           )}
 
           {totalPages > 1 && (
-            <div className="mt-6 flex justify-center gap-2">
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <Link
                   key={p}

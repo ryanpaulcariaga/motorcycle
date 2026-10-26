@@ -13,9 +13,9 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 30 of 91 tasks done · 1 in progress · 60 not started.**
+**Progress: 36 of 96 tasks done · 2 in progress · 58 not started.**
 
-**Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
+**Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked. Responsive implementation T-92 to T-96 is complete; T-54 passed, while T-55 still needs an authenticated image-management workflow check.
 
 ## Idea intake and triage
 
@@ -53,6 +53,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
+| F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop |
 
 ## Features (planned)
 
@@ -156,8 +157,8 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 |---|---|---|---|---|
 | T-52 | ⬜ | Check gold/orange and dark-brown contrast; finalize palette | Both apps | G-08 |
 | T-53 | ⬜ | Keyboard, focus, alt text, and table header audit | | G-08 |
-| T-54 | ⬜ | Responsive check of the public site at 360, 768, 1280 px | | G-08 |
-| T-55 | ⬜ | Responsive check of admin on tablet | | G-08 |
+| T-54 | ✅ | Verify public routes at 360, 768, and 1280 px | Local production build: home, browse, detail/gallery, and two-bike compare stayed within the viewport; tested mobile navigation, filters, and contained comparison scrolling | G-08 |
+| T-55 | 🔄 | Verify admin workflows at 360, 768, and 1280 px | Mock-session checks covered navigation, brand table/form, and Bulk Spec grid with no page-level overflow; still verify image management in an authenticated workflow | G-08 |
 | T-56 | ⬜ | Output caching for `/api/bikes` | | G-09 |
 | T-57 | ⬜ | Next.js caching and revalidation for catalog pages | | G-09 |
 | T-58 | ⬜ | Load test at 1000+ bikes | | G-09 |
@@ -170,6 +171,18 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 | T-65 | ✅ | SEO: OpenGraph images | Generated site-wide OpenGraph/Twitter images; bike previews use the primary catalog image | |
 | T-66 | ✅ | SEO: canonical URLs | Canonicals set for home, browse, compare, and bike detail; browse filters do not create duplicate canonicals | |
 | T-67 | ✅ | SEO: JSON-LD structured data | Bike detail pages emit Product data with brand, category, images, and available scalar specs | |
+
+### Responsive design (public web and admin)
+
+Keep the public and admin apps visually aligned while adapting their navigation and content layouts to mobile, tablet, and desktop. Preserve usable controls and avoid unintended page-level horizontal overflow; data-dense tables may use an intentional, contained horizontal scroll region where needed.
+
+| # | Status | Task | Notes | Gate |
+|---|---|---|---|---|
+| T-92 | ✅ | Audit responsive behavior in both apps | Identified narrow header/search, early sidebar split, browse pagination overflow, admin table/grid overflow, and modal sizing issues; acceptance widths are 360, 768, and 1280 px | G-08 |
+| T-93 | ✅ | Make the public header, navigation, and search responsive | Search moves to a full-width second row on phones; accessible menu drawer and responsive nav; verified at target widths | G-08 |
+| T-94 | ✅ | Make public browse, detail, and compare layouts responsive | Sidebar stacks until desktop, cards/specs adapt, pagination wraps, image viewer fits mobile, and comparison tables scroll within their region; verified at target widths | G-08 |
+| T-95 | ✅ | Make the admin shell and navigation responsive | Added a mobile navigation/filter disclosure, aligned 14rem desktop sidebar, and narrow-safe shell/header; mock-session checks show no page overflow at target widths | G-08 |
+| T-96 | ✅ | Make admin forms, image management, and data grids responsive | Responsive panel/modal padding, stacked modal actions, wrapped image actions, contained tables, and a full-width internally scrollable Bulk Spec grid | G-08 |
 
 ### Image sizes (responsive variants)
 
@@ -225,6 +238,10 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-10-26** — Implemented responsive layouts for both apps (T-92 to T-96). Public home, browse, detail/gallery, and two-bike compare passed 360/768/1280 browser checks; fixed pagination overflow found during verification. Mock-session admin checks covered the shell, brand table/form, and Bulk Spec grid at target widths. T-55 remains in progress until image management is verified in an authenticated workflow; G-08 remains open.
+
+**2026-10-26** — Added a responsive-design feature and implementation breakdown for both public web and admin (T-92 to T-96), and clarified responsive acceptance coverage (T-54/T-55). Plan only; no code changed.
 
 **2026-10-26** — Completed T-65 to T-67: added generated social preview images, canonical metadata for public routes, bike-specific OpenGraph/Twitter previews, and Product JSON-LD on bike detail pages.
 

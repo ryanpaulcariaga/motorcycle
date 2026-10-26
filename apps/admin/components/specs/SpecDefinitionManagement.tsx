@@ -222,14 +222,14 @@ export default function SpecDefinitionManagement({
 
   return (
     <div>
-      <section className="bg-brand-content p-6 shadow-lg">
-        <div className="flex items-center justify-between gap-4">
+      <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold">
               {groups.find((g) => g.id === groupId)?.name ?? 'Group'}
             </h2>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <IconButton
               icon="refresh"
               label="Refresh"
@@ -259,7 +259,7 @@ export default function SpecDefinitionManagement({
             No spec definitions in this group yet.
           </p>
         ) : (
-          <div className="mt-6 overflow-x-auto">
+          <div className="mt-6 max-w-full overflow-x-auto">
             <table className="w-full min-w-[50rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
@@ -268,7 +268,7 @@ export default function SpecDefinitionManagement({
                   <th className="p-2">Label</th>
                   <th className="p-2">Type</th>
                   <th className="p-2">Bikes</th>
-                  <th className="p-2">
+                  <th className="relative p-2">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>

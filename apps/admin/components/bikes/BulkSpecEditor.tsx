@@ -140,8 +140,8 @@ export default function BulkSpecEditor() {
   }
 
   return (
-    <section className="bg-brand-content p-6 shadow-lg">
-      <div className="flex items-center justify-between gap-4">
+    <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Bulk Spec Edit</h1>
         <a
           className="text-sm font-semibold text-brand-button underline"
@@ -197,7 +197,7 @@ export default function BulkSpecEditor() {
             ))}
           </select>
         </div>
-        <div className="grid grid-cols-2 gap-2 lg:col-span-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:col-span-2">
           <div>
             <label className="block text-sm font-semibold" htmlFor="bulk-min">
               Min price

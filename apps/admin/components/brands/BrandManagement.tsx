@@ -113,12 +113,12 @@ export default function BrandManagement() {
 
   return (
     <div>
-      <section className="bg-brand-content p-6 shadow-lg">
-        <div className="flex items-center justify-between gap-4">
+      <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold">Brands</h1>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <IconButton
               icon="refresh"
               label="Refresh"
@@ -146,14 +146,14 @@ export default function BrandManagement() {
         ) : brands.length === 0 ? (
           <p className="mt-8 text-brand-grey">No brands have been created.</p>
         ) : (
-          <div className="mt-6 overflow-x-auto">
+          <div className="mt-6 max-w-full overflow-x-auto">
             <table className="w-full min-w-[34rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10">
                   <th className="p-2">Name</th>
                   <th className="p-2">Models</th>
                   <th className="p-2">Bikes</th>
-                  <th className="p-2">
+                  <th className="relative p-2">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
