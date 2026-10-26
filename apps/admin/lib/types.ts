@@ -36,6 +36,25 @@ export type AdminSession = {
   displayName: string | null;
 };
 
+export type AdminAuditLog = {
+  id: number;
+  occurredAt: string;
+  actorId: string;
+  actorDisplayName: string | null;
+  action: string;
+  entityType: string;
+  entityKey: string | null;
+  changedFields: string;
+  requestId: string;
+};
+
+export type AdminAuditLogPage = {
+  items: AdminAuditLog[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+};
+
 export type CreateAdminRoleRequest = {
   facebookUserId: string;
   emailSnapshot: string;

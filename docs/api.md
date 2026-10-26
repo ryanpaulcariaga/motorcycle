@@ -299,6 +299,16 @@ All image endpoints require the `ActiveAdministrator` policy. Storage credential
 
 Run `dotnet run --project apps/api/Motorcycle.Api -- images backfill-variants` to generate variants for existing images. Images with a longest side under 1200 pixels retain only their original and are marked in admin with their dimensions and missing variants so an administrator can replace them.
 
+#### Administrator audit log
+
+`GET /api/admin/audit-logs?page=1&pageSize=50` returns the newest audit entries first. `page` must be at least 1; `pageSize` must be 1–100. The response is `{ "items": [...], "page": 1, "pageSize": 50, "totalCount": 123 }`. Each entry contains `id`, `occurredAt`, `actorId`, `actorDisplayName`, `action`, `entityType`, `entityKey`, `changedFields`, and `requestId`. It is protected by `ActiveAdministrator`; the API provides no update or delete operation for audit rows.
+
+Every tracked entity created, changed, or deleted while handling an authenticated `/api/admin` request is audited in the same `SaveChanges` transaction. Only changed field names are recorded, not the field values or request body.
+
+#### Admin cookie CSRF protection
+
+Unsafe methods below `/api/admin` require an `Origin` header matching one of the configured `Cors:AllowedOrigins`; otherwise the API returns `403`. This includes sign-out. The check complements the `Secure`, `HttpOnly`, `SameSite=Lax` admin cookie and credentialed CORS. CORS is not treated as the CSRF control.
+
 ### Future Advertising API
 
 Advertising is not part of the MVP API. A future version may expose a read-only delivery endpoint such as `GET /api/advertising/placements` that accepts the page context, placement key, and optional category/brand context, then returns only approved and currently active creatives. The response should include disclosure text and a stable impression token rather than exposing internal campaign or budget data.

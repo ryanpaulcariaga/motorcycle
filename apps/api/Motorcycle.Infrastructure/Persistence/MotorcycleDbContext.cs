@@ -20,6 +20,7 @@ public class MotorcycleDbContext : DbContext
     public DbSet<SpecGroup> SpecGroups => Set<SpecGroup>();
     public DbSet<SpecDefinition> SpecDefinitions => Set<SpecDefinition>();
     public DbSet<AdminRole> AdminRoles => Set<AdminRole>();
+    public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
     public DbSet<User> Users => Set<User>();
     public DbSet<UserExternalLogin> UserExternalLogins => Set<UserExternalLogin>();
 
@@ -151,6 +152,20 @@ public class MotorcycleDbContext : DbContext
             ar.Property(x => x.CreatedAt).IsRequired();
             ar.Property(x => x.UpdatedAt).IsRequired();
             ar.HasIndex(x => x.FacebookUserId).IsUnique();
+        });
+
+        modelBuilder.Entity<AdminAuditLog>(audit =>
+        {
+            audit.HasKey(x => x.Id);
+            audit.Property(x => x.OccurredAt).IsRequired();
+            audit.Property(x => x.ActorId).IsRequired().HasMaxLength(255);
+            audit.Property(x => x.ActorDisplayName).HasMaxLength(255);
+            audit.Property(x => x.Action).IsRequired().HasMaxLength(20);
+            audit.Property(x => x.EntityType).IsRequired().HasMaxLength(100);
+            audit.Property(x => x.EntityKey).HasMaxLength(512);
+            audit.Property(x => x.ChangedFields).IsRequired().HasMaxLength(2048);
+            audit.Property(x => x.RequestId).IsRequired().HasMaxLength(100);
+            audit.HasIndex(x => x.OccurredAt);
         });
 
         modelBuilder.Entity<User>(u =>

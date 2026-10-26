@@ -145,7 +145,7 @@ Pushing to `master` runs `.github/workflows/deploy.yml`:
 3. **Deploy** (job environment `production`, Azure login by OIDC, no stored secrets):
    - **API** to `motorcycle-api-prod`: `dotnet publish` then `azure/webapps-deploy`.
    - **Web** to `motorcycle-web-prod`: Next.js standalone build (`output: "standalone"`), static assets copied in, started with `HOSTNAME=0.0.0.0 node apps/web/server.js`.
-   - **Admin** to `motorcycle-admin-prod`: Vite build served with `pm2 serve ... --spa`.
+   - **Admin** to `motorcycle-admin-prod`: Vite build served by the packaged Node static server (`server.mjs`) with SPA fallback and security headers.
 
 Pull requests run CI only (`ci.yml`). **Run workflow** on the Actions tab (`workflow_dispatch`) redeploys all three apps.
 
@@ -192,7 +192,7 @@ If an `azure/login` step fails with `AADSTS700213` (no matching federated identi
 
 **4. GitHub variables** (environment variables in `production`): `NEXT_PUBLIC_API_URL` (**production** API URL), `NEXT_PUBLIC_SITE_URL` (**production** public web URL), `VITE_API_URL` (**production** API URL). Optional overrides: `AZURE_API_APP_NAME`, `AZURE_WEB_APP_NAME`, `AZURE_ADMIN_APP_NAME` (default to the **`motorcycle-*-prod`** names).
 
-**5. App Service runtime stacks** (on each Web App): API = .NET 10, web = Node 22 LTS, admin = Node 22 LTS (needed for `pm2 serve`).
+**5. App Service runtime stacks** (on each Web App): API = .NET 10, web = Node 22 LTS, admin = Node 22 LTS.
 
 **6. API configuration:** complete the API application settings (Facebook, CORS, redirect URIs) in M1 below. Key Vault references for the connection strings are already set.
 
@@ -333,10 +333,10 @@ $env:VITE_API_URL = "https://<api-host>"
 pnpm --filter admin build
 Compress-Archive -Path apps\admin\dist\* -DestinationPath admin.zip -Force
 az webapp deploy -g motorcycle-prod-rg -n motorcycle-admin-prod --src-path admin.zip --type zip
-az webapp config set -g motorcycle-prod-rg -n motorcycle-admin-prod --startup-file "pm2 serve /home/site/wwwroot --no-daemon --spa"
+az webapp config set -g motorcycle-prod-rg -n motorcycle-admin-prod --startup-file "node /home/site/wwwroot/server.mjs"
 ```
 
-The `--spa` flag serves `index.html` for client-side routes. The API (not the SPA) owns the Facebook callback.
+The build copies `server.mjs` into `dist`; it serves `index.html` for client-side routes and adds the admin security headers. Set `ADMIN_API_ORIGIN` in the Web App if the API hostname differs from the current production default. The API (not the SPA) owns the Facebook callback.
 
 ### Manual verification extras
 

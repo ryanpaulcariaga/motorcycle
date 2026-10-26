@@ -6,6 +6,7 @@ import BrandManagement from '@/components/brands/BrandManagement';
 import BikeManagement from '@/components/bikes/BikeManagement';
 import BulkSpecEditor from '@/components/bikes/BulkSpecEditor';
 import RoleManagement from '@/components/roles/RoleManagement';
+import AuditLogManagement from '@/components/audit/AuditLogManagement';
 import SpecGroupManagement from '@/components/specs/SpecGroupManagement';
 import {
   API_BASE_URL,
@@ -50,7 +51,8 @@ function AdminShell({ session }: { session: AdminSession }) {
   const [sidebarSlot, setSidebarSlot] = useState<HTMLElement | null>(null);
   const match = pathname.match(/^\/admin\/bike-models\/(\d+)\/bikes$/);
   const isAdministratorsActive =
-    pathname === '/admin' || pathname === '/admin/roles';
+    pathname === '/admin' || pathname === '/admin/roles' || pathname === '/admin/audit';
+  const isAuditActive = pathname === '/admin/audit';
   const isBikesActive = pathname === '/admin/bike-models' || match !== null;
   const isVariantsActive =
     pathname === '/admin/bike-variants' || pathname === '/admin/bulk-spec';
@@ -71,6 +73,8 @@ function AdminShell({ session }: { session: AdminSession }) {
     <BikeModelManagement />
   ) : pathname === '/admin/specs' ? (
     <SpecGroupManagement />
+  ) : isAuditActive ? (
+    <AuditLogManagement />
   ) : (
     <RoleManagement />
   );
@@ -146,6 +150,13 @@ function AdminShell({ session }: { session: AdminSession }) {
               href="/admin/roles"
             >
               Administrators
+            </a>
+            <a
+              aria-current={isAuditActive ? 'page' : undefined}
+              className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isAuditActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/audit"
+            >
+              Audit log
             </a>
           </nav>
           <div className="space-y-4" ref={setSidebarSlot} />

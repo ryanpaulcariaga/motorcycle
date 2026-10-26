@@ -34,7 +34,7 @@ Stage 1 requests only the `public_profile` Facebook permission. Email is an opti
 
 ## Production
 
-The admin SPA is deployed to Azure at <https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net/> and uses the shared API at <https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/>. The admin homepage returned HTTP 200 in a production smoke check on 2026-10-19; administrator sign-in and catalog workflows still require browser-level acceptance validation. Production configuration and remaining release gates are tracked in [the deployment guide](../../README.md#deploying-to-azure) and [the project plan](../../plan-motorcycle-web-app.md#status).
+The admin SPA is deployed to Azure at <https://motorcycle-admin-prod-a4brh0c3eha0h4ch.southeastasia-01.azurewebsites.net/> and uses the shared API at <https://motorcycle-api-prod-f8hqerghe2dyhnbx.southeastasia-01.azurewebsites.net/>. The production bundle includes `server.mjs`, which serves the SPA fallback and attaches security headers; `ADMIN_API_ORIGIN` can override the API origin allowed by its CSP. The admin homepage returned HTTP 200 in a production smoke check on 2026-10-19; administrator sign-in and catalog workflows still require browser-level acceptance validation. Production configuration and remaining release gates are tracked in [the deployment guide](../../README.md#deploying-to-azure) and [the project plan](../../plan-motorcycle-web-app.md#status).
 
 ## API and Bootstrap
 

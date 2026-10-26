@@ -13,9 +13,9 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 19 of 91 tasks done · 1 in progress · 71 not started.**
+**Progress: 27 of 91 tasks done · 1 in progress · 63 not started.**
 
-**Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by T-25 and T-26 (client IP, API security headers).
+**Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
 ## Idea intake and triage
 
@@ -51,6 +51,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-13 | ✅ Aligned look and tighter grids across web and admin |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results |
+| F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail |
 
 ## Features (planned)
 
@@ -100,14 +101,14 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 
 | # | Status | Task | Notes | Gate |
 |---|---|---|---|---|
-| T-25 | ⬜ | Configure forwarded headers so rate limiting sees real client IPs | None configured in code | G-07 |
-| T-26 | ⬜ | Security headers on the API | None set | G-07 |
-| T-27 | ⬜ | Security headers on the public web app | None set | G-07 |
-| T-28 | ⬜ | Security headers on the admin SPA | None set | G-07 |
-| T-29 | ⬜ | Document the CSRF stance for the cookie session | Reasoning goes in `docs/design-decisions.md` | G-07 |
-| T-30 | ⬜ | Audit log: entity, migration, and write on every admin mutation | None exists | G-07 |
-| T-31 | ⬜ | Audit log: read endpoint and admin page | | G-07 |
-| T-32 | ⬜ | Decide the admin identity-provider exit plan (e.g. Entra ID) | | G-07 |
+| T-25 | ✅ | Configure forwarded headers so rate limiting sees real client IPs | Production trusts one App Service ingress hop before rate limiting; verify the client IP after deployment | G-07 |
+| T-26 | ✅ | Security headers on the API | CSP, HSTS (HTTPS only), nosniff, referrer, frame, and permissions headers; Swagger has a compatible CSP | G-07 |
+| T-27 | ✅ | Security headers on the public web app | Per-response nonce CSP (inline style attributes retained for gallery zoom) and standard headers in Next.js Proxy; matched pages render dynamically, so recheck caching/LCP under T-57/T-59 | G-07 |
+| T-28 | ✅ | Security headers on the admin SPA | Vite dev/preview headers and production Node static server headers; deployment uses the packaged server | G-07 |
+| T-29 | ✅ | Document the CSRF stance for the cookie session | Unsafe `/api/admin` requests require an exact configured `Origin`; SameSite=Lax and CORS are defense-in-depth | G-07 |
+| T-30 | ✅ | Audit log: entity, migration, and write on every admin mutation | EF interceptor and `admin_audit_logs` migration; stores actor/action/entity/field names, not values; tracked rename cascade audited | G-07 |
+| T-31 | ✅ | Audit log: read endpoint and admin page | Protected paginated `GET /api/admin/audit-logs` and `/admin/audit` page | G-07 |
+| T-32 | ✅ | Decide the admin identity-provider exit plan (e.g. Entra ID) | Entra ID OIDC with explicit provider-neutral subject mapping, no email auto-linking, and a verified transition window; implementation remains future work | G-07 |
 
 ### Production configuration
 
@@ -225,6 +226,8 @@ The API stores the uploaded original and generates smaller copies for the public
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
 
 **2026-10-25** — Made the Bulk Spec Edit grid support updating the motorcycle variant name, year, and MSRP together with specifications. Category remains read-only because it is shared by all variants of a BikeModel.
+
+**2026-10-26** — Added the API/web/admin security baseline: trusted one-hop forwarding before rate limiting, security headers at each serving layer, strict Origin checks for cookie-authenticated admin mutations, and a transactional audit log with a protected endpoint and admin page. Documented the CSRF and Entra ID exit decisions; G-07 remains blocked on production verification.
 
 **2026-10-25** — Added main-page sorting to Bulk Spec Edit; one selection orders both the on-screen grid and Excel export by motorcycle fields or specification values. The grid's Motorcycle column displays only the variant name, and non-editable identifying cells are shaded gray.
 

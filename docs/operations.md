@@ -42,6 +42,10 @@ ConnectionStrings__DefaultConnection = @Microsoft.KeyVault(SecretUri=https://mot
 
 GitHub's `production` environment variables `NEXT_PUBLIC_API_URL` and `VITE_API_URL` point at the API domain; `NEXT_PUBLIC_SITE_URL` points at the public web domain. They are build-time frontend settings, so changing them needs a frontend redeploy. Both production Facebook callback URLs must also be registered in the Facebook app (see the API README).
 
+The API enables forwarded-header processing only in Production, with a one-hop limit for `X-Forwarded-For` and `X-Forwarded-Proto`; the Production configuration clears ASP.NET Core's static trusted-proxy lists because Azure App Service ingress addresses are platform-managed. Do not enable that setting when exposing the API directly or behind a different topology without configuring its trusted ingress.
+
+The admin build includes `server.mjs` in `dist` and starts it with Node rather than `pm2 serve`, so production responses receive CSP and the other security headers. `ADMIN_API_ORIGIN` optionally overrides the API origin used by the server's `connect-src` CSP; update it whenever the production API host changes. It defaults to the current Azure API hostname.
+
 ## Production URLs
 
 | App/check | URL |
@@ -53,7 +57,7 @@ GitHub's `production` environment variables `NEXT_PUBLIC_API_URL` and `VITE_API_
 
 ## Deployment setup (one-time, done 2026-10-19)
 
-Entra app registration with a federated credential, Website Contributor on `motorcycle-prod-rg`, and a GitHub `production` environment with secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` and variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, `VITE_API_URL`. `scripts/setup-azure-oidc.ps1` creates the identity and credential. Runtimes: API = .NET 10, web = Node 22, admin = Node 22 (needed for `pm2 serve`).
+Entra app registration with a federated credential, Website Contributor on `motorcycle-prod-rg`, and a GitHub `production` environment with secrets `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` and variables `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, `VITE_API_URL`. `scripts/setup-azure-oidc.ps1` creates the identity and credential. Runtimes: API = .NET 10, web = Node 22, admin = Node 22.
 
 The pipeline does not run migrations. The API applies pending migrations on every startup in every environment; the legacy `Database:MigrateOnStartup` setting controls only the Development startup seed.
 

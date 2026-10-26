@@ -1,4 +1,4 @@
-import type { AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeImportResult, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, ReassignBikeModelRequest, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest, BikeSpecGridRow, UpdateSpecGridRequest } from "./types";
+import type { AdminAuditLogPage, AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeImportResult, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, ReassignBikeModelRequest, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest, BikeSpecGridRow, UpdateSpecGridRequest } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
@@ -48,6 +48,11 @@ export function getAdminSession(): Promise<AdminSession> { return apiFetch("/api
 export function signOutAdmin(): Promise<void> { return apiFetch("/api/admin/auth/signout", { method: "POST" }); }
 export function getAdminRoles(): Promise<AdminRole[]> {
   return apiFetch("/api/admin/admin-roles");
+}
+
+export function getAdminAuditLogs(page: number, pageSize: number): Promise<AdminAuditLogPage> {
+  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  return apiFetch(`/api/admin/audit-logs?${params}`);
 }
 
 export function createAdminRole(request: CreateAdminRoleRequest): Promise<AdminRole> {

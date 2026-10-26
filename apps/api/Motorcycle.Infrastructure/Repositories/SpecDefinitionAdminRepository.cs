@@ -71,7 +71,7 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
             var bikes = await _context.Bikes.Where(b => ids.Contains(b.Id)).ToListAsync(ct);
             foreach (var bike in bikes) {
                 // Replace the dictionary so EF detects the JSONB change.
-                var specs = new Dictionary<string, object?>(bike.Specs) { [valueCode] = convertedValues[bike.Id] };
+                var specs = new Dictionary<string, object>(bike.Specs) { [valueCode] = convertedValues[bike.Id]! };
                 bike.Specs = specs;
             }
         }
@@ -82,11 +82,19 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+        var allBikes = await _context.Bikes.ToListAsync(ct);
+        foreach (var bike in allBikes) {
+            if (!bike.Specs.TryGetValue(renamedFromCode, out var oldValue)) {
+                continue;
+            }
+
+            var specs = new Dictionary<string, object>(bike.Specs);
+            specs.Remove(renamedFromCode);
+            specs[definition.Code] = oldValue;
+            bike.Specs = specs;
+        }
+
         await _context.SaveChangesAsync(ct);
-        // JSONB `-` (delete key) and `||` (concatenate) rename the key in one statement, for every affected row.
-        await _context.Database.ExecuteSqlInterpolatedAsync(
-            $"UPDATE bikes SET specs = (specs - {renamedFromCode}) || jsonb_build_object({definition.Code}, specs -> {renamedFromCode}) WHERE specs ? {renamedFromCode}",
-            ct);
         await transaction.CommitAsync(ct);
     }
 }

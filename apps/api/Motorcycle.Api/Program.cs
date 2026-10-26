@@ -9,6 +9,7 @@ using Motorcycle.Application.Interfaces;
 using Motorcycle.Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Motorcycle.Api.Authorization;
 using Motorcycle.Api.Common;
 using Motorcycle.Api.Bootstrap;
@@ -27,8 +28,11 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfig
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection is required.");
 
-builder.Services.AddDbContext<MotorcycleDbContext>(options =>
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<AdminAuditSaveChangesInterceptor>();
+builder.Services.AddDbContext<MotorcycleDbContext>((services, options) =>
     options.UseNpgsql(connectionString)
+        .AddInterceptors(services.GetRequiredService<AdminAuditSaveChangesInterceptor>())
 );
 
 // Repositories
@@ -39,6 +43,7 @@ builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ISpecGroupRepository, SpecGroupRepository>();
 builder.Services.AddScoped<IAdminRoleRepository, AdminRoleRepository>();
+builder.Services.AddScoped<IAdminAuditLogRepository, AdminAuditLogRepository>();
 builder.Services.AddScoped<IBrandAdminRepository, BrandAdminRepository>();
 builder.Services.AddScoped<ICategoryAdminRepository, CategoryAdminRepository>();
 builder.Services.AddScoped<IBikeModelRepository, BikeModelRepository>();
@@ -61,6 +66,7 @@ builder.Services.AddSingleton<ISpecFilterStrategyFactory, SpecFilterStrategyFact
 builder.Services.AddScoped<IBikeService, BikeService>();
 builder.Services.AddScoped<ILookupService, LookupService>();
 builder.Services.AddScoped<IAdminRoleService, AdminRoleService>();
+builder.Services.AddScoped<IAdminAuditLogService, AdminAuditLogService>();
 builder.Services.AddScoped<IBrandAdminService, BrandAdminService>();
 builder.Services.AddScoped<ICategoryAdminService, CategoryAdminService>();
 builder.Services.AddScoped<IBikeModelService, BikeModelService>();
@@ -145,6 +151,17 @@ builder.Services.AddSwaggerGen(options =>
 const string CorsPolicy = "WebFrontend";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? ["https://localhost:3000", "http://localhost:3001", "https://localhost:3001"];
+var forwardedHeadersEnabled = builder.Configuration.GetValue<bool?>("ForwardedHeaders:Enabled") ?? false;
+if (forwardedHeadersEnabled) {
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.ForwardLimit = 1;
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(CorsPolicy, policy =>
@@ -199,6 +216,27 @@ using (var scope = app.Services.CreateScope()) {
     }
 }
 
+if (forwardedHeadersEnabled) {
+    app.UseForwardedHeaders();
+}
+
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    headers["Content-Security-Policy"] = context.Request.Path.StartsWithSegments("/swagger")
+        ? "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+        : "default-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+    if (context.Request.IsHttps) {
+        headers["Strict-Transport-Security"] = "max-age=31536000";
+    }
+
+    await next();
+});
+
 // Unhandled exceptions become RFC 7807 problem responses without leaking details.
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
@@ -214,6 +252,25 @@ if (swaggerEnabled) {
 }
 
 app.UseCors(CorsPolicy);
+app.Use(async (context, next) =>
+{
+    var isAdminMutation = context.Request.Path.StartsWithSegments("/api/admin") &&
+        !HttpMethods.IsGet(context.Request.Method) &&
+        !HttpMethods.IsHead(context.Request.Method) &&
+        !HttpMethods.IsOptions(context.Request.Method);
+    if (isAdminMutation) {
+        var requestOrigin = context.Request.Headers.Origin.ToString();
+        if (!AdminOriginValidator.IsAllowed(requestOrigin, allowedOrigins)) {
+            app.Logger.LogWarning("Rejected admin mutation with missing or untrusted Origin header. RequestId: {RequestId}", context.TraceIdentifier);
+            await Results.Problem(
+                title: "The request origin is not allowed.",
+                statusCode: StatusCodes.Status403Forbidden).ExecuteAsync(context);
+            return;
+        }
+    }
+
+    await next();
+});
 if (rateLimitingEnabled) {
     app.UseRateLimiter();
 }
