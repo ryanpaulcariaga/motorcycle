@@ -14,6 +14,7 @@ import {
 } from '@/lib/api';
 import BikeManagement from '@/components/bikes/BikeManagement';
 import type { BikeModel, LookupOption } from '@/lib/types';
+import { bikeModelLabel } from '@/lib/bikeModelLabel';
 import {
   parseBikeModelListState,
   serializeBikeModelListState,
@@ -319,7 +320,9 @@ export default function BikeModelManagement() {
                   >
                         <td className="p-2">{model.brandName}</td>
                         <td className="p-2">{model.categoryName}</td>
-                        <td className="p-2 font-semibold">{model.name}</td>
+                        <td className="p-2 font-semibold">
+                          {bikeModelLabel(model.name, model.bikeCount)}
+                        </td>
                         <td className="p-2">
                           <div className="flex items-center justify-end gap-1">
                             <IconButton

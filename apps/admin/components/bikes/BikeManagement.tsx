@@ -23,6 +23,7 @@ import {
   updateAdminBikeSpecGrid,
 } from '@/lib/api';
 import type { BikeAdminListItem, BikeModel, LookupOption } from '@/lib/types';
+import { bikeModelLabel } from '@/lib/bikeModelLabel';
 import { getBikeModelListSearch } from '@/lib/bikeModelListState';
 import {
   ClearFiltersButton,
@@ -110,6 +111,7 @@ export default function BikeManagement({
       : [{ field: 'variant', direction: 'asc' }]
   );
   const showModel = modelId === undefined;
+  const modelBikeCounts = new Map(models.map((model) => [model.id, model.bikeCount]));
   const brandNames = [...new Set(models.map((model) => model.brandName))].sort(
     (a, b) => a.localeCompare(b)
   );
@@ -673,7 +675,7 @@ export default function BikeManagement({
                     <td className="p-2 font-semibold">{bike.variantName}</td>
                     <td className="p-2">
                       <span className="inline-flex items-center gap-2">
-                        {bike.modelName}
+                        {bikeModelLabel(bike.modelName, modelBikeCounts.get(bike.modelId))}
                         <button
                           type="button"
                           className="text-brand-button hover:opacity-70"
