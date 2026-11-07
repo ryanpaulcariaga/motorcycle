@@ -67,6 +67,20 @@ CREATE TABLE bike_images (
 CREATE INDEX idx_bike_images_bike_id ON bike_images(bike_id);
 ```
 
+### bike_spec_verifications
+```sql
+CREATE TABLE bike_spec_verifications (
+  bike_id INT NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
+  spec_definition_id INT NOT NULL REFERENCES spec_definitions(id) ON DELETE CASCADE,
+  source_url VARCHAR(2048),
+  verified_at TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (bike_id, spec_definition_id)
+);
+CREATE INDEX ix_bike_spec_verifications_spec_definition_id ON bike_spec_verifications(spec_definition_id);
+```
+
+Presence indicates that this bike's current spec value was confirmed; absence means unconfirmed. Spec values remain in `bikes.specs`. Existing bike-level `is_reviewed` flags are not migrated to spec confirmations. The optional source URL is retained for future use and cannot currently be edited in the admin UI; the API validates its format, not whether it belongs to the brand.
+
 ### spec_groups
 ```sql
 CREATE TABLE spec_groups (

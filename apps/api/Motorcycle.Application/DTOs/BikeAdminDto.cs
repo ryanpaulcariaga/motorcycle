@@ -27,7 +27,12 @@ public sealed record BikeAdminDetailDto(
     bool IsReviewed,
     Dictionary<string, object?> Specs,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    Dictionary<string, SpecVerificationDto> SpecVerifications);
+
+public sealed record SpecVerificationDto(string? SourceUrl, DateTime VerifiedAt);
+
+public sealed record SpecVerificationUpdate(string SpecCode, bool IsVerified, string? SourceUrl);
 
 public sealed record BikeSpecValueItemDto(
     int Id,
@@ -53,15 +58,20 @@ public sealed record BikeSpecGridRowDto(
     int Year,
     decimal? MsrpPrice,
     bool IsPublished,
-    Dictionary<string, object?> Specs);
+    Dictionary<string, object?> Specs,
+    Dictionary<string, SpecVerificationDto>? SpecVerifications = null);
 
 public sealed record BikeSpecGridCellUpdate(int BikeId, string SpecCode, object? Value);
 
 public sealed record BikeSpecGridBikeUpdate(int BikeId, string VariantName, int Year, decimal? MsrpPrice);
 
+public sealed record BikeSpecGridVerificationUpdate(int BikeId, string SpecCode, bool IsVerified, string? SourceUrl);
+
 public sealed record UpdateSpecGridRequest(
     List<BikeSpecGridCellUpdate>? Changes,
-    List<BikeSpecGridBikeUpdate>? BikeChanges = null);
+    List<BikeSpecGridBikeUpdate>? BikeChanges = null,
+    List<BikeSpecGridVerificationUpdate>? VerificationChanges = null,
+    List<int>? ResetVerificationBikeIds = null);
 
 public sealed record CreateBikeRequest(
     int ModelId,
@@ -75,7 +85,8 @@ public sealed record UpdateBikeRequest(
     int Year,
     decimal? MsrpPrice,
     Dictionary<string, object?>? Specs,
-    int? ModelId = null);
+    int? ModelId = null,
+    List<SpecVerificationUpdate>? VerificationChanges = null);
 
 public sealed record ReassignBikeModelRequest(int ModelId);
 

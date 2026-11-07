@@ -17,4 +17,5 @@ public class Bike
     // Navigation
     public BikeModel Model { get; set; } = null!;
     public ICollection<BikeImage> Images { get; set; } = new List<BikeImage>();
+    public ICollection<BikeSpecVerification> SpecVerifications { get; set; } = new List<BikeSpecVerification>();
 }

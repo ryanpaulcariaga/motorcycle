@@ -11,6 +11,7 @@ public interface IBikeModelRepository
     Task<bool> NameExistsAsync(int brandId, string name, int? excludingId = null, CancellationToken ct = default);
     Task<Dictionary<int, int>> GetBikeCountsAsync(CancellationToken ct = default);
     Task<int> CountDependentBikesAsync(int modelId, CancellationToken ct = default);
+    Task InvalidateSpecVerificationsAsync(int modelId, CancellationToken ct = default);
     Task AddAsync(BikeModel model, CancellationToken ct = default);
     void Remove(BikeModel model);
     Task SaveChangesAsync(CancellationToken ct = default);

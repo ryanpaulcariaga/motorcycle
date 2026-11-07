@@ -407,6 +407,34 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.ToTable("bike_models");
                 });
 
+            modelBuilder.Entity("Motorcycle.Domain.BikeSpecVerification", b =>
+                {
+                    b.Property<int>("BikeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("bike_id");
+
+                    b.Property<int>("SpecDefinitionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("spec_definition_id");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("source_url");
+
+                    b.Property<DateTime>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("verified_at");
+
+                    b.HasKey("BikeId", "SpecDefinitionId")
+                        .HasName("pk_bike_spec_verifications");
+
+                    b.HasIndex("SpecDefinitionId")
+                        .HasDatabaseName("ix_bike_spec_verifications_spec_definition_id");
+
+                    b.ToTable("bike_spec_verifications");
+                });
+
             modelBuilder.Entity("Motorcycle.Domain.BikeView", b =>
                 {
                     b.Property<int>("Id")
@@ -854,6 +882,27 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("Motorcycle.Domain.BikeSpecVerification", b =>
+                {
+                    b.HasOne("Motorcycle.Domain.Bike", "Bike")
+                        .WithMany("SpecVerifications")
+                        .HasForeignKey("BikeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bike_spec_verifications_bikes_bike_id");
+
+                    b.HasOne("Motorcycle.Domain.SpecDefinition", "SpecDefinition")
+                        .WithMany()
+                        .HasForeignKey("SpecDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bike_spec_verifications_spec_definitions_spec_definition_id");
+
+                    b.Navigation("Bike");
+
+                    b.Navigation("SpecDefinition");
+                });
+
             modelBuilder.Entity("Motorcycle.Domain.SpecDefinition", b =>
                 {
                     b.HasOne("Motorcycle.Domain.SpecGroup", "Group")
@@ -881,6 +930,8 @@ namespace Motorcycle.Infrastructure.Migrations
             modelBuilder.Entity("Motorcycle.Domain.Bike", b =>
                 {
                     b.Navigation("Images");
+
+                    b.Navigation("SpecVerifications");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.BikeModel", b =>

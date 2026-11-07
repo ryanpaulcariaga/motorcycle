@@ -91,4 +91,25 @@ public sealed class AdminAuditSaveChangesInterceptorTests
 
         Assert.Empty(await db.AdminAuditLogs.ToListAsync());
     }
+
+    [Fact]
+    public async Task AddedSpecVerificationAuditIncludesBikeAndDefinitionKeys()
+    {
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Path = "/api/admin/bikes/spec-grid";
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim("sub", "admin-123")], CookieAuthenticationDefaults.AuthenticationScheme));
+        var options = new DbContextOptionsBuilder<MotorcycleDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .AddInterceptors(new AdminAuditSaveChangesInterceptor(new HttpContextAccessor { HttpContext = httpContext }))
+            .Options;
+        await using var db = new MotorcycleDbContext(options);
+        db.BikeSpecVerifications.Add(new BikeSpecVerification { BikeId = 12, SpecDefinitionId = 34 });
+        await db.SaveChangesAsync();
+
+        var entry = Assert.Single(await db.AdminAuditLogs.ToListAsync());
+        Assert.Equal("Created", entry.Action);
+        Assert.Equal("BikeId=12,SpecDefinitionId=34", entry.EntityKey);
+        Assert.Equal("admin-123", entry.ActorId);
+    }
 }

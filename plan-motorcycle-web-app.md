@@ -54,6 +54,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop |
+| F-21 | ✅ Admin per-bike, per-spec verifications; edits invalidate stale verifications, with per-bike and filtered-list reset |
 
 ## Features (planned)
 
@@ -166,7 +167,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 | T-60 | ⬜ | Azure budget | | G-12 |
 | T-61 | ⬜ | Azure cost alerts | | G-12 |
 | T-62 | ⬜ | Define success metrics (traffic, compare usage, catalog completeness) | Include catalog coverage, verified-data rate, search-to-detail visits, and compare usage; define how each is measured before adding engagement features | |
-| T-63 | ⬜ | Define catalog data sourcing and verification | Define trusted sources, source attribution, and when verification dates are updated | |
+| T-63 | ⬜ | Define catalog data sourcing and verification | Revisit admin source URL entry; define trusted sources and public attribution policy | |
 | T-64 | ⬜ | Define the `is_reviewed` publishing workflow | Include how admins verify source data and handle user-submitted correction reports | |
 | T-65 | ✅ | SEO: OpenGraph images | Generated site-wide OpenGraph/Twitter images; bike previews use the primary catalog image | |
 | T-66 | ✅ | SEO: canonical URLs | Canonicals set for home, browse, compare, and bike detail; browse filters do not create duplicate canonicals | |

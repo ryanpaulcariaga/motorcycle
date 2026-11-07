@@ -19,6 +19,7 @@ public class MotorcycleDbContext : DbContext
     public DbSet<BikeImage> BikeImages => Set<BikeImage>();
     public DbSet<SpecGroup> SpecGroups => Set<SpecGroup>();
     public DbSet<SpecDefinition> SpecDefinitions => Set<SpecDefinition>();
+    public DbSet<BikeSpecVerification> BikeSpecVerifications => Set<BikeSpecVerification>();
     public DbSet<AdminRole> AdminRoles => Set<AdminRole>();
     public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
     public DbSet<User> Users => Set<User>();
@@ -139,6 +140,16 @@ public class MotorcycleDbContext : DbContext
             // Code is the JSON key used across every bikes.specs row, so it must be globally
             // unique across all groups, not merely unique within one group.
             sd.HasIndex(x => x.Code).IsUnique();
+        });
+
+        modelBuilder.Entity<BikeSpecVerification>(verification =>
+        {
+            verification.HasKey(x => new { x.BikeId, x.SpecDefinitionId });
+            verification.Property(x => x.SourceUrl).HasMaxLength(2048);
+            verification.HasOne(x => x.Bike).WithMany(x => x.SpecVerifications)
+                .HasForeignKey(x => x.BikeId).OnDelete(DeleteBehavior.Cascade);
+            verification.HasOne(x => x.SpecDefinition).WithMany()
+                .HasForeignKey(x => x.SpecDefinitionId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AdminRole>(ar =>

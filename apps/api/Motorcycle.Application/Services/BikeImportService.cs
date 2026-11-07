@@ -106,7 +106,8 @@ public sealed class BikeImportService : IBikeImportService
             throw new BikeImportValidationException(errors.OrderBy(e => e.Row).ThenBy(e => e.Column).ToList());
         }
 
-        return await ApplyAsync(parsedRows, allBikes, bikesById, ct);
+        var trackedBikes = await _repository.GetByIdsAsync(parsedRows.Where(r => r.BikeId.HasValue).Select(r => r.BikeId!.Value).ToList(), ct);
+        return await ApplyAsync(parsedRows, allBikes, trackedBikes.ToDictionary(b => b.Id), ct);
     }
 
     private ParsedRow? ParseRow(
@@ -269,6 +270,8 @@ public sealed class BikeImportService : IBikeImportService
                     bike.Model = tracked;
                 }
 
+                SpecVerificationHelper.Invalidate(bike, specs,
+                    modelChanged || bike.VariantName != row.VariantName || bike.Year != row.Year);
                 bike.VariantName = row.VariantName!;
                 bike.Year = row.Year!.Value;
                 bike.MsrpPrice = row.MsrpPrice;

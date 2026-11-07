@@ -10,6 +10,7 @@ public interface IBrandAdminRepository
     Task<BrandUsage?> GetWithUsageAsync(int id, CancellationToken ct = default);
     Task<Brand?> GetByIdAsync(int id, CancellationToken ct = default);
     Task<bool> NameExistsAsync(string name, int? excludingId = null, CancellationToken ct = default);
+    Task InvalidateSpecVerificationsAsync(int brandId, CancellationToken ct = default);
     Task AddAsync(Brand brand, CancellationToken ct = default);
     void Remove(Brand brand);
     Task SaveChangesAsync(CancellationToken ct = default);

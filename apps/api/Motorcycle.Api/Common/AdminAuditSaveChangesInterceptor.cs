@@ -75,7 +75,7 @@ public sealed class AdminAuditSaveChangesInterceptor : SaveChangesInterceptor
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToArray();
         var primaryKey = entry.Metadata.FindPrimaryKey();
-        var entityKey = entry.State == EntityState.Added || primaryKey is null
+        var entityKey = (entry.State == EntityState.Added && entry.Entity is not BikeSpecVerification) || primaryKey is null
             ? null
             : string.Join(",", primaryKey.Properties.Select(property =>
                 $"{property.Name}={entry.Property(property.Name).CurrentValue?.ToString() ?? "null"}"));

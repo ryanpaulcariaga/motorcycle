@@ -39,6 +39,9 @@ public sealed class BikeModelService : IBikeModelService
         var model = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("BikeModel was not found.");
         var name = BikeModelValidators.Validate(request.BrandId, request.CategoryId, request.Name);
         await EnsureReferencesAsync(request.BrandId, request.CategoryId, name, id, ct);
+        if (model.BrandId != request.BrandId || model.Name != name) {
+            await _repository.InvalidateSpecVerificationsAsync(id, ct);
+        }
         model.BrandId = request.BrandId;
         model.CategoryId = request.CategoryId;
         model.Name = name;

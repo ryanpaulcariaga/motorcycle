@@ -64,8 +64,12 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
     public Task SaveChangesAsync(CancellationToken ct = default) => _context.SaveChangesAsync(ct);
 
     public async Task SaveWithOptionalRenameAsync(SpecDefinition definition, string? renamedFromCode,
-        IReadOnlyDictionary<int, object?>? convertedValues, string valueCode, CancellationToken ct = default)
+        IReadOnlyDictionary<int, object?>? convertedValues, string valueCode, bool invalidateVerifications, CancellationToken ct = default)
     {
+        if (invalidateVerifications) {
+            var verifications = await _context.BikeSpecVerifications.Where(v => v.SpecDefinitionId == definition.Id).ToListAsync(ct);
+            _context.BikeSpecVerifications.RemoveRange(verifications);
+        }
         if (convertedValues is { Count: > 0 }) {
             var ids = convertedValues.Keys.ToList();
             var bikes = await _context.Bikes.Where(b => ids.Contains(b.Id)).ToListAsync(ct);

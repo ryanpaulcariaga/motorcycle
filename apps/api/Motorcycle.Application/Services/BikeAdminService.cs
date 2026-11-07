@@ -79,6 +79,7 @@ public sealed class BikeAdminService : IBikeAdminService
                 specs[request.SpecCode] = item.Value;
             }
 
+            SpecVerificationHelper.Invalidate(bike, specs, false);
             bike.Specs = specs;
             bike.UpdatedAt = now;
         }
@@ -106,7 +107,8 @@ public sealed class BikeAdminService : IBikeAdminService
             b.Year,
             b.MsrpPrice,
             b.IsPublished,
-            b.Specs.ToDictionary(s => s.Key, s => (object?)s.Value))).ToList();
+            b.Specs.ToDictionary(s => s.Key, s => (object?)s.Value),
+            SpecVerificationHelper.ToDto(b))).ToList();
         if (string.IsNullOrWhiteSpace(sortBy)) {
             return rows;
         }
@@ -119,8 +121,18 @@ public sealed class BikeAdminService : IBikeAdminService
     {
         var specChanges = request.Changes ?? [];
         var bikeChanges = request.BikeChanges ?? [];
-        if (specChanges.Count == 0 && bikeChanges.Count == 0) {
+        var verificationChanges = request.VerificationChanges ?? [];
+        var resetBikeIds = request.ResetVerificationBikeIds ?? [];
+        if (specChanges.Count == 0 && bikeChanges.Count == 0 && verificationChanges.Count == 0 && resetBikeIds.Count == 0) {
             return 0;
+        }
+
+        if (resetBikeIds.Any(id => id <= 0) || resetBikeIds.Distinct().Count() != resetBikeIds.Count) {
+            throw new ArgumentException("Reset bike IDs must be positive and unique.", nameof(request));
+        }
+        var resetIds = resetBikeIds.ToHashSet();
+        if (verificationChanges.Any(change => resetIds.Contains(change.BikeId))) {
+            throw new ArgumentException("A bike cannot have individual verification changes and a reset in the same request.", nameof(request));
         }
 
         var definitions = await GetDefinitionsByCodeAsync(ct);
@@ -149,7 +161,8 @@ public sealed class BikeAdminService : IBikeAdminService
             return (change.BikeId, VariantName: variantName, Year: year, change.MsrpPrice);
         }).ToList();
 
-        var bikeIds = specChanges.Select(c => c.BikeId).Concat(bikeChanges.Select(c => c.BikeId)).Distinct().ToList();
+        var bikeIds = specChanges.Select(c => c.BikeId).Concat(bikeChanges.Select(c => c.BikeId))
+            .Concat(verificationChanges.Select(c => c.BikeId)).Concat(resetBikeIds).Distinct().ToList();
         var bikes = (await _repository.GetByIdsAsync(bikeIds, ct)).ToDictionary(b => b.Id);
         var missing = bikeIds.Where(id => !bikes.ContainsKey(id)).ToList();
         if (missing.Count > 0) {
@@ -176,11 +189,30 @@ public sealed class BikeAdminService : IBikeAdminService
             throw new ArgumentException("Bike changes contain duplicate model, year, and variant name combinations.", nameof(request));
         }
 
+        var specsByBike = specChanges.ToLookup(c => c.BikeId);
+        var verificationsByBike = verificationChanges.ToLookup(c => c.BikeId);
+        var coreByBike = normalizedBikeChanges.ToDictionary(c => c.BikeId);
+        foreach (var bikeId in bikeIds) {
+            var bike = bikes[bikeId];
+            var finalSpecs = new Dictionary<string, object>(bike.Specs);
+            foreach (var change in specsByBike[bikeId]) {
+                if (change.Value is null) {
+                    finalSpecs.Remove(change.SpecCode);
+                }
+                else {
+                    finalSpecs[change.SpecCode] = change.Value;
+                }
+            }
+            var updates = verificationsByBike[bikeId]
+                .Select(c => new SpecVerificationUpdate(c.SpecCode, c.IsVerified, c.SourceUrl)).ToList();
+            SpecVerificationHelper.ValidateChanges(updates, definitions, finalSpecs);
+        }
+
         var now = DateTime.UtcNow;
-        foreach (var group in specChanges.GroupBy(c => c.BikeId)) {
-            var bike = bikes[group.Key];
+        foreach (var bikeId in bikeIds) {
+            var bike = bikes[bikeId];
             var specs = new Dictionary<string, object>(bike.Specs);
-            foreach (var change in group) {
+            foreach (var change in specsByBike[bikeId]) {
                 if (change.Value is null) {
                     specs.Remove(change.SpecCode);
                 }
@@ -189,6 +221,16 @@ public sealed class BikeAdminService : IBikeAdminService
                 }
             }
 
+            var identityChanged = coreByBike.TryGetValue(bikeId, out var coreChange)
+                && (bike.VariantName != coreChange.VariantName || bike.Year != coreChange.Year);
+            var updates = verificationsByBike[bikeId]
+                .Select(c => new SpecVerificationUpdate(c.SpecCode, c.IsVerified, c.SourceUrl)).ToList();
+            if (resetIds.Contains(bikeId)) {
+                bike.SpecVerifications.Clear();
+            }
+            SpecVerificationHelper.Invalidate(bike, specs, identityChanged,
+                updates.Where(c => c.IsVerified).Select(c => c.SpecCode).ToHashSet());
+            SpecVerificationHelper.Apply(bike, updates, definitions);
             bike.Specs = specs;
             bike.UpdatedAt = now;
         }
@@ -254,6 +296,13 @@ public sealed class BikeAdminService : IBikeAdminService
 
         var definitionsByCode = await GetDefinitionsByCodeAsync(ct);
         var specs = BikeValidators.ValidateSpecs(request.Specs, definitionsByCode);
+        var newSpecs = ToObjectDictionary(specs);
+        var verificationChanges = request.VerificationChanges ?? [];
+        SpecVerificationHelper.ValidateChanges(verificationChanges, definitionsByCode, newSpecs);
+        SpecVerificationHelper.Invalidate(bike, newSpecs,
+            bike.ModelId != targetModelId || bike.VariantName != variantName || bike.Year != year,
+            verificationChanges.Where(c => c.IsVerified).Select(c => c.SpecCode).ToHashSet());
+        SpecVerificationHelper.Apply(bike, verificationChanges, definitionsByCode);
 
         if (targetModel is not null) {
             bike.ModelId = targetModel.Id;
@@ -263,11 +312,11 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.VariantName = variantName;
         bike.Year = year;
         bike.MsrpPrice = request.MsrpPrice;
-        bike.Specs = ToObjectDictionary(specs);
+        bike.Specs = newSpecs;
         bike.UpdatedAt = DateTime.UtcNow;
 
         await _repository.SaveChangesAsync(ct);
-        return ToDetailDto(bike);
+        return ToDetailDto(bike, definitionsByCode);
     }
 
     public async Task ReassignModelAsync(int id, ReassignBikeModelRequest request, CancellationToken ct = default)
@@ -288,6 +337,7 @@ public sealed class BikeAdminService : IBikeAdminService
             throw new InvalidOperationException("A bike with this model, year, and variant name already exists.");
         }
 
+        SpecVerificationHelper.Invalidate(bike, bike.Specs, true);
         bike.ModelId = targetModel.Id;
         bike.Model = targetModel;
         bike.UpdatedAt = DateTime.UtcNow;
@@ -379,7 +429,7 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.UpdatedAt,
         bike.Images.Count);
 
-    private static BikeAdminDetailDto ToDetailDto(Bike bike) => new(
+    private static BikeAdminDetailDto ToDetailDto(Bike bike, IReadOnlyDictionary<string, SpecDefinition>? definitions = null) => new(
         bike.Id,
         bike.ModelId,
         bike.Model?.Name ?? string.Empty,
@@ -392,7 +442,8 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.IsReviewed,
         bike.Specs.ToDictionary(kv => kv.Key, kv => (object?)kv.Value),
         bike.CreatedAt,
-        bike.UpdatedAt);
+        bike.UpdatedAt,
+        SpecVerificationHelper.ToDto(bike, definitions));
 }
 
 public sealed class BikeReferencedException : Exception

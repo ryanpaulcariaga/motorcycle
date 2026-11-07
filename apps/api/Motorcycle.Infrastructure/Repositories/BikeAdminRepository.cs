@@ -24,7 +24,8 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
     {
         IQueryable<Bike> query = _context.Bikes.AsNoTracking()
             .Include(x => x.Model).ThenInclude(m => m.Brand)
-            .Include(x => x.Model).ThenInclude(m => m.Category);
+            .Include(x => x.Model).ThenInclude(m => m.Category)
+            .Include(x => x.SpecVerifications).ThenInclude(v => v.SpecDefinition);
         if (brandId.HasValue) {
             query = query.Where(x => x.Model.BrandId == brandId.Value);
         }
@@ -45,10 +46,13 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
     }
 
     public Task<List<Bike>> GetByIdsAsync(IReadOnlyCollection<int> ids, CancellationToken ct = default) =>
-        _context.Bikes.Where(x => ids.Contains(x.Id)).ToListAsync(ct);
+        _context.Bikes.Include(x => x.SpecVerifications).ThenInclude(v => v.SpecDefinition)
+            .Where(x => ids.Contains(x.Id)).ToListAsync(ct);
 
     public Task<Bike?> GetByIdAsync(int id, CancellationToken ct = default) =>
-        _context.Bikes.Include(x => x.Model).ThenInclude(m => m.Brand).SingleOrDefaultAsync(x => x.Id == id, ct);
+        _context.Bikes.Include(x => x.Model).ThenInclude(m => m.Brand)
+            .Include(x => x.SpecVerifications).ThenInclude(v => v.SpecDefinition)
+            .SingleOrDefaultAsync(x => x.Id == id, ct);
 
     public Task<bool> BikeModelExistsAsync(int modelId, CancellationToken ct = default) =>
         _context.BikeModels.AnyAsync(x => x.Id == modelId, ct);

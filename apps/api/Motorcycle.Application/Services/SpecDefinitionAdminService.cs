@@ -72,6 +72,7 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
         var isRename = !string.Equals(oldCode, code, StringComparison.Ordinal);
         var isGroupMove = definition.GroupId != request.GroupId;
         var isDataTypeChange = !string.Equals(definition.DataType, dataType, StringComparison.Ordinal);
+        var invalidateVerifications = isDataTypeChange || definition.Unit != unit || definition.Label != label;
 
         // A dataType change converts every stored value; if any cannot be converted, nothing changes.
         Dictionary<int, object?>? convertedValues = null;
@@ -104,7 +105,7 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
             definition.SortOrder = newSiblings.Count == 0 ? 1 : newSiblings.Max(x => x.SortOrder) + 1;
         }
 
-        await _repository.SaveWithOptionalRenameAsync(definition, isRename ? oldCode : null, convertedValues, oldCode, ct);
+        await _repository.SaveWithOptionalRenameAsync(definition, isRename ? oldCode : null, convertedValues, oldCode, invalidateVerifications, ct);
         var bikesWithValue = await _repository.GetBikeValuesForCodeAsync(definition.Code, ct);
         return ToDto(definition, bikesWithValue.Count);
     }

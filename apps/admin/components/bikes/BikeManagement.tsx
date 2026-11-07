@@ -20,6 +20,7 @@ import {
   setAdminBikeReviewed,
   unpublishAdminBike,
   updateAdminBike,
+  updateAdminBikeSpecGrid,
 } from '@/lib/api';
 import type { BikeAdminListItem, BikeModel, LookupOption } from '@/lib/types';
 import { getBikeModelListSearch } from '@/lib/bikeModelListState';
@@ -41,6 +42,9 @@ const emptyForm = {
   year: '',
   msrpPrice: '',
   specs: {} as Record<string, string>,
+  verifications: {} as Record<string, string>,
+  sourceUrls: {} as Record<string, string>,
+  savedVerificationCodes: [] as string[],
 };
 
 type SortField = 'variant' | 'model' | 'brand' | 'year' | 'msrp' | 'status' | 'reviewed';
@@ -77,6 +81,7 @@ export default function BikeManagement({
   const [targetModelId, setTargetModelId] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [resettingTags, setResettingTags] = useState(false);
   const [reassigning, setReassigning] = useState(false);
   const [creatingModel, setCreatingModel] = useState(false);
   const [modelFormMode, setModelFormMode] = useState<'new' | 'edit' | 'clone'>('new');
@@ -206,6 +211,13 @@ export default function BikeManagement({
       year: String(detail.year),
       msrpPrice: detail.msrpPrice ? String(detail.msrpPrice) : '',
       specs,
+      verifications: Object.fromEntries(
+        Object.entries(detail.specVerifications).map(([code, value]) => [code, value.sourceUrl ?? ''])
+      ),
+      sourceUrls: Object.fromEntries(
+        Object.entries(detail.specVerifications).map(([code, value]) => [code, value.sourceUrl ?? ''])
+      ),
+      savedVerificationCodes: Object.keys(detail.specVerifications),
     };
   }
 
@@ -223,7 +235,8 @@ export default function BikeManagement({
   async function startClone(bike: BikeAdminListItem) {
     setError(null);
     try {
-      setForm(await loadBikeForm(bike));
+      const loaded = await loadBikeForm(bike);
+      setForm({ ...loaded, verifications: {}, sourceUrls: {}, savedVerificationCodes: [] });
       setEditingId(null);
       setModalOpen(true);
     } catch {
@@ -239,6 +252,7 @@ export default function BikeManagement({
         if (raw === undefined || raw === '') {
           continue;
         }
+
         specs[def.code] =
           def.dataType === 'number'
             ? Number(raw)
@@ -248,6 +262,27 @@ export default function BikeManagement({
       }
     }
     return specs;
+  }
+
+  async function resetVisibleConfirmations() {
+    const ids = visibleBikes.map((bike) => bike.id);
+    if (ids.length === 0 || !window.confirm(
+      `Reset all spec verifications for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}? This also removes any stored source information and cannot be undone. The bike-level Reviewed flag will not change.`
+    )) {
+      return;
+    }
+
+    setResettingTags(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await updateAdminBikeSpecGrid({ resetVerificationBikeIds: ids });
+      setNotice(`Reset spec verifications for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}.`);
+    } catch (cause) {
+      setError(cause instanceof AdminApiError ? cause.message : 'Unable to reset spec verifications.');
+    } finally {
+      setResettingTags(false);
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -271,6 +306,11 @@ export default function BikeManagement({
         await updateAdminBike(editingId, {
           ...request,
           modelId: Number(form.modelId) || undefined,
+          verificationChanges: [...new Set([...form.savedVerificationCodes, ...Object.keys(form.verifications)])].map((specCode) => ({
+            specCode,
+            isVerified: Object.hasOwn(form.verifications, specCode),
+            sourceUrl: form.verifications[specCode] || null,
+          })),
         });
       }
       reset();
@@ -458,7 +498,7 @@ export default function BikeManagement({
               <h1 className="mt-2 text-xl font-bold">Bike Variants</h1>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {!embedded && modelId === undefined && (
               <a
                 className="text-sm font-semibold text-brand-button underline"
@@ -467,6 +507,14 @@ export default function BikeManagement({
                 Bulk Edit
               </a>
             )}
+            <button
+              type="button"
+              className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
+              disabled={loading || resettingTags || visibleBikes.length === 0}
+              onClick={() => void resetVisibleConfirmations()}
+            >
+              {resettingTags ? 'Resetting...' : 'Reset displayed spec verifications'}
+            </button>
             <IconButton
               icon="refresh"
               label="Refresh"
@@ -766,7 +814,7 @@ export default function BikeManagement({
                   required
                   value={form.modelId}
                   onChange={(event) =>
-                    setForm({ ...form, modelId: event.target.value })
+                    setForm({ ...form, modelId: event.target.value, verifications: {}, sourceUrls: {} })
                   }
                 >
                   {editingId === null && (
@@ -793,7 +841,7 @@ export default function BikeManagement({
               maxLength={255}
               value={form.variantName}
               onChange={(event) =>
-                setForm({ ...form, variantName: event.target.value })
+                setForm({ ...form, variantName: event.target.value, verifications: {}, sourceUrls: {} })
               }
             />
             <label className="mt-4 block text-sm font-semibold" htmlFor="year">
@@ -807,7 +855,7 @@ export default function BikeManagement({
               placeholder="0 if unknown"
               value={form.year}
               onChange={(event) =>
-                setForm({ ...form, year: event.target.value })
+                setForm({ ...form, year: event.target.value, verifications: {}, sourceUrls: {} })
               }
             />
             <label
@@ -826,6 +874,26 @@ export default function BikeManagement({
                 setForm({ ...form, msrpPrice: event.target.value })
               }
             />
+            {editingId !== null && (
+              <div className="mt-4">
+                <p className="text-sm text-brand-grey">
+                  Changing a spec clears its verification. Changing the model, variant, or year clears all verifications.
+                  Check a spec again to verify the new value.
+                </p>
+                <button
+                  type="button"
+                  className="mt-2 border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
+                  disabled={submitting || Object.keys(form.verifications).length === 0}
+                  onClick={() => {
+                    if (window.confirm('Reset all spec verifications for this bike? This also removes any stored source information. Save changes to apply. The bike-level Reviewed flag will not change.')) {
+                      setForm({ ...form, verifications: {} });
+                    }
+                  }}
+                >
+                  Reset this bike&apos;s spec verifications
+                </button>
+              </div>
+            )}
             {specGroups.map((group) => (
               <fieldset
                 className="mt-4 border-t border-black/10 pt-4"
@@ -848,15 +916,13 @@ export default function BikeManagement({
                         className="mt-1 w-full px-3 py-2 text-brand-black"
                         id={`spec-${def.code}`}
                         value={form.specs[def.code] ?? ''}
-                        onChange={(event) =>
-                          setForm({
-                            ...form,
-                            specs: {
-                              ...form.specs,
-                              [def.code]: event.target.value,
-                            },
-                          })
-                        }
+                        onChange={(event) => {
+                          const verifications = { ...form.verifications };
+                          const sourceUrls = { ...form.sourceUrls };
+                          delete verifications[def.code];
+                          delete sourceUrls[def.code];
+                          setForm({ ...form, specs: { ...form.specs, [def.code]: event.target.value }, verifications, sourceUrls });
+                        }}
                       >
                         <option value="">—</option>
                         <option value="true">Yes</option>
@@ -868,16 +934,36 @@ export default function BikeManagement({
                         id={`spec-${def.code}`}
                         type={def.dataType === 'number' ? 'number' : 'text'}
                         value={form.specs[def.code] ?? ''}
-                        onChange={(event) =>
-                          setForm({
-                            ...form,
-                            specs: {
-                              ...form.specs,
-                              [def.code]: event.target.value,
-                            },
-                          })
-                        }
+                        onChange={(event) => {
+                          const verifications = { ...form.verifications };
+                          const sourceUrls = { ...form.sourceUrls };
+                          delete verifications[def.code];
+                          delete sourceUrls[def.code];
+                          setForm({ ...form, specs: { ...form.specs, [def.code]: event.target.value }, verifications, sourceUrls });
+                        }}
                       />
+                    )}
+                    {editingId !== null && (
+                      <div className="mt-2">
+                        <label className="flex items-center gap-2 text-xs">
+                          <input
+                            type="checkbox"
+                            aria-label={`Verified ${def.label} from official brand source`}
+                            checked={Object.hasOwn(form.verifications, def.code)}
+                            disabled={!form.specs[def.code]?.trim() || submitting}
+                            onChange={(event) => {
+                              const verifications = { ...form.verifications };
+                              if (event.target.checked) {
+                                verifications[def.code] = form.sourceUrls[def.code] ?? '';
+                              } else {
+                                delete verifications[def.code];
+                              }
+                              setForm({ ...form, verifications });
+                            }}
+                          />
+                          Verified from official brand source
+                        </label>
+                      </div>
                     )}
                   </div>
                 ))}

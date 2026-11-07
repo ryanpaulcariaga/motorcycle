@@ -50,6 +50,9 @@ public sealed class BrandAdminService : IBrandAdminService
             throw new InvalidOperationException("A brand with this name already exists.");
         }
 
+        if (brand.Name != name) {
+            await _repository.InvalidateSpecVerificationsAsync(id, ct);
+        }
         brand.Name = name;
         brand.LogoBlobUrl = logo;
         await _repository.SaveChangesAsync(ct);

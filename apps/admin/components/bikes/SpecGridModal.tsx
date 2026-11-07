@@ -34,6 +34,8 @@ type SpecDefinition = SpecGroup['definitions'][number];
 type GridRow = Omit<BikeSpecGridRow, 'specs'> & {
   cells: Record<string, string>;
   saved: Record<string, string>;
+  verifications: Record<string, string>;
+  savedVerifications: Record<string, string>;
   coreCells: { variantName: string; year: string; msrpPrice: string };
   savedCoreCells: { variantName: string; year: string; msrpPrice: string };
 };
@@ -67,7 +69,10 @@ function toGridRow(bike: BikeSpecGridRow): GridRow {
     year: String(bike.year),
     msrpPrice: toText(bike.msrpPrice),
   };
-  return { ...rest, cells, saved: cells, coreCells, savedCoreCells: coreCells };
+  const verifications = Object.fromEntries(
+    Object.entries(bike.specVerifications).map(([code, value]) => [code, value.sourceUrl ?? ''])
+  );
+  return { ...rest, cells, saved: cells, verifications, savedVerifications: { ...verifications }, coreCells, savedCoreCells: coreCells };
 }
 
 function normalize(raw: string, def: SpecDefinition | undefined): string {
@@ -249,6 +254,9 @@ export default function SpecGridModal({
           ).length +
           Object.keys({ ...row.cells, ...row.saved }).filter((code) =>
             isDirty(row, code)
+          ).length +
+          Object.keys({ ...row.verifications, ...row.savedVerifications }).filter((code) =>
+            row.verifications[code] !== row.savedVerifications[code]
           ).length,
         0
       ),
@@ -282,6 +290,20 @@ export default function SpecGridModal({
       : rows;
   }, [rows, search]);
 
+  const resetConfirmations = useCallback((bikeIds: number[], description: string) => {
+    if (!window.confirm(
+      `Reset all spec verifications for ${description}, including hidden specification groups and any stored source information? Save changes to apply. The bike-level Reviewed flag will not change.`
+    )) {
+      return;
+    }
+    const ids = new Set(bikeIds);
+    setRows((current) => current.map((row) =>
+      ids.has(row.id) ? { ...row, verifications: {} } : row
+    ));
+    setNotice('Spec verifications reset in the grid. Save changes to apply, or discard to undo.');
+    setError(null);
+  }, []);
+
   const columns = useMemo<readonly ColumnOrColumnGroup<GridRow>[]>(() => {
     const fixed: Column<GridRow>[] = [
       {
@@ -290,7 +312,7 @@ export default function SpecGridModal({
         frozen: true,
         resizable: true,
         width: 260,
-        editable: true,
+        editable: !saving,
         cellClass: (row) => {
           if (isInvalidCoreValue('variantName', row.coreCells.variantName)) {
             return 'bg-red-100';
@@ -306,7 +328,7 @@ export default function SpecGridModal({
         key: 'core:year',
         name: 'Year',
         width: 70,
-        editable: true,
+        editable: !saving,
         cellClass: (row) => {
           if (isInvalidCoreValue('year', row.coreCells.year)) {
             return 'bg-red-100';
@@ -327,7 +349,7 @@ export default function SpecGridModal({
         key: 'core:msrpPrice',
         name: 'MSRP',
         width: 100,
-        editable: true,
+        editable: !saving,
         cellClass: (row) => {
           if (isInvalidCoreValue('msrpPrice', row.coreCells.msrpPrice)) {
             return 'bg-red-100';
@@ -340,6 +362,26 @@ export default function SpecGridModal({
             : Number(row.coreCells.msrpPrice).toLocaleString(),
         renderEditCell: (props) => (
           <CoreCellEditor {...props} field="msrpPrice" />
+        ),
+      },
+      {
+        key: 'meta:reset',
+        name: 'Verifications',
+        width: 140,
+        cellClass: 'spec-grid-readonly-cell',
+        renderCell: ({ row }) => (
+          <button
+            type="button"
+            className="text-sm font-semibold text-brand-button underline disabled:opacity-50"
+            aria-label={`Reset spec verifications for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`}
+            disabled={saving || Object.keys(row.verifications).length === 0}
+            onClick={(event) => {
+              event.stopPropagation();
+              resetConfirmations([row.id], `${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`);
+            }}
+          >
+            Reset
+          </button>
         ),
       },
     ];
@@ -365,7 +407,7 @@ export default function SpecGridModal({
             ),
             width: 150,
             resizable: true,
-            editable: true,
+            editable: !saving,
             cellClass: (row) => {
               if (isInvalid(row.cells[def.code] ?? '', def)) {
                 return 'bg-red-100';
@@ -374,10 +416,42 @@ export default function SpecGridModal({
             },
             renderCell: ({ row }) => {
               const text = row.cells[def.code] ?? '';
-              if (def.dataType === 'boolean') {
-                return text === 'true' ? 'Yes' : text === 'false' ? 'No' : '';
-              }
-              return text;
+              const verified = Object.hasOwn(row.verifications, def.code);
+              const display = def.dataType === 'boolean'
+                ? text === 'true' ? 'Yes' : text === 'false' ? 'No' : ''
+                : text;
+              return (
+                <span className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    aria-label={`Verified ${def.label} for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`}
+                    title="Verified from official brand source"
+                    checked={verified}
+                    disabled={!text.trim() || saving}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setRows((current) => current.map((item) => {
+                        if (item.id !== row.id) {
+                          return item;
+                        }
+                        const verifications = { ...item.verifications };
+                        if (checked) {
+                          const identityChanged = isCoreDirty(item, 'variantName') || isCoreDirty(item, 'year');
+                          verifications[def.code] = !identityChanged && !isDirty(item, def.code)
+                            ? item.savedVerifications[def.code] ?? ''
+                            : '';
+                        } else {
+                          delete verifications[def.code];
+                        }
+                        return { ...item, verifications };
+                      }));
+                      setNotice(null);
+                    }}
+                  />
+                  <span className="truncate">{display}</span>
+                </span>
+              );
             },
             renderEditCell: (props) => (
               <CellEditor {...props} definition={def} />
@@ -387,14 +461,32 @@ export default function SpecGridModal({
       }))
       .filter((group) => group.children.length > 0);
     return [...fixed, ...groups];
-  }, [specGroups, hiddenGroups]);
+  }, [specGroups, hiddenGroups, saving, resetConfirmations]);
 
   const onRowsChange = useCallback((changed: GridRow[]) => {
+    if (saving) {
+      return;
+    }
     const byId = new Map(changed.map((row) => [row.id, row]));
-    setRows((current) => current.map((row) => byId.get(row.id) ?? row));
+    setRows((current) => current.map((row) => {
+      const next = byId.get(row.id);
+      if (!next) {
+        return row;
+      }
+      const verifications = { ...next.verifications };
+      if (row.coreCells.variantName !== next.coreCells.variantName || row.coreCells.year !== next.coreCells.year) {
+        return { ...next, verifications: {} };
+      }
+      for (const code of Object.keys({ ...row.cells, ...next.cells })) {
+        if ((row.cells[code] ?? '') !== (next.cells[code] ?? '')) {
+          delete verifications[code];
+        }
+      }
+      return { ...next, verifications };
+    }));
     setNotice(null);
     setError(null);
-  }, []);
+  }, [saving]);
 
   function onCellCopy(
     { row, column }: CellCopyArgs<GridRow>,
@@ -469,6 +561,7 @@ export default function SpecGridModal({
         ...row,
         cells: { ...row.saved },
         coreCells: { ...row.savedCoreCells },
+        verifications: { ...row.savedVerifications },
       }))
     );
     setNotice(null);
@@ -483,6 +576,7 @@ export default function SpecGridModal({
       year: number;
       msrpPrice: number | null;
     }[] = [];
+    const verificationChanges: { bikeId: number; specCode: string; isVerified: boolean; sourceUrl: string | null }[] = [];
     let coreChangeCount = 0;
     for (const row of rows) {
       const dirtyCoreFields = (Object.keys(row.coreCells) as CoreField[]).filter(
@@ -536,8 +630,15 @@ export default function SpecGridModal({
           value: toValue(text, def),
         });
       }
+      for (const code of Object.keys({ ...row.verifications, ...row.savedVerifications })) {
+        const verified = Object.hasOwn(row.verifications, code);
+        const identityChanged = isCoreDirty(row, 'variantName') || isCoreDirty(row, 'year');
+        if (row.verifications[code] !== row.savedVerifications[code] || (verified && (identityChanged || isDirty(row, code)))) {
+          verificationChanges.push({ bikeId: row.id, specCode: code, isVerified: verified, sourceUrl: row.verifications[code] || null });
+        }
+      }
     }
-    const changeCount = changes.length + coreChangeCount;
+    const changeCount = changes.length + coreChangeCount + verificationChanges.length;
     if (changeCount === 0) {
       return;
     }
@@ -549,6 +650,7 @@ export default function SpecGridModal({
       const { updatedCount } = await updateAdminBikeSpecGrid({
         changes,
         bikeChanges,
+        verificationChanges,
       });
       setRows((current) =>
         current.map((row) => {
@@ -568,6 +670,7 @@ export default function SpecGridModal({
               coreCells.msrpPrice === '' ? null : Number(coreCells.msrpPrice),
             cells: { ...row.cells },
             saved: { ...row.cells },
+            savedVerifications: { ...row.verifications },
             coreCells,
             savedCoreCells: coreCells,
           };
@@ -603,6 +706,9 @@ export default function SpecGridModal({
         Motorcycle, year, MSRP, and specifications are editable; category is
         read-only. Double-click or press Enter to edit, paste with Ctrl+V, and
         drag the fill handle to copy a value down. Changes are saved together.
+        Check a specification to verify it against the official brand source.
+        Changing a value or bike identity clears its verification until it is
+        checked again.
       </p>
       {notice && (
         <p
@@ -636,6 +742,17 @@ export default function SpecGridModal({
         <span className="text-sm text-brand-grey">
           {visibleRows.length} of {rows.length} motorcycles
         </span>
+        <button
+          type="button"
+          className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
+          disabled={saving || !visibleRows.some((row) => Object.keys(row.verifications).length > 0)}
+          onClick={() => resetConfirmations(
+            visibleRows.map((row) => row.id),
+            `${visibleRows.length} displayed motorcycle${visibleRows.length === 1 ? '' : 's'}`
+          )}
+        >
+          Reset displayed spec verifications
+        </button>
       </div>
       <DataGrid
         aria-label="Motorcycle specifications"

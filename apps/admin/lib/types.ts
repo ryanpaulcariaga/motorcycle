@@ -101,7 +101,11 @@ export type BikeAdminListItem = {
 export type BikeAdminDetail = BikeAdminListItem & {
   slug: string;
   specs: Record<string, unknown>;
+  specVerifications: Record<string, SpecVerification>;
 };
+
+export type SpecVerification = { sourceUrl: string | null; verifiedAt: string };
+export type SpecVerificationUpdate = { specCode: string; isVerified: boolean; sourceUrl: string | null };
 
 export type CreateBikeRequest = {
   modelId: number;
@@ -117,6 +121,7 @@ export type UpdateBikeRequest = {
   year: number;
   msrpPrice: number | null;
   specs: Record<string, unknown>;
+  verificationChanges?: SpecVerificationUpdate[];
 };
 
 export type ReassignBikeModelRequest = { modelId: number };
@@ -156,6 +161,7 @@ export type BikeSpecGridRow = {
   msrpPrice: number | null;
   isPublished: boolean;
   specs: Record<string, unknown>;
+  specVerifications: Record<string, SpecVerification>;
 };
 
 export type UpdateSpecGridRequest = {
@@ -166,6 +172,8 @@ export type UpdateSpecGridRequest = {
     year: number;
     msrpPrice: number | null;
   }[];
+  verificationChanges?: (SpecVerificationUpdate & { bikeId: number })[];
+  resetVerificationBikeIds?: number[];
 };
 
 export type BikeImage = {

@@ -25,6 +25,5 @@ public interface ISpecDefinitionAdminRepository
     /// the bikes.specs key-rename cascade runs in the same database transaction as this save (FR-005/FR-006).</summary>
     /// <param name="convertedValues">Converted values keyed by bike id, written under <paramref name="valueCode"/> in the same transaction.</param>
     Task SaveWithOptionalRenameAsync(SpecDefinition definition, string? renamedFromCode,
-        IReadOnlyDictionary<int, object?>? convertedValues, string valueCode, CancellationToken ct = default);
+        IReadOnlyDictionary<int, object?>? convertedValues, string valueCode, bool invalidateVerifications, CancellationToken ct = default);
 }
-

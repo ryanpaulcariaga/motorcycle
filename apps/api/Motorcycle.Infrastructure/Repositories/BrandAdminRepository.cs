@@ -33,6 +33,12 @@ public sealed class BrandAdminRepository : IBrandAdminRepository
     public Task<bool> NameExistsAsync(string name, int? excludingId = null, CancellationToken ct = default) =>
         _context.Brands.AnyAsync(b => b.Name.ToLower() == name.ToLower() && (excludingId == null || b.Id != excludingId), ct);
 
+    public async Task InvalidateSpecVerificationsAsync(int brandId, CancellationToken ct = default)
+    {
+        var verifications = await _context.BikeSpecVerifications.Where(v => v.Bike.Model.BrandId == brandId).ToListAsync(ct);
+        _context.BikeSpecVerifications.RemoveRange(verifications);
+    }
+
     public async Task AddAsync(Brand brand, CancellationToken ct = default) => await _context.Brands.AddAsync(brand, ct);
     public void Remove(Brand brand) => _context.Brands.Remove(brand);
     public Task SaveChangesAsync(CancellationToken ct = default) => _context.SaveChangesAsync(ct);
