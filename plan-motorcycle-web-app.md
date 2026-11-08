@@ -51,7 +51,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-13 | ✅ Aligned look and tighter grids across web and admin |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results |
-| F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail |
+| F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop |
 | F-21 | ✅ Admin per-bike, per-spec verifications; edits invalidate stale verifications, with per-bike and filtered-list reset |

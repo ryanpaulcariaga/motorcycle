@@ -65,7 +65,7 @@ function AdminShell({ session }: { session: AdminSession }) {
   }, []);
   const match = pathname.match(/^\/admin\/bike-models\/(\d+)\/bikes$/);
   const isAdministratorsActive =
-    pathname === '/admin' || pathname === '/admin/roles' || pathname === '/admin/audit';
+    pathname === '/admin' || pathname === '/admin/roles';
   const isAuditActive = pathname === '/admin/audit';
   const isBikesActive = pathname === '/admin/bike-models' || match !== null;
   const isVariantsActive =
