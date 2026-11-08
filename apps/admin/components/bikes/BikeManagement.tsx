@@ -711,37 +711,27 @@ export default function BikeManagement({
                         : '—'}
                     </td>
                     <td className="p-2">
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={bike.isPublished}
+                      <input
+                        type="checkbox"
+                        checked={bike.isPublished}
                         aria-label={`Published status for ${bike.variantName} (${bike.year})`}
                         title={bike.isPublished ? 'Published - click to unpublish' : 'Not published - click to publish'}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${bike.isPublished ? 'bg-green-600' : 'bg-black/20'}`}
-                        onClick={() => {
+                        className="h-4 w-4 accent-brand-gold"
+                        onChange={() => {
                           setLastTouchedId(bike.id);
                           void togglePublish(bike);
                         }}
-                      >
-                        <span
-                          className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${bike.isPublished ? 'translate-x-5' : 'translate-x-0.5'}`}
-                        />
-                      </button>
+                      />
                     </td>
                     <td className="p-2">
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={bike.isReviewed}
+                      <input
+                        type="checkbox"
+                        checked={bike.isReviewed}
                         aria-label={`Specs reviewed for ${bike.variantName} (${bike.year})`}
                         title={bike.isReviewed ? 'Reviewed - click to unmark' : 'Not reviewed - click to mark reviewed'}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${bike.isReviewed ? 'bg-green-600' : 'bg-black/20'}`}
-                        onClick={() => void toggleReviewed(bike)}
-                      >
-                        <span
-                          className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${bike.isReviewed ? 'translate-x-5' : 'translate-x-0.5'}`}
-                        />
-                      </button>
+                        className="h-4 w-4 accent-brand-gold"
+                        onChange={() => void toggleReviewed(bike)}
+                      />
                     </td>
                     <td className="p-2">
                       <div className="flex items-center justify-end gap-1">

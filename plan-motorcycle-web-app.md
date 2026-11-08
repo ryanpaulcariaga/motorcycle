@@ -42,7 +42,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-04 | ✅ Public sign-in with Facebook |
 | F-05 | ✅ Admin sign-in (Facebook PKCE) and admin roles |
 | F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts |
-| F-07 | ✅ Admin: Bike variant CRUD, publish, reviewed flag, move to another model, image-presence filter; model labels show assigned bike counts |
+| F-07 | ✅ Admin: Bike variant CRUD, checkbox controls for publish and reviewed status, move to another model, image-presence filter; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management |
 | F-10 | ✅ Admin: Bulk Spec Edit, editable motorcycle/year/MSRP grid fields, shared sorting, Excel export/import |
