@@ -226,7 +226,6 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
                   <IconButton
                     icon="primary"
                     label="Set as primary image"
-                    variant="gold"
                     onClick={() => void makePrimary(image.id)}
                     disabled={busy}
                   />

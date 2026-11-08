@@ -96,7 +96,7 @@ const paths: Record<IconName, ReactNode> = {
   down: <path d="m6 9 6 6 6-6" />,
 };
 
-type Variant = 'default' | 'danger' | 'gold' | 'primary' | 'success';
+type Variant = 'default' | 'danger' | 'primary' | 'success';
 
 type Props = {
   icon: IconName;
@@ -124,8 +124,6 @@ export function IconButton({
         ? 'bg-brand-gold text-brand-black hover:brightness-95'
       : variant === 'success'
         ? 'text-green-700'
-      : variant === 'gold'
-        ? 'text-brand-gold'
         : 'text-brand-button'
   }`;
   const svg = (

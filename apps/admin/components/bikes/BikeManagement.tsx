@@ -1038,14 +1038,12 @@ export default function BikeManagement({
                     <IconButton
                       icon="edit"
                       label="Edit selected BikeModel"
-                      variant="gold"
                       disabled={reassigning || !targetModelId}
                       onClick={() => void startCreateModel('edit')}
                     />
                     <IconButton
                       icon="clone"
                       label="Clone selected BikeModel"
-                      variant="gold"
                       disabled={reassigning || !targetModelId}
                       onClick={() => void startCreateModel('clone')}
                     />
@@ -1054,7 +1052,6 @@ export default function BikeManagement({
                 <IconButton
                   icon={creatingModel ? 'list' : 'add'}
                   label={creatingModel ? 'Choose existing' : 'New BikeModel'}
-                  variant="gold"
                   disabled={reassigning}
                   onClick={() =>
                     creatingModel
