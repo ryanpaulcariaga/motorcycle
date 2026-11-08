@@ -150,7 +150,7 @@ export default function BikeManagement({
   function sortHeader(field: SortField, label: string) {
     return (
       <th
-        className="p-3"
+        className="p-2"
         aria-sort={
           primarySort?.field !== field
             ? undefined
