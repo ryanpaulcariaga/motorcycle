@@ -86,7 +86,7 @@ export default async function Home() {
                   {bike.primaryImageUrl && (
                     <Image
                       src={bike.primaryImageVariants?.medium ?? bike.primaryImageUrl}
-                      alt={`${bike.brandName} - ${bike.variantName}`}
+                      alt={bike.variantName}
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -95,7 +95,7 @@ export default async function Home() {
                 </div>
                 <div className="p-2">
                   <p className="font-semibold">
-                    {bike.brandName} - {bike.variantName}
+                    {bike.variantName}
                   </p>
                   <p className="text-sm text-brand-grey">
                     {bike.year}{' '}

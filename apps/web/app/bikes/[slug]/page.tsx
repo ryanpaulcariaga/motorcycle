@@ -19,12 +19,12 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const bike = await getBikeBySlug(slug);
-    const title = `${bike.brandName} - ${bike.variantName} (${bike.year})`;
-    const description = `Specs and details for the ${bike.year} ${bike.brandName} - ${bike.variantName}.`;
+    const title = `${bike.variantName} (${bike.year})`;
+    const description = `Specs and details for the ${bike.year} ${bike.variantName}.`;
     const primaryImage =
       bike.images.find((image) => image.isPrimary) ?? bike.images[0];
     const imageUrl = primaryImage?.blobUrl ?? `${SITE_URL}/opengraph-image`;
-    const imageAlt = `${bike.year} ${bike.brandName} - ${bike.variantName}`;
+    const imageAlt = `${bike.year} ${bike.variantName}`;
 
     return {
       title,
@@ -82,8 +82,8 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: `${bike.year} ${bike.brandName} - ${bike.variantName}`,
-    description: `Specs and details for the ${bike.year} ${bike.brandName} - ${bike.variantName}.`,
+    name: `${bike.year} ${bike.variantName}`,
+    description: `Specs and details for the ${bike.year} ${bike.variantName}.`,
     url: `${SITE_URL}/bikes/${bike.slug}`,
     brand: { '@type': 'Brand', name: bike.brandName },
     model: bike.variantName,
@@ -154,7 +154,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
         <div className="min-w-0 flex-1 bg-brand-content p-4 shadow-lg sm:p-6">
           <p className="text-sm text-brand-grey">{bike.categoryName}</p>
           <h1 className="break-words text-2xl font-bold sm:text-3xl">
-            {bike.brandName} - {bike.variantName}
+            {bike.variantName}
           </h1>
           <p className="mt-1 text-lg text-brand-grey">
             {bike.year}{' '}
@@ -164,7 +164,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
             <BikeImageGallery
               images={bike.images}
-              alt={`${bike.brandName} - ${bike.variantName}`}
+              alt={bike.variantName}
             />
 
             <div>
@@ -202,7 +202,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
           {comparedWith.length > 0 && (
             <div className="mt-8">
               <h2 className="text-xl font-bold mb-3">
-                {bike.brandName} - {bike.variantName} is usually compared to
+                {bike.variantName} is usually compared to
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {comparedWith.map(({ bike: other, compareCount }) => (
@@ -214,7 +214,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                       {other.primaryImageUrl && (
                         <Image
                           src={other.primaryImageVariants?.small ?? other.primaryImageUrl}
-                          alt={`${other.brandName} - ${other.variantName}`}
+                          alt={other.variantName}
                           fill
                           className="object-cover"
                           sizes="112px"
@@ -223,7 +223,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">
-                        {other.brandName} - {other.variantName}
+                        {other.variantName}
                       </p>
                       <p className="text-xs text-brand-grey">
                         Compared {compareCount}{' '}

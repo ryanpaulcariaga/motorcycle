@@ -187,7 +187,7 @@ export default function BikeModelManagement() {
   }
 
   async function remove(model: BikeModel) {
-    if (!window.confirm(`Delete ${model.brandName} - ${model.name}?`)) {
+    if (!window.confirm(`Delete ${model.name}?`)) {
       return;
     }
     setError(null);
@@ -377,7 +377,7 @@ export default function BikeModelManagement() {
       </section>
       {variantsModel && (
         <Modal
-          title={`${variantsModel.brandName} ${variantsModel.name} Variants`}
+          title={`${variantsModel.name} Variants`}
           extraWide
           onClose={closeVariants}
         >

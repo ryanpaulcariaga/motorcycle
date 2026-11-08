@@ -151,7 +151,7 @@ function CellEditor({
   definition,
 }: RenderEditCellProps<GridRow> & { definition: SpecDefinition }) {
   const value = row.cells[column.key] ?? '';
-  const label = `${definition.label} for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`;
+  const label = `${definition.label} for ${row.coreCells.variantName} ${row.coreCells.year}`;
   const commit = (next: string, close: boolean) =>
     onRowChange({ ...row, cells: { ...row.cells, [column.key]: next } }, close);
 
@@ -192,7 +192,7 @@ function CoreCellEditor({
   onClose,
   field,
 }: RenderEditCellProps<GridRow> & { field: CoreField }) {
-  const label = `${field === 'variantName' ? 'Motorcycle' : field === 'year' ? 'Year' : 'MSRP'} for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`;
+  const label = `${field === 'variantName' ? 'Motorcycle' : field === 'year' ? 'Year' : 'MSRP'} for ${row.coreCells.variantName} ${row.coreCells.year}`;
   return (
     <input
       aria-label={label}
@@ -283,7 +283,7 @@ export default function SpecGridModal({
     const term = search.trim().toLowerCase();
     return term
       ? rows.filter((row) =>
-          `${row.brandName} ${row.modelName} ${row.coreCells.variantName} ${row.coreCells.year}`
+          `${row.modelName} ${row.coreCells.variantName} ${row.coreCells.year}`
             .toLowerCase()
             .includes(term)
         )
@@ -373,11 +373,11 @@ export default function SpecGridModal({
           <button
             type="button"
             className="text-sm font-semibold text-brand-button underline disabled:opacity-50"
-            aria-label={`Reset spec verifications for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`}
+            aria-label={`Reset spec verifications for ${row.coreCells.variantName} ${row.coreCells.year}`}
             disabled={saving || Object.keys(row.verifications).length === 0}
             onClick={(event) => {
               event.stopPropagation();
-              resetConfirmations([row.id], `${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`);
+              resetConfirmations([row.id], `${row.coreCells.variantName} ${row.coreCells.year}`);
             }}
           >
             Reset
@@ -424,7 +424,7 @@ export default function SpecGridModal({
                 <span className="flex items-center gap-1">
                   <input
                     type="checkbox"
-                    aria-label={`Verified ${def.label} for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}`}
+                    aria-label={`Verified ${def.label} for ${row.coreCells.variantName} ${row.coreCells.year}`}
                     title="Verified from official brand source"
                     checked={verified}
                     disabled={!text.trim() || saving}
@@ -591,7 +591,7 @@ export default function SpecGridModal({
                 ? 'Year'
                 : 'MSRP';
           setError(
-            `${label} "${row.coreCells[field]}" is not valid for ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}.`
+            `${label} "${row.coreCells[field]}" is not valid for ${row.coreCells.variantName} ${row.coreCells.year}.`
           );
           return;
         }
@@ -620,7 +620,7 @@ export default function SpecGridModal({
         const text = row.cells[code] ?? '';
         if (isInvalid(text, def)) {
           setError(
-            `"${text}" is not valid for ${def.label} on ${row.brandName} ${row.coreCells.variantName} ${row.coreCells.year}.`
+            `"${text}" is not valid for ${def.label} on ${row.coreCells.variantName} ${row.coreCells.year}.`
           );
           return;
         }

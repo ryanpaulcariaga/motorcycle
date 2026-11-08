@@ -33,7 +33,7 @@ function toSelected(
   if (compareResult && compareResult.bikes.length > 0) {
     return compareResult.bikes.map((bike) => ({
       id: String(bike.id),
-      label: `${bike.brandName} - ${bike.variantName}`,
+      label: bike.variantName,
     }));
   }
   return fallbackIds.map((id) => ({ id, label: `Bike #${id}` }));
@@ -140,7 +140,7 @@ export default function CompareClient({
       ...selected,
       {
         id,
-        label: `${bike.brandName} - ${bike.variantName}`,
+        label: bike.variantName,
       },
     ]);
     setSearchTerm('');
@@ -294,7 +294,7 @@ export default function CompareClient({
                     {bike.primaryImageUrl && (
                       <Image
                         src={bike.primaryImageVariants?.small ?? bike.primaryImageUrl}
-                        alt={`${bike.brandName} - ${bike.variantName}`}
+                        alt={bike.variantName}
                         fill
                         className="object-cover"
                         sizes="40px"
@@ -302,7 +302,7 @@ export default function CompareClient({
                     )}
                   </span>
                   <span>
-                    {bike.brandName} - {bike.variantName}{' '}
+                    {bike.variantName}{' '}
                     <span className="text-zinc-400">({bike.year})</span>
                   </span>
                 </button>
@@ -490,14 +490,14 @@ function BikeHeader({ bike }: { bike: CompareResultDto['bikes'][number] }) {
         {bike.primaryImageUrl && (
           <Image
             src={bike.primaryImageVariants?.medium ?? bike.primaryImageUrl}
-            alt={`${bike.brandName} - ${bike.variantName}`}
+            alt={bike.variantName}
             fill
             className="object-cover"
             sizes="(max-width: 640px) 100vw, 33vw"
           />
         )}
       </div>
-      {bike.brandName} - {bike.variantName}
+      {bike.variantName}
     </>
   );
 }

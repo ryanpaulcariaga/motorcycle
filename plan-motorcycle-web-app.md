@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 36 of 96 tasks done · 2 in progress · 58 not started.**
+**Progress: 37 of 97 tasks done · 2 in progress · 58 not started.**
 
 **Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked. Responsive implementation T-92 to T-96 is complete; T-54 passed, while T-55 still needs an authenticated image-management workflow check.
 
@@ -55,6 +55,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop |
 | F-21 | ✅ Admin per-bike, per-spec verifications; edits invalidate stale verifications, with per-bike and filtered-list reset |
+| F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 
 ## Features (planned)
 
@@ -235,10 +236,13 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-10 | ✅ Admin authorization with tests | `AdminBikesControllerAuthorizationTests.cs` |
 | T-90 | ✅ Public header bike search and submitted browse results | API-backed suggestions; web lint and production build pass |
 | T-91 | ✅ Add shared sorting to Bulk Spec Edit | Main-page sort selection applies to both the grid and Excel export |
+| T-97 | ✅ Remove redundant brand prefixes from bike and model display labels | Admin and web lint/build pass; separate brand data and Product JSON-LD brand remain intact |
 
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-09** — Removed duplicate brand prefixes from bike and model labels throughout admin and public web, including comparison labels, metadata, confirmations, accessibility text, and spec-grid messages. Admin and web lint/build passed; existing brand fields and structured brand metadata remain.
 
 **2026-10-26** — Implemented responsive layouts for both apps (T-92 to T-96). Public home, browse, detail/gallery, and two-bike compare passed 360/768/1280 browser checks; fixed pagination overflow found during verification. Mock-session admin checks covered the shell, brand table/form, and Bulk Spec grid at target widths. T-55 remains in progress until image management is verified in an authenticated workflow; G-08 remains open.
 

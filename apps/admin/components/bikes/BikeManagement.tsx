@@ -363,7 +363,7 @@ export default function BikeManagement({
   async function remove(bike: BikeAdminListItem) {
     if (
       !window.confirm(
-        `Delete ${bike.brandName} - ${bike.variantName} (${bike.year})?`
+        `Delete ${bike.variantName} (${bike.year})?`
       )
     ) {
       return;
@@ -466,7 +466,7 @@ export default function BikeManagement({
       setTargetModelId('');
       setCreatingModel(false);
       setNotice(
-        `${reassignTargetBike.brandName} - ${reassignTargetBike.variantName} (${reassignTargetBike.year}) was reassigned to ${targetModel ? `${targetModel.brandName} - ${targetModel.name}` : 'the selected BikeModel'}.`
+        `${reassignTargetBike.variantName} (${reassignTargetBike.year}) was reassigned to ${targetModel ? targetModel.name : 'the selected BikeModel'}.`
       );
       onModelsChanged?.();
       await load();
@@ -605,7 +605,7 @@ export default function BikeManagement({
                 <option value="">All models</option>
                 {filterModels.map((model) => (
                   <option key={model.id} value={model.id}>
-                    {model.brandName} - {model.name}
+                    {model.name}
                   </option>
                 ))}
               </SidebarSelect>
@@ -679,7 +679,7 @@ export default function BikeManagement({
                         <button
                           type="button"
                           className="text-brand-button hover:opacity-70"
-                          aria-label={`Reassign BikeModel for ${bike.brandName} - ${bike.variantName} (${bike.year})`}
+                          aria-label={`Reassign BikeModel for ${bike.variantName} (${bike.year})`}
                           title="Reassign BikeModel"
                           onClick={() => {
                             setLastTouchedId(bike.id);
@@ -715,7 +715,7 @@ export default function BikeManagement({
                         type="button"
                         role="switch"
                         aria-checked={bike.isPublished}
-                        aria-label={`Published status for ${bike.brandName} - ${bike.variantName} (${bike.year})`}
+                        aria-label={`Published status for ${bike.variantName} (${bike.year})`}
                         title={bike.isPublished ? 'Published - click to unpublish' : 'Not published - click to publish'}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${bike.isPublished ? 'bg-green-600' : 'bg-black/20'}`}
                         onClick={() => {
@@ -733,7 +733,7 @@ export default function BikeManagement({
                         type="button"
                         role="switch"
                         aria-checked={bike.isReviewed}
-                        aria-label={`Specs reviewed for ${bike.brandName} - ${bike.variantName} (${bike.year})`}
+                        aria-label={`Specs reviewed for ${bike.variantName} (${bike.year})`}
                         title={bike.isReviewed ? 'Reviewed - click to unmark' : 'Not reviewed - click to mark reviewed'}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${bike.isReviewed ? 'bg-green-600' : 'bg-black/20'}`}
                         onClick={() => void toggleReviewed(bike)}
@@ -824,7 +824,7 @@ export default function BikeManagement({
                   )}
                   {models.map((model) => (
                     <option key={model.id} value={model.id}>
-                      {model.brandName} - {model.name}
+                      {model.name}
                     </option>
                   ))}
                 </select>
@@ -995,7 +995,7 @@ export default function BikeManagement({
       )}
       {imagesBike && (
         <Modal
-          title={`Images - ${imagesBike.year} ${imagesBike.brandName} ${imagesBike.variantName}`}
+          title={`Images - ${imagesBike.year} ${imagesBike.variantName}`}
           wide
           onClose={closeImages}
         >
@@ -1019,8 +1019,7 @@ export default function BikeManagement({
         >
           <form onSubmit={reassignModel}>
             <p className="mt-5 text-sm text-brand-grey">
-              {reassignTargetBike.year} {reassignTargetBike.brandName} -{' '}
-              {reassignTargetBike.variantName}
+              {reassignTargetBike.year} {reassignTargetBike.variantName}
             </p>
             <p className="mt-2 text-sm text-brand-grey">
               Only the BikeModel assignment will change.
@@ -1121,7 +1120,7 @@ export default function BikeManagement({
               >
                 {models.map((model) => (
                   <option key={model.id} value={model.id}>
-                    {model.brandName} - {model.name} ({model.categoryName})
+                    {model.name} ({model.categoryName})
                     {model.id === reassignTargetBike.modelId
                       ? ' (current)'
                       : ''}
