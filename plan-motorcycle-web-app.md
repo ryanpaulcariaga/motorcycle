@@ -54,7 +54,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop |
-| F-21 | ✅ Admin per-bike, per-spec verifications; edits invalidate stale verifications, with per-bike and filtered-list reset |
+| F-21 | ✅ Admin per-bike, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override and combined review resets |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 
 ## Features (planned)

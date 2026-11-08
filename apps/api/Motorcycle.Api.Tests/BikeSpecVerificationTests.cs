@@ -93,6 +93,7 @@ public class BikeSpecVerificationTests
 
         await service.UpdateSpecGridAsync(new(null, [new(1, "One", 2025, null)]));
         Assert.Empty((await service.GetByIdAsync(1)).SpecVerifications);
+        Assert.False((await service.GetByIdAsync(1)).IsReviewed);
     }
 
     [Fact]
@@ -131,6 +132,7 @@ public class BikeSpecVerificationTests
             Assert.Equal("400", detail.Specs["engine"]!.ToString());
             Assert.False(detail.SpecVerifications.ContainsKey("engine"));
             Assert.True(detail.SpecVerifications.ContainsKey("abs"));
+            Assert.False(detail.IsReviewed);
         }
     }
 
@@ -166,6 +168,7 @@ public class BikeSpecVerificationTests
         await service.UpdateSpecGridAsync(new(null, null, [new(1, "engine", true, null), new(1, "abs", true, null)]));
         await service.ReassignModelAsync(1, new(2));
         Assert.Empty((await service.GetByIdAsync(1)).SpecVerifications);
+        Assert.False((await service.GetByIdAsync(1)).IsReviewed);
     }
 
     [Fact]
@@ -181,10 +184,11 @@ public class BikeSpecVerificationTests
         var detail = await AdminService(db).GetByIdAsync(1);
         Assert.False(detail.SpecVerifications.ContainsKey("engine"));
         Assert.True(detail.SpecVerifications.ContainsKey("abs"));
+        Assert.False(detail.IsReviewed);
     }
 
     [Fact]
-    public async Task ResetGridConfirmationsAffectsOnlyRequestedBikesAndKeepsReviewedFlag()
+    public async Task ResetGridConfirmationsAffectsOnlyRequestedBikesAndClearsReviewedFlag()
     {
         var options = await SeedAsync();
         await using (var db = new MotorcycleDbContext(options)) {
@@ -201,7 +205,7 @@ public class BikeSpecVerificationTests
             var first = await service.GetByIdAsync(1);
             var second = await service.GetByIdAsync(2);
             Assert.Empty(first.SpecVerifications);
-            Assert.True(first.IsReviewed);
+            Assert.False(first.IsReviewed);
             Assert.Equal("399", first.Specs["engine"]!.ToString());
             Assert.Single(second.SpecVerifications);
             Assert.Equal(1, await service.UpdateSpecGridAsync(new(null, ResetVerificationBikeIds: [1])));
@@ -221,12 +225,95 @@ public class BikeSpecVerificationTests
             service.UpdateSpecGridAsync(new(null, ResetVerificationBikeIds: [1, 1])));
         await Assert.ThrowsAsync<ArgumentException>(() =>
             service.UpdateSpecGridAsync(new(null, ResetVerificationBikeIds: [0])));
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            service.UpdateSpecGridAsync(new(null, null, [new(1, "abs", true, null)], [1])));
         Assert.Single((await service.GetByIdAsync(1)).SpecVerifications);
         Assert.Single((await service.GetByIdAsync(2)).SpecVerifications);
         Assert.Equal(2, await service.UpdateSpecGridAsync(new(null, ResetVerificationBikeIds: [1, 2])));
         Assert.Empty((await service.GetByIdAsync(1)).SpecVerifications);
         Assert.Empty((await service.GetByIdAsync(2)).SpecVerifications);
+    }
+
+    [Fact]
+    public async Task ReviewedTracksPopulatedConfirmationsAndPreservesManualOverridesOnNoOp()
+    {
+        var options = await SeedAsync();
+        await using var db = new MotorcycleDbContext(options);
+        var service = AdminService(db);
+        await service.UpdateSpecGridAsync(new(null, null, [new(1, "engine", true, null)]));
+        Assert.False((await service.GetByIdAsync(1)).IsReviewed);
+        await service.UpdateSpecGridAsync(new(null, null, [new(1, "abs", true, null)]));
+        Assert.True((await service.GetByIdAsync(1)).IsReviewed);
+        await service.SetReviewedAsync(1, false);
+        await service.UpdateSingleSpecAsync(new("engine", [new(1, 399)]));
+        await service.UpdateAsync(1, new("One", 2024, 100, new() { ["engine"] = 399, ["abs"] = true }, null,
+            [new("engine", true, null), new("abs", true, null)]));
+        Assert.False((await service.GetByIdAsync(1)).IsReviewed);
+        await service.UpdateSingleSpecAsync(new("engine", [new(1, 400)]));
+        Assert.False((await service.GetByIdAsync(1)).IsReviewed);
+        await service.UpdateSpecGridAsync(new(null, null, [new(1, "engine", true, null)]));
+        Assert.True((await service.GetByIdAsync(1)).IsReviewed);
+        await service.UpdateSpecGridAsync(new([new(1, "engine", null)]));
+        Assert.True((await service.GetByIdAsync(1)).IsReviewed);
+        await service.UpdateSpecGridAsync(new([new(1, "abs", null)]));
+        Assert.False((await service.GetByIdAsync(1)).IsReviewed);
+    }
+
+    [Fact]
+    public async Task NewDefinitionResetsReviewedWithoutDeletingConfirmations()
+    {
+        var options = await SeedAsync();
+        await using var db = new MotorcycleDbContext(options);
+        var bikes = AdminService(db);
+        await bikes.UpdateSpecGridAsync(new(null, null,
+            [new(1, "engine", true, null), new(1, "abs", true, null)]));
+        await bikes.SetReviewedAsync(2, true);
+        var definitions = new SpecDefinitionAdminService(
+            new SpecDefinitionAdminRepository(db), new SpecFilterStrategyFactory([]));
+        await definitions.CreateAsync(new(1, "weight", "Weight", "number", null, false, null));
+        Assert.False((await bikes.GetByIdAsync(1)).IsReviewed);
+        Assert.False((await bikes.GetByIdAsync(2)).IsReviewed);
+        Assert.Equal(2, (await bikes.GetByIdAsync(1)).SpecVerifications.Count);
+        await bikes.UpdateSpecGridAsync(new(null, null, [new(1, "engine", false, null)]));
+        await bikes.UpdateSpecGridAsync(new(null, null, [new(1, "engine", true, null)]));
+        Assert.True((await bikes.GetByIdAsync(1)).IsReviewed);
+    }
+
+    [Fact]
+    public async Task ZeroAndFalseArePopulatedAndBlankSpecsDoNotBlockReview()
+    {
+        var options = await SeedAsync();
+        await using var db = new MotorcycleDbContext(options);
+        db.SpecDefinitions.Add(new SpecDefinition { Id = 3, GroupId = 1, Code = "note", Label = "Note", DataType = "text" });
+        var bike = await db.Bikes.SingleAsync(b => b.Id == 1);
+        bike.Specs = new() { ["engine"] = 0, ["abs"] = false, ["note"] = " " };
+        await db.SaveChangesAsync();
+        var service = AdminService(db);
+        await service.UpdateSpecGridAsync(new(null, null, [new(1, "engine", true, null)]));
+        Assert.False((await service.GetByIdAsync(1)).IsReviewed);
+        await service.UpdateSpecGridAsync(new(null, null, [new(1, "abs", true, null)]));
+        Assert.True((await service.GetByIdAsync(1)).IsReviewed);
+    }
+
+    [Fact]
+    public async Task ResetAndReconfirmTogetherPersistCorrectly()
+    {
+        var options = await SeedAsync();
+        await using (var db = new MotorcycleDbContext(options)) {
+            var service = AdminService(db);
+            await service.UpdateSpecGridAsync(new(null, null,
+                [new(1, "engine", true, "https://brand.example"), new(1, "abs", true, null)]));
+            await service.UpdateSpecGridAsync(new(null, VerificationChanges: [new(1, "engine", true, null)],
+                ResetVerificationBikeIds: [1]));
+        }
+        await using (var db = new MotorcycleDbContext(options)) {
+            var service = AdminService(db);
+            var detail = await service.GetByIdAsync(1);
+            Assert.Single(detail.SpecVerifications);
+            Assert.Null(detail.SpecVerifications["engine"].SourceUrl);
+            Assert.False(detail.IsReviewed);
+            await service.SetReviewedAsync(2, true);
+            await service.UpdateAsync(2, new("Two", 2024, null, new() { ["engine"] = 399, ["abs"] = true },
+                ResetVerifications: true));
+            Assert.False((await service.GetByIdAsync(2)).IsReviewed);
+        }
     }
 }

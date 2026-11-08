@@ -86,7 +86,8 @@ public sealed record UpdateBikeRequest(
     decimal? MsrpPrice,
     Dictionary<string, object?>? Specs,
     int? ModelId = null,
-    List<SpecVerificationUpdate>? VerificationChanges = null);
+    List<SpecVerificationUpdate>? VerificationChanges = null,
+    bool ResetVerifications = false);
 
 public sealed record ReassignBikeModelRequest(int ModelId);
 

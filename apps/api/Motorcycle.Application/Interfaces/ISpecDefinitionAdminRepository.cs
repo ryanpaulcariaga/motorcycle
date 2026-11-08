@@ -17,6 +17,7 @@ public interface ISpecDefinitionAdminRepository
     /// (avoids one full bikes scan per definition).</summary>
     Task<Dictionary<string, int>> CountBikesWithValueByCodeAsync(CancellationToken ct = default);
     Task AddAsync(SpecDefinition definition, CancellationToken ct = default);
+    Task ResetReviewedAsync(CancellationToken ct = default);
     void Remove(SpecDefinition definition);
     Task SaveChangesAsync(CancellationToken ct = default);
 

@@ -9,6 +9,32 @@ public static class SpecVerificationHelper
 {
     public static bool ValuesEqual(object? left, object? right) => Canonical(left) == Canonical(right);
 
+    public static bool SpecsChanged(IReadOnlyDictionary<string, object> oldSpecs, IReadOnlyDictionary<string, object> newSpecs) =>
+        oldSpecs.Keys.Union(newSpecs.Keys).Any(code =>
+            !ValuesEqual(oldSpecs.GetValueOrDefault(code), newSpecs.GetValueOrDefault(code)));
+
+    public static bool ChangesVerification(Bike bike, IEnumerable<SpecVerificationUpdate> changes) =>
+        changes.Any(change =>
+        {
+            var existing = bike.SpecVerifications.FirstOrDefault(v => v.SpecDefinition.Code == change.SpecCode);
+            return change.IsVerified != (existing is not null)
+                || (existing is not null && change.IsVerified
+                    && existing.SourceUrl != (string.IsNullOrWhiteSpace(change.SourceUrl) ? null : change.SourceUrl.Trim()));
+        });
+
+    public static void UpdateReviewed(Bike bike)
+    {
+        var populatedCodes = bike.Specs.Where(pair => HasValue(pair.Value)).Select(pair => pair.Key).ToList();
+        var verifiedCodes = bike.SpecVerifications.Select(v => v.SpecDefinition.Code).ToHashSet();
+        bike.IsReviewed = populatedCodes.Count > 0 && populatedCodes.All(verifiedCodes.Contains);
+    }
+
+    private static bool HasValue(object? value) =>
+        value is not null
+        && (value is not string text || !string.IsNullOrWhiteSpace(text))
+        && (value is not JsonElement element || element.ValueKind != JsonValueKind.Null
+            && (element.ValueKind != JsonValueKind.String || !string.IsNullOrWhiteSpace(element.GetString())));
+
     private static string Canonical(object? value)
     {
         if (value is JsonElement element) {
@@ -63,6 +89,20 @@ public static class SpecVerificationHelper
         }
     }
 
+    public static void Reset(Bike bike, IEnumerable<SpecVerificationUpdate> changes)
+    {
+        var reconfirmed = changes.Where(change => change.IsVerified).Select(change => change.SpecCode).ToHashSet();
+        foreach (var verification in bike.SpecVerifications.ToList()) {
+            if (reconfirmed.Contains(verification.SpecDefinition.Code)) {
+                verification.SourceUrl = null;
+                verification.VerifiedAt = DateTime.UtcNow;
+            }
+            else {
+                bike.SpecVerifications.Remove(verification);
+            }
+        }
+    }
+
     public static void ValidateChanges(
         IEnumerable<SpecVerificationUpdate> changes,
         IReadOnlyDictionary<string, SpecDefinition> definitions,
@@ -73,10 +113,7 @@ public static class SpecVerificationHelper
             if (string.IsNullOrWhiteSpace(change.SpecCode) || !definitions.ContainsKey(change.SpecCode) || !seen.Add(change.SpecCode)) {
                 throw new ArgumentException("Each verification must have a unique, recognized specification code.");
             }
-            if (change.IsVerified && (!specs.TryGetValue(change.SpecCode, out var value) || value is null
-                || value is string text && string.IsNullOrWhiteSpace(text)
-                || value is JsonElement { ValueKind: JsonValueKind.Null }
-                || value is JsonElement { ValueKind: JsonValueKind.String } element && string.IsNullOrWhiteSpace(element.GetString()))) {
+            if (change.IsVerified && (!specs.TryGetValue(change.SpecCode, out var value) || !HasValue(value))) {
                 throw new ArgumentException($"A value is required to verify '{change.SpecCode}'.");
             }
             if (!string.IsNullOrWhiteSpace(change.SourceUrl)

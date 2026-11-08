@@ -41,6 +41,14 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
     public async Task AddAsync(SpecDefinition definition, CancellationToken ct = default) =>
         await _context.SpecDefinitions.AddAsync(definition, ct);
 
+    public async Task ResetReviewedAsync(CancellationToken ct = default)
+    {
+        var bikes = await _context.Bikes.Where(b => b.IsReviewed).ToListAsync(ct);
+        foreach (var bike in bikes) {
+            bike.IsReviewed = false;
+        }
+    }
+
     // One-pass scan so listing N definitions doesn't require N separate bikes-table scans.
     public async Task<Dictionary<string, int>> CountBikesWithValueByCodeAsync(CancellationToken ct = default)
     {
@@ -68,6 +76,11 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
     {
         if (invalidateVerifications) {
             var verifications = await _context.BikeSpecVerifications.Where(v => v.SpecDefinitionId == definition.Id).ToListAsync(ct);
+            var bikeIds = verifications.Select(v => v.BikeId).Distinct().ToList();
+            var bikes = await _context.Bikes.Where(b => bikeIds.Contains(b.Id) && b.IsReviewed).ToListAsync(ct);
+            foreach (var bike in bikes) {
+                bike.IsReviewed = false;
+            }
             _context.BikeSpecVerifications.RemoveRange(verifications);
         }
         if (convertedValues is { Count: > 0 }) {

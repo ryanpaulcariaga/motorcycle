@@ -79,8 +79,12 @@ public sealed class BikeAdminService : IBikeAdminService
                 specs[request.SpecCode] = item.Value;
             }
 
+            var changed = SpecVerificationHelper.SpecsChanged(bike.Specs, specs);
             SpecVerificationHelper.Invalidate(bike, specs, false);
             bike.Specs = specs;
+            if (changed) {
+                SpecVerificationHelper.UpdateReviewed(bike);
+            }
             bike.UpdatedAt = now;
         }
 
@@ -131,9 +135,6 @@ public sealed class BikeAdminService : IBikeAdminService
             throw new ArgumentException("Reset bike IDs must be positive and unique.", nameof(request));
         }
         var resetIds = resetBikeIds.ToHashSet();
-        if (verificationChanges.Any(change => resetIds.Contains(change.BikeId))) {
-            throw new ArgumentException("A bike cannot have individual verification changes and a reset in the same request.", nameof(request));
-        }
 
         var definitions = await GetDefinitionsByCodeAsync(ct);
         foreach (var change in specChanges) {
@@ -225,13 +226,19 @@ public sealed class BikeAdminService : IBikeAdminService
                 && (bike.VariantName != coreChange.VariantName || bike.Year != coreChange.Year);
             var updates = verificationsByBike[bikeId]
                 .Select(c => new SpecVerificationUpdate(c.SpecCode, c.IsVerified, c.SourceUrl)).ToList();
+            var reviewChanged = resetIds.Contains(bikeId) || identityChanged
+                || SpecVerificationHelper.SpecsChanged(bike.Specs, specs)
+                || SpecVerificationHelper.ChangesVerification(bike, updates);
             if (resetIds.Contains(bikeId)) {
-                bike.SpecVerifications.Clear();
+                SpecVerificationHelper.Reset(bike, updates);
             }
             SpecVerificationHelper.Invalidate(bike, specs, identityChanged,
                 updates.Where(c => c.IsVerified).Select(c => c.SpecCode).ToHashSet());
             SpecVerificationHelper.Apply(bike, updates, definitions);
             bike.Specs = specs;
+            if (reviewChanged) {
+                SpecVerificationHelper.UpdateReviewed(bike);
+            }
             bike.UpdatedAt = now;
         }
 
@@ -299,8 +306,14 @@ public sealed class BikeAdminService : IBikeAdminService
         var newSpecs = ToObjectDictionary(specs);
         var verificationChanges = request.VerificationChanges ?? [];
         SpecVerificationHelper.ValidateChanges(verificationChanges, definitionsByCode, newSpecs);
-        SpecVerificationHelper.Invalidate(bike, newSpecs,
-            bike.ModelId != targetModelId || bike.VariantName != variantName || bike.Year != year,
+        var identityChanged = bike.ModelId != targetModelId || bike.VariantName != variantName || bike.Year != year;
+        var reviewChanged = request.ResetVerifications || identityChanged
+            || SpecVerificationHelper.SpecsChanged(bike.Specs, newSpecs)
+            || SpecVerificationHelper.ChangesVerification(bike, verificationChanges);
+        if (request.ResetVerifications) {
+            SpecVerificationHelper.Reset(bike, verificationChanges);
+        }
+        SpecVerificationHelper.Invalidate(bike, newSpecs, identityChanged,
             verificationChanges.Where(c => c.IsVerified).Select(c => c.SpecCode).ToHashSet());
         SpecVerificationHelper.Apply(bike, verificationChanges, definitionsByCode);
 
@@ -313,6 +326,9 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.Year = year;
         bike.MsrpPrice = request.MsrpPrice;
         bike.Specs = newSpecs;
+        if (reviewChanged) {
+            SpecVerificationHelper.UpdateReviewed(bike);
+        }
         bike.UpdatedAt = DateTime.UtcNow;
 
         await _repository.SaveChangesAsync(ct);
@@ -338,6 +354,7 @@ public sealed class BikeAdminService : IBikeAdminService
         }
 
         SpecVerificationHelper.Invalidate(bike, bike.Specs, true);
+        bike.IsReviewed = false;
         bike.ModelId = targetModel.Id;
         bike.Model = targetModel;
         bike.UpdatedAt = DateTime.UtcNow;

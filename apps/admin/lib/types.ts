@@ -122,6 +122,7 @@ export type UpdateBikeRequest = {
   msrpPrice: number | null;
   specs: Record<string, unknown>;
   verificationChanges?: SpecVerificationUpdate[];
+  resetVerifications?: boolean;
 };
 
 export type ReassignBikeModelRequest = { modelId: number };

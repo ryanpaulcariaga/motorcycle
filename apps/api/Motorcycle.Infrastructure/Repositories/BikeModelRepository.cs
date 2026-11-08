@@ -30,6 +30,10 @@ public sealed class BikeModelRepository : IBikeModelRepository
     {
         var verifications = await _context.BikeSpecVerifications.Where(v => v.Bike.ModelId == modelId).ToListAsync(ct);
         _context.BikeSpecVerifications.RemoveRange(verifications);
+        var bikes = await _context.Bikes.Where(b => b.ModelId == modelId && b.IsReviewed).ToListAsync(ct);
+        foreach (var bike in bikes) {
+            bike.IsReviewed = false;
+        }
     }
     public async Task AddAsync(BikeModel model, CancellationToken ct = default) => await _context.BikeModels.AddAsync(model, ct);
     public void Remove(BikeModel model) => _context.BikeModels.Remove(model);

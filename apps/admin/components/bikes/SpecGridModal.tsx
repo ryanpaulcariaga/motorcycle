@@ -36,6 +36,7 @@ type GridRow = Omit<BikeSpecGridRow, 'specs'> & {
   saved: Record<string, string>;
   verifications: Record<string, string>;
   savedVerifications: Record<string, string>;
+  resetVerifications: boolean;
   coreCells: { variantName: string; year: string; msrpPrice: string };
   savedCoreCells: { variantName: string; year: string; msrpPrice: string };
 };
@@ -72,7 +73,7 @@ function toGridRow(bike: BikeSpecGridRow): GridRow {
   const verifications = Object.fromEntries(
     Object.entries(bike.specVerifications).map(([code, value]) => [code, value.sourceUrl ?? ''])
   );
-  return { ...rest, cells, saved: cells, verifications, savedVerifications: { ...verifications }, coreCells, savedCoreCells: coreCells };
+  return { ...rest, cells, saved: cells, verifications, savedVerifications: { ...verifications }, resetVerifications: false, coreCells, savedCoreCells: coreCells };
 }
 
 function normalize(raw: string, def: SpecDefinition | undefined): string {
@@ -249,6 +250,7 @@ export default function SpecGridModal({
       rows.reduce(
         (total, row) =>
           total +
+          Number(row.resetVerifications) +
           (Object.keys(row.coreCells) as CoreField[]).filter((field) =>
             isCoreDirty(row, field)
           ).length +
@@ -292,15 +294,15 @@ export default function SpecGridModal({
 
   const resetConfirmations = useCallback((bikeIds: number[], description: string) => {
     if (!window.confirm(
-      `Reset all spec verifications for ${description}, including hidden specification groups and any stored source information? Save changes to apply. The bike-level Reviewed flag will not change.`
+      `Reset spec verifications and Reviewed for ${description}, including hidden specification groups and stored source information? Save changes to apply.`
     )) {
       return;
     }
     const ids = new Set(bikeIds);
     setRows((current) => current.map((row) =>
-      ids.has(row.id) ? { ...row, verifications: {} } : row
+      ids.has(row.id) ? { ...row, verifications: {}, resetVerifications: true } : row
     ));
-    setNotice('Spec verifications reset in the grid. Save changes to apply, or discard to undo.');
+    setNotice('Spec verifications and Reviewed reset in the grid. Save changes to apply, or discard to undo.');
     setError(null);
   }, []);
 
@@ -366,22 +368,27 @@ export default function SpecGridModal({
       },
       {
         key: 'meta:reset',
-        name: 'Verifications',
-        width: 140,
+        name: 'Review',
+        width: 150,
         cellClass: 'spec-grid-readonly-cell',
         renderCell: ({ row }) => (
-          <button
-            type="button"
-            className="text-sm font-semibold text-brand-button underline disabled:opacity-50"
-            aria-label={`Reset spec verifications for ${row.coreCells.variantName} ${row.coreCells.year}`}
-            disabled={saving || Object.keys(row.verifications).length === 0}
-            onClick={(event) => {
-              event.stopPropagation();
-              resetConfirmations([row.id], `${row.coreCells.variantName} ${row.coreCells.year}`);
-            }}
-          >
-            Reset
-          </button>
+          <span className="flex items-center gap-2">
+            <span title="Verified populated specs">
+              {Object.keys(row.verifications).length}/{Object.values(row.cells).filter((value) => value.trim()).length}
+            </span>
+            <button
+              type="button"
+              className="text-sm font-semibold text-brand-button underline disabled:opacity-50"
+              aria-label={`Reset review for ${row.coreCells.variantName} ${row.coreCells.year}`}
+              disabled={saving || (row.resetVerifications && Object.keys(row.verifications).length === 0)}
+              onClick={(event) => {
+                event.stopPropagation();
+                resetConfirmations([row.id], `${row.coreCells.variantName} ${row.coreCells.year}`);
+              }}
+            >
+              Reset
+            </button>
+          </span>
         ),
       },
     ];
@@ -438,7 +445,7 @@ export default function SpecGridModal({
                         const verifications = { ...item.verifications };
                         if (checked) {
                           const identityChanged = isCoreDirty(item, 'variantName') || isCoreDirty(item, 'year');
-                          verifications[def.code] = !identityChanged && !isDirty(item, def.code)
+                          verifications[def.code] = !item.resetVerifications && !identityChanged && !isDirty(item, def.code)
                             ? item.savedVerifications[def.code] ?? ''
                             : '';
                         } else {
@@ -562,6 +569,7 @@ export default function SpecGridModal({
         cells: { ...row.saved },
         coreCells: { ...row.savedCoreCells },
         verifications: { ...row.savedVerifications },
+        resetVerifications: false,
       }))
     );
     setNotice(null);
@@ -577,8 +585,12 @@ export default function SpecGridModal({
       msrpPrice: number | null;
     }[] = [];
     const verificationChanges: { bikeId: number; specCode: string; isVerified: boolean; sourceUrl: string | null }[] = [];
+    const resetVerificationBikeIds: number[] = [];
     let coreChangeCount = 0;
     for (const row of rows) {
+      if (row.resetVerifications) {
+        resetVerificationBikeIds.push(row.id);
+      }
       const dirtyCoreFields = (Object.keys(row.coreCells) as CoreField[]).filter(
         (field) => isCoreDirty(row, field)
       );
@@ -633,12 +645,12 @@ export default function SpecGridModal({
       for (const code of Object.keys({ ...row.verifications, ...row.savedVerifications })) {
         const verified = Object.hasOwn(row.verifications, code);
         const identityChanged = isCoreDirty(row, 'variantName') || isCoreDirty(row, 'year');
-        if (row.verifications[code] !== row.savedVerifications[code] || (verified && (identityChanged || isDirty(row, code)))) {
+        if ((row.resetVerifications && verified) || (!row.resetVerifications && (row.verifications[code] !== row.savedVerifications[code] || (verified && (identityChanged || isDirty(row, code)))))) {
           verificationChanges.push({ bikeId: row.id, specCode: code, isVerified: verified, sourceUrl: row.verifications[code] || null });
         }
       }
     }
-    const changeCount = changes.length + coreChangeCount + verificationChanges.length;
+    const changeCount = changes.length + coreChangeCount + verificationChanges.length + resetVerificationBikeIds.length;
     if (changeCount === 0) {
       return;
     }
@@ -651,6 +663,7 @@ export default function SpecGridModal({
         changes,
         bikeChanges,
         verificationChanges,
+        resetVerificationBikeIds,
       });
       setRows((current) =>
         current.map((row) => {
@@ -671,6 +684,7 @@ export default function SpecGridModal({
             cells: { ...row.cells },
             saved: { ...row.cells },
             savedVerifications: { ...row.verifications },
+            resetVerifications: false,
             coreCells,
             savedCoreCells: coreCells,
           };
@@ -708,7 +722,7 @@ export default function SpecGridModal({
         drag the fill handle to copy a value down. Changes are saved together.
         Check a specification to verify it against the official brand source.
         Changing a value or bike identity clears its verification until it is
-        checked again.
+        checked again. Reviewed is set automatically when all populated specs are verified.
       </p>
       {notice && (
         <p
@@ -745,13 +759,13 @@ export default function SpecGridModal({
         <button
           type="button"
           className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
-          disabled={saving || !visibleRows.some((row) => Object.keys(row.verifications).length > 0)}
+          disabled={saving || visibleRows.length === 0}
           onClick={() => resetConfirmations(
             visibleRows.map((row) => row.id),
             `${visibleRows.length} displayed motorcycle${visibleRows.length === 1 ? '' : 's'}`
           )}
         >
-          Reset displayed spec verifications
+          Reset displayed reviews
         </button>
       </div>
       <DataGrid

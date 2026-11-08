@@ -253,11 +253,14 @@ public sealed class BikeImportService : IBikeImportService
                 }
 
                 var modelChanged = row.Model is not null && row.Model.Id != bike.ModelId;
+                var identityChanged = modelChanged || bike.VariantName != row.VariantName || bike.Year != row.Year;
+                var specsChanged = !SpecsEqual(bike.Specs, specs);
+                var reviewSpecsChanged = SpecVerificationHelper.SpecsChanged(bike.Specs, specs);
                 var changed = modelChanged
                     || bike.VariantName != row.VariantName
                     || bike.Year != row.Year
                     || bike.MsrpPrice != row.MsrpPrice
-                    || !SpecsEqual(bike.Specs, specs);
+                    || specsChanged;
                 if (!changed) {
                     unchanged++;
                     continue;
@@ -270,12 +273,14 @@ public sealed class BikeImportService : IBikeImportService
                     bike.Model = tracked;
                 }
 
-                SpecVerificationHelper.Invalidate(bike, specs,
-                    modelChanged || bike.VariantName != row.VariantName || bike.Year != row.Year);
+                SpecVerificationHelper.Invalidate(bike, specs, identityChanged);
                 bike.VariantName = row.VariantName!;
                 bike.Year = row.Year!.Value;
                 bike.MsrpPrice = row.MsrpPrice;
                 bike.Specs = specs;
+                if (identityChanged || reviewSpecsChanged) {
+                    SpecVerificationHelper.UpdateReviewed(bike);
+                }
                 bike.UpdatedAt = now;
                 updated++;
             }

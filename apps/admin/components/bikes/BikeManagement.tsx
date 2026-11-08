@@ -46,6 +46,7 @@ const emptyForm = {
   verifications: {} as Record<string, string>,
   sourceUrls: {} as Record<string, string>,
   savedVerificationCodes: [] as string[],
+  resetVerifications: false,
 };
 
 type SortField = 'variant' | 'model' | 'brand' | 'year' | 'msrp' | 'status' | 'reviewed';
@@ -220,6 +221,7 @@ export default function BikeManagement({
         Object.entries(detail.specVerifications).map(([code, value]) => [code, value.sourceUrl ?? ''])
       ),
       savedVerificationCodes: Object.keys(detail.specVerifications),
+      resetVerifications: false,
     };
   }
 
@@ -269,7 +271,7 @@ export default function BikeManagement({
   async function resetVisibleConfirmations() {
     const ids = visibleBikes.map((bike) => bike.id);
     if (ids.length === 0 || !window.confirm(
-      `Reset all spec verifications for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}? This also removes any stored source information and cannot be undone. The bike-level Reviewed flag will not change.`
+      `Reset spec verifications and Reviewed for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}? This also removes stored source information and cannot be undone.`
     )) {
       return;
     }
@@ -279,7 +281,8 @@ export default function BikeManagement({
     setNotice(null);
     try {
       await updateAdminBikeSpecGrid({ resetVerificationBikeIds: ids });
-      setNotice(`Reset spec verifications for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}.`);
+      await load();
+      setNotice(`Reset spec verifications and Reviewed for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}.`);
     } catch (cause) {
       setError(cause instanceof AdminApiError ? cause.message : 'Unable to reset spec verifications.');
     } finally {
@@ -308,6 +311,7 @@ export default function BikeManagement({
         await updateAdminBike(editingId, {
           ...request,
           modelId: Number(form.modelId) || undefined,
+          resetVerifications: form.resetVerifications,
           verificationChanges: [...new Set([...form.savedVerificationCodes, ...Object.keys(form.verifications)])].map((specCode) => ({
             specCode,
             isVerified: Object.hasOwn(form.verifications, specCode),
@@ -515,7 +519,7 @@ export default function BikeManagement({
               disabled={loading || resettingTags || visibleBikes.length === 0}
               onClick={() => void resetVisibleConfirmations()}
             >
-              {resettingTags ? 'Resetting...' : 'Reset displayed spec verifications'}
+              {resettingTags ? 'Resetting...' : 'Reset displayed reviews'}
             </button>
             <IconButton
               icon="refresh"
@@ -870,19 +874,22 @@ export default function BikeManagement({
               <div className="mt-4">
                 <p className="text-sm text-brand-grey">
                   Changing a spec clears its verification. Changing the model, variant, or year clears all verifications.
-                  Check a spec again to verify the new value.
+                  Check a spec again to verify the new value. Reviewed is set automatically when all populated specs are verified.
+                </p>
+                <p className="mt-1 text-sm text-brand-grey">
+                  {Object.keys(form.verifications).length} of {Object.values(form.specs).filter((value) => value.trim()).length} populated specs verified
                 </p>
                 <button
                   type="button"
                   className="mt-2 border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
-                  disabled={submitting || Object.keys(form.verifications).length === 0}
+                  disabled={submitting || (form.resetVerifications && Object.keys(form.verifications).length === 0)}
                   onClick={() => {
-                    if (window.confirm('Reset all spec verifications for this bike? This also removes any stored source information. Save changes to apply. The bike-level Reviewed flag will not change.')) {
-                      setForm({ ...form, verifications: {} });
+                    if (window.confirm('Reset spec verifications and Reviewed for this bike? This also removes stored source information. Save changes to apply.')) {
+                      setForm({ ...form, verifications: {}, sourceUrls: {}, resetVerifications: true });
                     }
                   }}
                 >
-                  Reset this bike&apos;s spec verifications
+                  Reset review
                 </button>
               </div>
             )}

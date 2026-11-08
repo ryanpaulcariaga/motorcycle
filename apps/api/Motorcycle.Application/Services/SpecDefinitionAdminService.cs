@@ -58,6 +58,7 @@ public sealed class SpecDefinitionAdminService : ISpecDefinitionAdminService
             SortOrder = siblings.Count == 0 ? 1 : siblings.Max(x => x.SortOrder) + 1,
         };
         await _repository.AddAsync(definition, ct);
+        await _repository.ResetReviewedAsync(ct);
         await _repository.SaveChangesAsync(ct);
         return ToDto(definition, 0);
     }
