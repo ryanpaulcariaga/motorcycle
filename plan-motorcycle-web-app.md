@@ -36,8 +36,8 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse, search, filter, detail page |
-| F-02 | ✅ Compare N bikes with grouped specs; suggestions below the search field; bikes stay in the order added |
+| F-01 | ✅ Public catalog: browse, search, filter by brand and category, detail page |
+| F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
 | F-05 | ✅ Admin sign-in (Facebook PKCE) and admin roles |
@@ -50,12 +50,13 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin; bike variant headers match cell padding; admin modal action icons match grid icon colors |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
-| F-17 | ✅ Public header bike search with live suggestions and searchable browse results |
+| F-17 | ✅ Public header bike search with live suggestions and searchable browse results; MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
-| F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop |
+| F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; mobile sidebar sections expand independently and pages scroll to content |
 | F-21 | ✅ Admin per-bike, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override and combined review resets |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
+| F-23 | ✅ Shared home sidebar on public catalog, detail, and comparison pages |
 
 ## Features (planned)
 
@@ -91,9 +92,9 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 
 | # | Status | Task | Notes | Gate |
 |---|---|---|---|---|
-| T-16 | ⬜ | Public: `/bikes` search and filters | | G-05 |
+| T-16 | ⬜ | Public: `/bikes` search and filters | Verify combined brand/category filters and sidebar navigation | G-05 |
 | T-17 | ⬜ | Public: bike detail page and image gallery | | G-05 |
-| T-18 | ⬜ | Public: compare with 2, 5, and 10 bikes | | G-05 |
+| T-18 | ⬜ | Public: compare with 2, 5, and 10 bikes | Verify the two-column/three-or-more-row switch, phone side-by-side bike columns, and contained narrow-screen scrolling | G-05, G-08 |
 | T-19 | ⬜ | Public: `sitemap.xml` and `robots.txt` use the production host | | G-05 |
 | T-20 | ⬜ | Admin: BikeModel and variant create, edit, publish, delete | | G-05 |
 | T-21 | ⬜ | Admin: image upload, ordering, primary image on production | Also covers production upload validation | G-05, G-07 |
@@ -241,6 +242,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-09** — Fixed mobile comparisons with 3+ bikes to show specs as rows and bikes side-by-side in a contained horizontal scroller; desktop 3+ and two-bike layouts are unchanged. Public web lint/build and a rendered three-bike check passed; T-18 browser acceptance remains.
 
 **2026-11-09** — Removed duplicate brand prefixes from bike and model labels throughout admin and public web, including comparison labels, metadata, confirmations, accessibility text, and spec-grid messages. Admin and web lint/build passed; existing brand fields and structured brand metadata remain.
 

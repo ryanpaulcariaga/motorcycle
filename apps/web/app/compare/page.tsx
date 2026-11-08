@@ -1,4 +1,4 @@
-import PageShell from '@/components/PageShell';
+import CatalogPageShell from '@/components/CatalogPageShell';
 import CompareClient from '@/components/CompareClient';
 import { compareBikes } from '@/lib/api';
 import type { Metadata } from 'next';
@@ -36,9 +36,9 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
     selectedIds.length > 0 ? await compareBikes(selectedIds) : null;
 
   return (
-    <PageShell>
+    <CatalogPageShell>
       <h1 className="text-2xl font-bold mb-4">Compare Bikes</h1>
       <CompareClient selectedIds={selectedIds} compareResult={compareResult} />
-    </PageShell>
+    </CatalogPageShell>
   );
 }

@@ -49,8 +49,19 @@ function SignIn({ error }: { error: string | null }) {
 function AdminShell({ session }: { session: AdminSession }) {
   const pathname = window.location.pathname;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const swipeStartX = useRef(0);
   const [sidebarSlot, setSidebarSlot] = useState<HTMLElement | null>(null);
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!window.matchMedia('(max-width: 767px)').matches || window.location.hash) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => mainRef.current?.scrollIntoView());
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   // Widening past the mobile/tablet range returns the menu to its default state.
   useEffect(() => {
@@ -155,9 +166,20 @@ function AdminShell({ session }: { session: AdminSession }) {
           id="admin-navigation"
         >
           <nav className="bg-brand-sidebar p-4 text-white/80">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-brand-gold">
-              Catalog
-            </p>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-gold">
+              <button
+                type="button"
+                aria-controls="admin-catalog-links"
+                aria-expanded={isCatalogOpen}
+                onClick={() => setIsCatalogOpen((open) => !open)}
+                className="flex w-full items-center justify-between gap-2 text-left md:hidden"
+              >
+                Catalog
+                <span aria-hidden="true" className="text-lg leading-none">{isCatalogOpen ? '−' : '+'}</span>
+              </button>
+              <span className="hidden md:block">Catalog</span>
+            </h2>
+            <div id="admin-catalog-links" className={`${isCatalogOpen ? 'block' : 'hidden'} mt-3 md:block`}>
             <a
               aria-current={isVariantsActive ? 'page' : undefined}
               className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isVariantsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
@@ -207,10 +229,11 @@ function AdminShell({ session }: { session: AdminSession }) {
             >
               Audit log
             </a>
+            </div>
           </nav>
           <div className="space-y-4" ref={setSidebarSlot} />
         </aside>
-        <main className="min-w-0">
+        <main ref={mainRef} className="min-h-screen min-w-0 md:min-h-0">
           <GridSidebarSlot.Provider value={sidebarSlot}>
             {content}
           </GridSidebarSlot.Provider>

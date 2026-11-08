@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import PageShell from '@/components/PageShell';
-import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
+import CatalogPageShell from '@/components/CatalogPageShell';
 import { getBikes, getBrands, getCategories } from '@/lib/api';
 import type { Metadata } from 'next';
 
@@ -70,57 +69,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
   };
 
   return (
-    <PageShell bare>
-      <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-6">
-        <Sidebar>
-          <SidebarSection title="Brand">
-            <div className="flex flex-col">
-              {brands.map((brand) => (
-                <SidebarLink
-                  key={brand.id}
-                  href={buildFilterHref({ brandId: brand.id, page: undefined })}
-                  active={params.brandId === String(brand.id)}
-                >
-                  {brand.name}
-                </SidebarLink>
-              ))}
-            </div>
-            <SidebarLink
-              href={buildFilterHref({ brandId: undefined, page: undefined })}
-              active={!params.brandId}
-            >
-              All Brands
-            </SidebarLink>
-          </SidebarSection>
-
-          <SidebarSection title="Category">
-            <div className="flex flex-col">
-              {categories.map((category) => (
-                <SidebarLink
-                  key={category.id}
-                  href={buildFilterHref({
-                    categoryId: category.id,
-                    page: undefined,
-                  })}
-                  active={params.categoryId === String(category.id)}
-                >
-                  {category.name}
-                </SidebarLink>
-              ))}
-            </div>
-            <SidebarLink
-              href={buildFilterHref({
-                categoryId: undefined,
-                page: undefined,
-              })}
-              active={!params.categoryId}
-            >
-              All Categories
-            </SidebarLink>
-          </SidebarSection>
-        </Sidebar>
-
-        <div className="min-w-0 flex-1 bg-brand-content p-4 shadow-lg sm:p-6">
+    <CatalogPageShell browseParams={params}>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h1 className="min-w-0 break-words text-2xl font-bold">
               {params.search
@@ -129,6 +78,33 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
             </h1>
             <p className="shrink-0 text-sm text-brand-grey">{totalCount} bikes</p>
           </div>
+
+          <form
+            key={JSON.stringify([params.brandId, params.categoryId])}
+            action="/bikes"
+            className="mb-4 flex flex-wrap items-end gap-3"
+          >
+            {(['search', 'sortBy', 'sortDescending'] as const).map((key) =>
+              params[key] ? <input key={key} type="hidden" name={key} value={params[key]} /> : null
+            )}
+            <label className="flex min-w-40 flex-1 flex-col gap-1 text-sm font-semibold">
+              Brand
+              <select name="brandId" defaultValue={params.brandId ?? ''} className="border border-zinc-300 bg-white px-2 py-2 font-normal">
+                <option value="">All brands</option>
+                {brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
+              </select>
+            </label>
+            <label className="flex min-w-40 flex-1 flex-col gap-1 text-sm font-semibold">
+              Category
+              <select name="categoryId" defaultValue={params.categoryId ?? ''} className="border border-zinc-300 bg-white px-2 py-2 font-normal">
+                <option value="">All categories</option>
+                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+              </select>
+            </label>
+            <button type="submit" className="bg-brand-button px-4 py-2 text-sm font-semibold text-white">
+              Apply filters
+            </button>
+          </form>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {bikes.map((bike) => (
@@ -189,8 +165,6 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
               ))}
             </div>
           )}
-        </div>
-      </div>
-    </PageShell>
+    </CatalogPageShell>
   );
 }

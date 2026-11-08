@@ -27,11 +27,12 @@ export function SidebarGroup({
       <div className="flex items-center justify-between gap-2">
         <button
           aria-expanded={open}
-          className="text-xs font-semibold uppercase tracking-wide text-brand-gold"
-          onClick={() => setOpen(!open)}
+          className="flex flex-1 items-center justify-between gap-2 text-left text-sm font-semibold uppercase tracking-wide text-brand-gold"
+          onClick={() => setOpen((current) => !current)}
           type="button"
         >
-          {open ? '\u25BE' : '\u25B8'} {title}
+          {title}
+          <span aria-hidden="true" className="text-lg leading-none">{open ? '−' : '+'}</span>
         </button>
         {action}
       </div>

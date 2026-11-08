@@ -1,11 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import PageShell from '@/components/PageShell';
-import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
+import CatalogPageShell from '@/components/CatalogPageShell';
 import Button from '@/components/Button';
 import BikeImageGallery from '@/components/BikeImageGallery';
-import { getBikeBySlug, getBrands, getComparedWith } from '@/lib/api';
+import { getBikeBySlug, getComparedWith } from '@/lib/api';
 import { SITE_URL } from '@/lib/site';
 import type { Metadata } from 'next';
 
@@ -70,7 +69,6 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
     notFound();
   }
 
-  const brands = await getBrands();
   const comparedWith = await getComparedWith(slug).catch(() => []);
 
   const groupsWithSpecs = bike.specGroups.filter(
@@ -116,42 +114,11 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
   );
 
   return (
-    <PageShell bare>
+    <CatalogPageShell>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: productJsonLdString }}
       />
-      <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-6">
-        <Sidebar>
-          {comparedWith.length > 0 && (
-            <SidebarSection
-              title={`${bike.variantName} is usually compared to`}
-            >
-              <div className="flex flex-col">
-                {comparedWith.map(({ bike: other }) => (
-                  <SidebarLink
-                    key={other.id}
-                    href={`/bikes/${other.slug}`}
-                  >
-                    {other.variantName}
-                  </SidebarLink>
-                ))}
-              </div>
-            </SidebarSection>
-          )}
-          <SidebarSection title="Brands">
-            <div className="flex flex-col">
-              <SidebarLink href="/bikes">All Brands</SidebarLink>
-              {brands.map((brand) => (
-                <SidebarLink key={brand.id} href={`/bikes?brandId=${brand.id}`}>
-                  {brand.name}
-                </SidebarLink>
-              ))}
-            </div>
-          </SidebarSection>
-        </Sidebar>
-
-        <div className="min-w-0 flex-1 bg-brand-content p-4 shadow-lg sm:p-6">
           <p className="text-sm text-brand-grey">{bike.categoryName}</p>
           <h1 className="break-words text-2xl font-bold sm:text-3xl">
             {bike.variantName}
@@ -281,8 +248,6 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
               Coming soon — user reviews and opinions.
             </p>
           </div>
-        </div>
-      </div>
-    </PageShell>
+    </CatalogPageShell>
   );
 }

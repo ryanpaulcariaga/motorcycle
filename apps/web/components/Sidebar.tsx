@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 
 interface SidebarProps {
   children: ReactNode;
@@ -9,9 +10,25 @@ interface SidebarProps {
 
 /** Secondary nav / filter panel: a left column from md up, stacked above the content below it. */
 export default function Sidebar({ children }: SidebarProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const route = `${pathname}?${searchParams.toString()}`;
+  useEffect(() => {
+    if (!window.matchMedia('(max-width: 767px)').matches || window.location.hash) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      document.getElementById('catalog-content')?.scrollIntoView();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [route]);
+
   return (
     <aside className="w-full shrink-0 text-white md:w-56">
-      <div className="space-y-4">{children}</div>
+      <div key={route} className="space-y-4">
+        {children}
+      </div>
     </aside>
   );
 }
@@ -46,12 +63,27 @@ export function SidebarSection({
   title: string;
   children: ReactNode;
 }) {
+  const [open, setOpen] = useState(false);
+  const contentId = useId();
+
   return (
     <section className="bg-brand-sidebar p-4">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-brand-gold">
-        {title}
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-gold">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={contentId}
+          onClick={() => setOpen((current) => !current)}
+          className="flex w-full items-center justify-between gap-2 text-left md:hidden"
+        >
+          {title}
+          <span aria-hidden="true" className="text-lg leading-none">{open ? '−' : '+'}</span>
+        </button>
+        <span className="hidden md:block">{title}</span>
       </h2>
-      <div>{children}</div>
+      <div id={contentId} className={`${open ? 'block' : 'hidden'} mt-3 md:block`}>
+        {children}
+      </div>
     </section>
   );
 }

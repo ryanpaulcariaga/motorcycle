@@ -12,7 +12,6 @@ import {
 import type { BikeListItemDto, UserSessionDto } from '@/lib/types';
 
 const navLinks = [
-  { href: '/', label: 'Home' },
   { href: '/bikes', label: 'Browse Bikes' },
   { href: '/compare', label: 'Compare' },
 ];

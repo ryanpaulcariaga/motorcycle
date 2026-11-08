@@ -24,7 +24,7 @@ interface SelectedBike {
 }
 
 const SEARCH_DEBOUNCE_MS = 300;
-const MAX_COLUMN_BIKES = 3;
+const MAX_COLUMN_BIKES = 2;
 
 function toSelected(
   compareResult: CompareResultDto | null,
@@ -316,50 +316,18 @@ export default function CompareClient({
         <p className="text-brand-grey">
           Search and add two or more bikes above to compare specs.
         </p>
-      ) : (
-        <>
-        {compareResult.bikes.length > 2 && (
-          <div className="space-y-4 md:hidden">
-            {compareResult.bikes.map((bike) => (
-              <section key={bike.id} className="border border-zinc-200 p-3">
-                <BikeHeader bike={bike} />
-                {compareResult.specGroups.map((group) => (
-                  <div key={group.code} className="mt-3">
-                    <h3 className="pb-1 text-sm font-semibold text-brand-button">
-                      {group.name}
-                    </h3>
-                    <dl className="text-sm">
-                      {group.rows.map((row) => (
-                        <div
-                          key={row.code}
-                          className="flex justify-between gap-4 border-b border-zinc-100 py-1"
-                        >
-                          <dt className="text-brand-grey">{row.label}</dt>
-                          <dd className="min-w-0 text-right">
-                            {formatValue(row.valuesByBikeId[bike.id], row.unit)}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </div>
-                ))}
-              </section>
-            ))}
-          </div>
-        )}
-        <div className={compareResult.bikes.length > 2 ? 'hidden md:block' : ''}>
-        {compareResult.bikes.length <= MAX_COLUMN_BIKES ? (
+      ) : compareResult.bikes.length <= MAX_COLUMN_BIKES ? (
           <div className="overflow-x-auto">
             <table className="w-full table-fixed border-collapse text-sm">
               <thead>
                 <tr>
-                  <th className="w-[30%] text-left p-2 border-b border-zinc-200 align-bottom md:w-1/4">
+                  <th className="w-[30%] text-left p-2 border-b border-zinc-200 align-bottom">
                     Spec
                   </th>
                   {columnSlots.map((bike, index) => (
                     <th
                       key={bike?.id ?? `empty-${index}`}
-                      className={`p-2 md:w-1/4 border-b border-zinc-200 text-left align-top ${
+                      className={`p-2 border-b border-zinc-200 text-left align-top ${
                         bike ? '' : 'hidden md:table-cell'
                       }`}
                     >
@@ -406,63 +374,130 @@ export default function CompareClient({
             </table>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="text-sm border-collapse">
-              <thead>
-                <tr>
-                  <th
-                    rowSpan={2}
-                    className="sticky left-0 z-10 bg-white w-56 min-w-56 p-2 border-b border-zinc-200 text-left align-bottom"
-                  >
-                    Bike
-                  </th>
-                  {compareResult.specGroups.map((group) => (
-                    <th
-                      key={group.code}
-                      colSpan={group.rows.length}
-                      className="p-2 border-b border-zinc-200 text-left text-brand-button"
-                    >
-                      {group.name}
+          <>
+            <div
+              role="region"
+              aria-label="Comparison specifications by bike, scroll horizontally"
+              tabIndex={0}
+              className="overflow-x-auto md:hidden"
+            >
+              <table className="w-max min-w-full border-collapse text-sm">
+                <thead>
+                  <tr>
+                    <th className="sticky left-0 z-20 w-28 min-w-28 bg-white p-2 text-left align-bottom">
+                      Spec
                     </th>
-                  ))}
-                </tr>
-                <tr>
-                  {compareResult.specGroups.flatMap((group) =>
-                    group.rows.map((row) => (
+                    {compareResult.bikes.map((bike) => (
                       <th
-                        key={`${group.code}-${row.code}`}
-                        className="p-2 border-b border-zinc-200 text-left font-normal text-brand-grey min-w-40 align-bottom"
+                        key={bike.id}
+                        scope="col"
+                        className="w-36 min-w-36 p-2 text-left align-top"
                       >
-                        {row.label}
+                        <BikeHeader bike={bike} />
                       </th>
-                    )),
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {compareResult.bikes.map((bike) => (
-                  <tr key={bike.id} className="border-b border-zinc-100">
-                    <th className="sticky left-0 z-10 bg-white w-56 min-w-56 p-2 text-left align-top">
-                      <BikeHeader bike={bike} />
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {compareResult.specGroups.map((group) => (
+                    <Fragment key={group.code}>
+                      <tr className="border-b border-zinc-100">
+                        <th
+                          scope="rowgroup"
+                          className="sticky left-0 z-10 w-28 min-w-28 bg-white p-2 text-left font-semibold text-brand-button"
+                        >
+                          {group.name}
+                        </th>
+                        {compareResult.bikes.map((bike) => (
+                          <td key={bike.id} className="w-36 min-w-36 p-2" />
+                        ))}
+                      </tr>
+                      {group.rows.map((row) => (
+                        <tr key={row.code} className="border-b border-zinc-100">
+                          <th
+                            scope="row"
+                            className="sticky left-0 z-10 w-28 min-w-28 bg-white p-2 text-left font-normal text-brand-grey"
+                          >
+                            {row.label}
+                          </th>
+                          {compareResult.bikes.map((bike) => (
+                            <td
+                              key={bike.id}
+                              className="w-36 min-w-36 break-words p-2 align-top"
+                            >
+                              {formatValue(
+                                row.valuesByBikeId[bike.id],
+                                row.unit,
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div
+              role="region"
+              aria-label="Comparison specifications, scroll horizontally"
+              tabIndex={0}
+              className="hidden overflow-x-auto md:block"
+            >
+              <table className="text-sm border-collapse">
+                <thead>
+                  <tr>
+                    <th
+                      rowSpan={2}
+                      className="sticky left-0 z-10 w-32 min-w-32 bg-white p-2 border-b border-zinc-200 text-left align-bottom sm:w-56 sm:min-w-56"
+                    >
+                      Bike
                     </th>
+                    {compareResult.specGroups.map((group) => (
+                      <th
+                        key={group.code}
+                        colSpan={group.rows.length}
+                        className="p-2 border-b border-zinc-200 text-left text-brand-button"
+                      >
+                        {group.name}
+                      </th>
+                    ))}
+                  </tr>
+                  <tr>
                     {compareResult.specGroups.flatMap((group) =>
                       group.rows.map((row) => (
-                        <td
+                        <th
                           key={`${group.code}-${row.code}`}
-                          className="p-2 align-top"
+                          className="p-2 border-b border-zinc-200 text-left font-normal text-brand-grey min-w-40 align-bottom"
                         >
-                          {formatValue(row.valuesByBikeId[bike.id], row.unit)}
-                        </td>
+                          {row.label}
+                        </th>
                       )),
                     )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        </div>
-        </>
+                </thead>
+                <tbody>
+                  {compareResult.bikes.map((bike) => (
+                    <tr key={bike.id} className="border-b border-zinc-100">
+                      <th className="sticky left-0 z-10 w-32 min-w-32 bg-white p-2 text-left align-top sm:w-56 sm:min-w-56">
+                        <BikeHeader bike={bike} />
+                      </th>
+                      {compareResult.specGroups.flatMap((group) =>
+                        group.rows.map((row) => (
+                          <td
+                            key={`${group.code}-${row.code}`}
+                            className="p-2 align-top"
+                          >
+                            {formatValue(row.valuesByBikeId[bike.id], row.unit)}
+                          </td>
+                        )),
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
       )}
 
       {selected.length > 0 && (

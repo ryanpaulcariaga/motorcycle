@@ -4,6 +4,10 @@
 
 Full-stack application with a public motorcycle catalog and a private administration site. The public site supports browsing, searching, filtering, and comparison; the admin site maintains catalog data through the shared API.
 
+The public home, browse, bike detail, and comparison pages share the same API-backed catalog sidebar. Browse combines brand and category filters in the main content, retaining the current search and sort when filters change. Comparisons show up to two bikes in columns; three or more use one row per bike in a horizontally scrollable table.
+
+On phone-width screens, public and admin sidebar sections start collapsed and expand independently, and pages scroll to their main content. Tablet and desktop layouts keep the sidebars visible.
+
 ### Tech Stack
 
 - **Frontend**: Next.js 16 (React, TypeScript, App Router, Tailwind CSS)
