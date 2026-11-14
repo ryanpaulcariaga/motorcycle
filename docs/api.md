@@ -126,6 +126,8 @@ Bike results are returned in the same order as the requested `ids`, so the compa
 
 Each successful comparison also increments the `bike_comparisons` counter for every pair of the compared bikes (any number). Tracking is best-effort and never fails the request.
 
+This existing request-based counter is independent of the opt-in browser analytics below and is not a count of unique visitors.
+
 #### GET /api/bikes/popular-comparisons?limit=10
 
 Most compared pairs of published bikes (most compared first; `limit` 1–20, default 10). Powers the "Popular Comparisons" sidebar, which links each pair to `/compare?ids=<bikeA.id>,<bikeB.id>`.
@@ -165,6 +167,40 @@ Get all spec groups and their definitions (drives filter UI + compare labels).
       ]
     }
   ]
+}
+```
+
+### Interest analytics
+
+`POST /api/analytics/events` accepts an opted-in browser event, without credentials or search text. It returns `204` on success, `400` for invalid event shapes or catalog IDs, and `429` when rate limited. It is anonymous and accepts at most 4 KiB per request. The client must not send events before consent; this endpoint cannot independently verify a browser's preference.
+
+Examples:
+
+```json
+{ "type": "bike_view", "id": 1 }
+{ "type": "brand_filter", "id": 2 }
+{ "type": "category_filter", "id": 3 }
+{ "type": "search", "zeroResults": true }
+{ "type": "comparison", "bikeIds": [1, 2, 3] }
+```
+
+Bike IDs must be published; brand and category IDs must exist. Comparisons require 2–25 distinct positive IDs. One comparison increments its total and each unordered pair transactionally. Search counts only submitted header searches after results load; no raw terms are collected. Browser failures are logged and do not interrupt browsing. `RateLimiting:AnalyticsPerMinute` defaults to 60 per IP, in addition to the global limiter.
+
+`GET /api/admin/analytics?from=2026-11-01&to=2026-11-15` requires the active-administrator policy. Inclusive UTC dates must fall within the past 12 calendar months; omitted dates default to the past 30 days ending today. It returns `from`, `to`, `bikeViews`, `comparisons`, `searches`, `zeroResults`, `daily`, `bikes`, `brands`, `categories`, and `pairs`. Ranked lists contain at most 20 entries. Counts include opted-in activity only and are not unique visitors.
+
+```json
+{
+  "from": "2026-11-01",
+  "to": "2026-11-15",
+  "bikeViews": 12,
+  "comparisons": 3,
+  "searches": 4,
+  "zeroResults": 1,
+  "daily": [{ "day": "2026-11-15", "bikeViews": 12, "comparisons": 3, "searches": 4, "zeroResults": 1 }],
+  "bikes": [{ "id": 1, "name": "Example bike", "count": 12 }],
+  "brands": [{ "id": 1, "name": "Example brand", "count": 5 }],
+  "categories": [{ "id": 1, "name": "Example category", "count": 2 }],
+  "pairs": [{ "bikeAId": 1, "bikeAName": "Example bike", "bikeBId": 2, "bikeBName": "Another bike", "count": 3 }]
 }
 ```
 

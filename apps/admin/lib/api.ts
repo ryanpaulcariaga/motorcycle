@@ -1,4 +1,5 @@
 import type { AdminAuditLogPage, AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeImportResult, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, ReassignBikeModelRequest, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest, BikeSpecGridRow, UpdateSpecGridRequest } from "./types";
+import type { AnalyticsDashboard } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
@@ -53,6 +54,10 @@ export function getAdminRoles(): Promise<AdminRole[]> {
 export function getAdminAuditLogs(page: number, pageSize: number): Promise<AdminAuditLogPage> {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   return apiFetch(`/api/admin/audit-logs?${params}`);
+}
+
+export function getAnalytics(from: string, to: string): Promise<AnalyticsDashboard> {
+  return apiFetch(`/api/admin/analytics?${new URLSearchParams({ from, to })}`);
 }
 
 export function createAdminRole(request: CreateAdminRoleRequest): Promise<AdminRole> {

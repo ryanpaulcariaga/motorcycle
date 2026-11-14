@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Header from '@/components/Header';
+import AnalyticsConsent from '@/components/AnalyticsConsent';
 import { SITE_URL } from '@/lib/site';
 import './globals.css';
 
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <body className="min-h-full flex flex-col">
         <Header />
         {children}
+        <AnalyticsConsent />
       </body>
     </html>
   );

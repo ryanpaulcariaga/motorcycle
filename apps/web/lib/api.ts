@@ -1,4 +1,5 @@
 import type {
+  AnalyticsEvent,
   BikeDetailDto,
   BikeListItemDto,
   BikesQuery,
@@ -13,6 +14,20 @@ import type {
 } from "./types";
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7240";
+
+export async function sendAnalyticsEvent(event: AnalyticsEvent): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/analytics/events`, {
+    method: "POST",
+    credentials: "omit",
+    referrerPolicy: "no-referrer",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(event),
+    keepalive: true,
+  });
+  if (!response.ok) {
+    throw new Error(`Analytics request failed: ${response.status}`);
+  }
+}
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {

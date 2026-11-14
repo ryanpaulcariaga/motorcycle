@@ -24,6 +24,7 @@ public class MotorcycleDbContext : DbContext
     public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
     public DbSet<User> Users => Set<User>();
     public DbSet<UserExternalLogin> UserExternalLogins => Set<UserExternalLogin>();
+    public DbSet<AnalyticsDailyCount> AnalyticsDailyCounts => Set<AnalyticsDailyCount>();
 
     // Future tables (Phase 5+)
     public DbSet<BikeComparison> BikeComparisons => Set<BikeComparison>();
@@ -36,6 +37,12 @@ public class MotorcycleDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<AnalyticsDailyCount>(a =>
+        {
+            a.HasKey(x => new { x.Day, x.Metric, x.Dimension1, x.Dimension2 });
+            a.Property(x => x.Metric).HasMaxLength(32).IsRequired();
+        });
 
         // Value comparers for JSON columns
         var dictConverter = new ValueConverter<Dictionary<string, object>, string>(

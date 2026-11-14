@@ -213,9 +213,24 @@ CREATE TABLE bike_comparisons (
 ```
 One row per unordered bike pair (lower id first), upserted atomically with `ON CONFLICT` whenever the pair is compared. Powers the "most compared with" recommendations.
 
+### analytics_daily_counts
+
+```sql
+CREATE TABLE analytics_daily_counts (
+  day DATE NOT NULL,
+  metric VARCHAR(32) NOT NULL,
+  dimension1 INT NOT NULL,
+  dimension2 INT NOT NULL,
+  count BIGINT NOT NULL,
+  PRIMARY KEY (day, metric, dimension1, dimension2)
+);
+```
+
+Only opt-in browser activity is collected. UTC daily counters store a metric and catalog IDs, never a visitor or session ID, search text, or individual event. Metrics are `bike_view`, `brand_filter`, `category_filter`, `comparison`, `comparison_pair`, `search`, and `zero_results`. Zero dimensions indicate no catalog dimension; pair IDs are sorted. Counters are upserted atomically in one transaction per event. A hosted job deletes dates before the current UTC date minus 12 calendar months, on startup and approximately daily thereafter. Catalog deletion does not delete historical totals; the dashboard labels missing items as deleted.
+
 ### Future Tables (Schema Stubs)
 ```sql
--- Analytics
+-- Unused analytics stubs; the aggregate analytics feature uses analytics_daily_counts instead.
 CREATE TABLE bike_views (
   id SERIAL PRIMARY KEY,
   bike_id INT REFERENCES bikes(id),

@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import CatalogPageShell from '@/components/CatalogPageShell';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
+import AnalyticsFilterForm from '@/components/AnalyticsFilterForm';
 import { getBikes, getBrands, getCategories } from '@/lib/api';
 import type { Metadata } from 'next';
 
@@ -70,6 +72,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
 
   return (
     <CatalogPageShell browseParams={params}>
+          <AnalyticsTracker kind="search" hasSearch={!!params.search?.trim()} zeroResults={totalCount === 0} />
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h1 className="min-w-0 break-words text-2xl font-bold">
               {params.search
@@ -79,10 +82,8 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
             <p className="shrink-0 text-sm text-brand-grey">{totalCount} bikes</p>
           </div>
 
-          <form
+          <AnalyticsFilterForm
             key={JSON.stringify([params.brandId, params.categoryId])}
-            action="/bikes"
-            className="mb-4 flex flex-wrap items-end gap-3"
           >
             {(['search', 'sortBy', 'sortDescending'] as const).map((key) =>
               params[key] ? <input key={key} type="hidden" name={key} value={params[key]} /> : null
@@ -104,7 +105,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
             <button type="submit" className="bg-brand-button px-4 py-2 text-sm font-semibold text-white">
               Apply filters
             </button>
-          </form>
+          </AnalyticsFilterForm>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {bikes.map((bike) => (

@@ -1,5 +1,9 @@
 # Operations Reference
 
+## Interest analytics
+
+API startup migrations create `analytics_daily_counts`. The API deletes aggregates older than 12 calendar months on startup and approximately every 24 hours while running; retention failures are logged and retried on the next run. `RateLimiting__AnalyticsPerMinute` controls the per-IP ingestion limit (default 60). The public app offers an opt-in preference; the admin dashboard is at `/admin/analytics`. Do not promote publicly until the privacy policy, applicable consent rules, and hosting/API log content and retention have been reviewed. Request/infrastructure logs can contain information not stored in the analytics table. Reference
+
 Azure resources, production URLs, deployment history and lessons, and local development notes. Step-by-step deployment instructions are in the root [README](../README.md#deploying-to-azure). What still needs doing is tracked in [plan-motorcycle-web-app.md](../plan-motorcycle-web-app.md).
 
 ## Local development

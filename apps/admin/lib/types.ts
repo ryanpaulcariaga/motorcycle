@@ -234,3 +234,22 @@ export type BrandAdmin = { id: number; name: string; logoBlobUrl: string | null;
 export type BrandRequest = { name: string; logoBlobUrl: string | null };
 export type CategoryAdmin = { id: number; name: string; modelCount: number; bikeCount: number };
 export type CategoryRequest = { name: string };
+export interface AnalyticsCount {
+  id: number;
+  name: string;
+  count: number;
+}
+
+export interface AnalyticsDashboard {
+  from: string;
+  to: string;
+  bikeViews: number;
+  comparisons: number;
+  searches: number;
+  zeroResults: number;
+  daily: { day: string; bikeViews: number; comparisons: number; searches: number; zeroResults: number }[];
+  bikes: AnalyticsCount[];
+  brands: AnalyticsCount[];
+  categories: AnalyticsCount[];
+  pairs: { bikeAId: number; bikeAName: string; bikeBId: number; bikeBName: string; count: number }[];
+}

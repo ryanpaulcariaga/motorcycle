@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useId, useState, type ReactNode } from 'react';
+import { trackAnalytics } from '@/lib/analytics';
 
 interface SidebarProps {
   children: ReactNode;
@@ -37,15 +38,22 @@ export function SidebarLink({
   href,
   children,
   active = false,
+  analyticsBrandId,
 }: {
   href: string;
   children: ReactNode;
   active?: boolean;
+  analyticsBrandId?: number;
 }) {
   return (
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
+      onClick={() => {
+        if (analyticsBrandId !== undefined) {
+          trackAnalytics({ type: 'brand_filter', id: analyticsBrandId });
+        }
+      }}
       className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 hover:bg-white/10 ${
         active ? 'bg-white/10' : ''
       }`}

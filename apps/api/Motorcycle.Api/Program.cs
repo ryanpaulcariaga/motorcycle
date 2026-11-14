@@ -14,6 +14,7 @@ using Motorcycle.Api.Authorization;
 using Motorcycle.Api.Common;
 using Motorcycle.Api.Bootstrap;
 using Serilog;
+using Motorcycle.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +55,10 @@ builder.Services.AddScoped<IImageProcessor, MagickImageProcessor>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISpecGroupAdminRepository, SpecGroupAdminRepository>();
 builder.Services.AddScoped<ISpecDefinitionAdminRepository, SpecDefinitionAdminRepository>();
+builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddHostedService<AnalyticsRetentionService>();
 
 // Spec filter strategies (Strategy pattern)
 builder.Services.AddSingleton<ISpecFilterStrategy, NumberRangeFilterStrategy>();

@@ -7,6 +7,7 @@ import BikeManagement from '@/components/bikes/BikeManagement';
 import BulkSpecEditor from '@/components/bikes/BulkSpecEditor';
 import RoleManagement from '@/components/roles/RoleManagement';
 import AuditLogManagement from '@/components/audit/AuditLogManagement';
+import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 import SpecGroupManagement from '@/components/specs/SpecGroupManagement';
 import {
   API_BASE_URL,
@@ -78,6 +79,7 @@ function AdminShell({ session }: { session: AdminSession }) {
   const isAdministratorsActive =
     pathname === '/admin' || pathname === '/admin/roles';
   const isAuditActive = pathname === '/admin/audit';
+  const isAnalyticsActive = pathname === '/admin/analytics';
   const isBikesActive = pathname === '/admin/bike-models' || match !== null;
   const isVariantsActive =
     pathname === '/admin/bike-variants' || pathname === '/admin/bulk-spec';
@@ -100,6 +102,8 @@ function AdminShell({ session }: { session: AdminSession }) {
     <SpecGroupManagement />
   ) : isAuditActive ? (
     <AuditLogManagement />
+  ) : isAnalyticsActive ? (
+    <AnalyticsDashboard />
   ) : (
     <RoleManagement />
   );
@@ -228,6 +232,13 @@ function AdminShell({ session }: { session: AdminSession }) {
               href="/admin/audit"
             >
               Audit log
+            </a>
+            <a
+              aria-current={isAnalyticsActive ? 'page' : undefined}
+              className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isAnalyticsActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              href="/admin/analytics"
+            >
+              Interest analytics
             </a>
             </div>
           </nav>

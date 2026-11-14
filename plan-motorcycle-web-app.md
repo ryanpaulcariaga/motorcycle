@@ -13,9 +13,9 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 37 of 97 tasks done · 2 in progress · 58 not started.**
+**Progress: 37 of 97 tasks done · 4 in progress · 56 not started.**
 
-**Next up:** Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked. Responsive implementation T-92 to T-96 is complete; T-54 passed, while T-55 still needs an authenticated image-management workflow check.
+**Next up:** Verify the analytics dashboard with an authenticated admin session and decide when to add public spec filters; review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
 ## Idea intake and triage
 
@@ -57,6 +57,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-21 | ✅ Admin per-bike, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override and combined review resets |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared home sidebar on public catalog, detail, and comparison pages |
+| F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms |
 
 ## Features (planned)
 
@@ -206,8 +207,8 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Status | Task | Notes |
 |---|---|---|---|
-| T-68 | ⬜ | Analytics: record bike views and spec searches | |
-| T-69 | ⬜ | Analytics: dashboard | |
+| T-68 | 🔄 | Analytics: record bike views and spec searches | Opt-in bike, brand/category filter, comparison and zero-result aggregates verified in browser and isolated PostgreSQL; public spec-filter tracking remains. G-10 privacy review still required. |
+| T-69 | 🔄 | Analytics: dashboard | Protected API and admin UI verified with unit tests and mocked browser data; authenticated end-to-end dashboard verification remains. |
 | T-70 | ⬜ | Replace placeholder "Top 10" sidebar sections with real data | Needs T-68 |
 | T-71 | ⬜ | Dealer links: records, moderation, API, UI | |
 | T-72 | ⬜ | Advertising: placements, delivery, labeling, admin | |
@@ -242,6 +243,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-15** — Implemented opt-in daily interest counters and admin dashboard, with 12-month retention and no analytics identifiers or raw search terms. Focused API tests, frontend builds, public browser checks, mocked dashboard rendering, and isolated PostgreSQL ingestion/concurrency/retention checks passed. Authenticated dashboard end-to-end verification, public spec-filter tracking, privacy policy and legal review remain. Existing comparison recommendation counters remain separate.
 
 **2026-11-09** — Fixed mobile comparisons with 3+ bikes to show specs as rows and bikes side-by-side in a contained horizontal scroller; desktop 3+ and two-bike layouts are unchanged. Public web lint/build and a rendered three-bike check passed; T-18 browser acceptance remains.
 

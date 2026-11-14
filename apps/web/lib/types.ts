@@ -4,6 +4,11 @@ export interface BrandDto {
   logoBlobUrl: string | null;
 }
 
+export type AnalyticsEvent =
+  | { type: 'bike_view' | 'brand_filter' | 'category_filter'; id: number }
+  | { type: 'comparison'; bikeIds: number[] }
+  | { type: 'search'; zeroResults: boolean };
+
 export interface UserSessionDto {
   userId: number;
   email: string | null;

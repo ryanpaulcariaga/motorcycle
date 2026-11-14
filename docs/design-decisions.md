@@ -19,7 +19,8 @@ Why the system is built the way it is, plus the quality targets reviewed against
 - **CSS:** Tailwind CSS, mobile-first (`sm:`/`md:`/`lg:`); sidebar becomes a drawer below `md`.
 - **Palette:** header black/white text; page gold/orange; content area white; sidebar dark brown; buttons brown, black when pressed (also gold/orange, black, dark grey for other emphasis). Tokens live in each app's stylesheet and must stay identical.
 - **Dealer links (future):** separate from manufacturer brands; a bike may expose several approved, moderated dealer listings with source and availability.
-- **Future items, design for but do not build:** AI pros/cons, annual survey, analytics, votes/comments, dealer listings, advertising. Stub tables `bike_views`, `spec_search_log`, `bike_votes`, `bike_comments`, `survey_responses` reserve the schema.
+- **Interest analytics:** Require opt-in; collect UTC daily aggregates rather than visitor profiles or raw search terms. Keep 12 calendar months, use the shared API for ingestion and the protected admin dashboard, and distinguish these counts from the existing request-based recommendation counters. Privacy/legal review and the privacy policy remain release gates. Infrastructure logs must also be reviewed for personal data and retention.
+- **Future items, design for but do not build:** AI pros/cons, annual survey, votes/comments, dealer listings, advertising. The existing `bike_views` and `spec_search_log` stubs are unused; `bike_votes`, `bike_comments`, and `survey_responses` reserve the schema.
 
 ## Open design questions
 

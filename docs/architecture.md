@@ -6,6 +6,10 @@ Full-stack application with a public motorcycle catalog and a private administra
 
 The public home, browse, bike detail, and comparison pages share the same API-backed catalog sidebar. Browse combines brand and category filters in the main content, retaining the current search and sort when filters change. Comparisons show up to two bikes in columns; three or more use one row per bike in a horizontally scrollable table.
 
+Optional interest analytics run in the public browser only after opt-in. The browser sends narrowly defined events without credentials or referrer to the shared API; no analytics identifiers or search text are sent. The API validates events and catalog IDs and atomically updates UTC daily aggregates. A hosted retention job deletes counts older than 12 calendar months. The private admin SPA reads aggregates through the active-administrator API; it never accesses the database directly. Analytics failures do not block catalog actions.
+
+These are activity counts, not unique visitors: page refreshes and comparison selection changes can count again. Searches count on header submission after the browse results load, not on suggestions, pagination, or sorting. Brand/category filters count when applied in browse, chosen from the sidebar, or selected in the comparison picker; compare-picker year and price filters are not tracked. Comparisons with 2–25 published bikes are counted once per view and once for each unordered pair; larger comparisons remain usable but are excluded from analytics. The pre-existing request-based comparison counters remain separate, continue to power recommendations even when analytics is declined, and are disclosed in the preference prompt.
+
 On phone-width screens, public and admin sidebar sections start collapsed and expand independently, and pages scroll to their main content. Tablet and desktop layouts keep the sidebars visible.
 
 ### Tech Stack

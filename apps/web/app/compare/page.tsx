@@ -1,5 +1,6 @@
 import CatalogPageShell from '@/components/CatalogPageShell';
 import CompareClient from '@/components/CompareClient';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
 import { compareBikes } from '@/lib/api';
 import type { Metadata } from 'next';
 
@@ -37,6 +38,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
 
   return (
     <CatalogPageShell>
+      <AnalyticsTracker kind="comparison" bikeIds={compareResult?.bikes.map((bike) => bike.id) ?? []} />
       <h1 className="text-2xl font-bold mb-4">Compare Bikes</h1>
       <CompareClient selectedIds={selectedIds} compareResult={compareResult} />
     </CatalogPageShell>

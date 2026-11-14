@@ -43,6 +43,7 @@ export default async function CatalogPageShell({
                   key={brand.id}
                   href={brandHref(brand.id)}
                   active={browseParams?.brandId === String(brand.id)}
+                  analyticsBrandId={brand.id}
                 >
                   {brand.name}
                 </SidebarLink>

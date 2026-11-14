@@ -5,6 +5,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Button from '@/components/Button';
 import { getBikes, getBrands, getCategories } from '@/lib/api';
+import { trackAnalytics } from '@/lib/analytics';
 import type {
   BikeListItemDto,
   BikesQuery,
@@ -74,6 +75,14 @@ export default function CompareClient({
   const canSearch = trimmedTerm.length >= 2 || hasFilters;
 
   function setFilter(key: keyof typeof filters, value: string) {
+    const id = Number(value);
+    if (Number.isInteger(id) && id > 0) {
+      if (key === 'brandId') {
+        trackAnalytics({ type: 'brand_filter', id });
+      } else if (key === 'categoryId') {
+        trackAnalytics({ type: 'category_filter', id });
+      }
+    }
     setFilters((current) => ({ ...current, [key]: value }));
   }
 

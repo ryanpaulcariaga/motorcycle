@@ -137,6 +137,35 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.ToTable("admin_roles");
                 });
 
+            modelBuilder.Entity("Motorcycle.Domain.AnalyticsDailyCount", b =>
+                {
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date")
+                        .HasColumnName("day");
+
+                    b.Property<string>("Metric")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("metric");
+
+                    b.Property<int>("Dimension1")
+                        .HasColumnType("integer")
+                        .HasColumnName("dimension1");
+
+                    b.Property<int>("Dimension2")
+                        .HasColumnType("integer")
+                        .HasColumnName("dimension2");
+
+                    b.Property<long>("Count")
+                        .HasColumnType("bigint")
+                        .HasColumnName("count");
+
+                    b.HasKey("Day", "Metric", "Dimension1", "Dimension2")
+                        .HasName("pk_analytics_daily_counts");
+
+                    b.ToTable("analytics_daily_counts");
+                });
+
             modelBuilder.Entity("Motorcycle.Domain.Bike", b =>
                 {
                     b.Property<int>("Id")

@@ -1,0 +1,24 @@
+'use client';
+
+import type { ReactNode } from 'react';
+import { trackAnalytics } from '@/lib/analytics';
+
+export default function AnalyticsFilterForm({ children }: { children: ReactNode }) {
+  return (
+    <form
+      action="/bikes"
+      className="mb-4 flex flex-wrap items-end gap-3"
+      onSubmit={(event) => {
+        const data = new FormData(event.currentTarget);
+        for (const [field, type] of [['brandId', 'brand_filter'], ['categoryId', 'category_filter']] as const) {
+          const value = Number(data.get(field));
+          if (Number.isInteger(value) && value > 0) {
+            trackAnalytics({ type, id: value });
+          }
+        }
+      }}
+    >
+      {children}
+    </form>
+  );
+}

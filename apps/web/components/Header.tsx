@@ -10,6 +10,7 @@ import {
   signOutUser,
 } from '@/lib/api';
 import type { BikeListItemDto, UserSessionDto } from '@/lib/types';
+import { markSearchSubmitted } from '@/lib/analytics';
 
 const navLinks = [
   { href: '/bikes', label: 'Browse Bikes' },
@@ -164,6 +165,11 @@ export default function Header() {
           method="get"
           role="search"
           autoComplete="off"
+          onSubmit={() => {
+            if (searchTerm.trim()) {
+              markSearchSubmitted();
+            }
+          }}
           className={`${
             isSearchOpen
               ? 'absolute inset-x-0 top-0 z-40 flex h-full items-center bg-brand-header px-4'

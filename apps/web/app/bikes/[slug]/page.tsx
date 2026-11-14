@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CatalogPageShell from '@/components/CatalogPageShell';
 import Button from '@/components/Button';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
 import BikeImageGallery from '@/components/BikeImageGallery';
 import { getBikeBySlug, getComparedWith } from '@/lib/api';
 import { SITE_URL } from '@/lib/site';
@@ -115,6 +116,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
 
   return (
     <CatalogPageShell>
+      <AnalyticsTracker kind="bike" bikeId={bike.id} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: productJsonLdString }}
