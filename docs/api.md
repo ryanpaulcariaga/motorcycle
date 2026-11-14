@@ -19,16 +19,15 @@ List motorcycles with pagination, sorting, and filtering.
 **Query Parameters**:
 - `page` (int, default 1)
 - `pageSize` (int, default 20)
-- `sortBy` (string: `model`, `year`, `price`, default `model`)
-- `sortOrder` (string: `asc`, `desc`, default `asc`)
+- `sortBy` (string: `model_name`, `year`, `price`, default `model_name`)
+- `sortDescending` (boolean, default `false`)
 - `search` (string: free-text match against model name, variant name, or brand name; used by the compare-page bike picker)
-- `brands` (string: comma-separated brand IDs)
-- `categories` (string: comma-separated category IDs)
-- `year` (string: `2020-2024` range syntax or exact year)
+- `brandId`, `categoryId` (int, optional)
+- `yearMin`, `yearMax` (int, inclusive bounds)
+- `priceMin`, `priceMax` (decimal, inclusive MSRP bounds; missing prices do not match)
+- One dynamic specification filter: `specCode` and `specMin`/`specMax` for a range, `specValue` for an exact or boolean match, or `specValues` for a comma-separated multiselect. For example, `specCode=cc&specMin=250&specMax=500` filters engine displacement.
 
-Imported motorcycles use year `0` when the source does not identify one; year filters exclude those records.
-- `price` (string: `10000-50000` range syntax)
-- Dynamic specs: `spec_<code>=<operator>:<value>` (e.g., `spec_horsepower=gt:100`, `spec_type=in:sport,cruiser`)
+Imported motorcycles use year `0` when the source does not identify one. Browse sends `yearMin=1` when only a maximum year is selected so that unknown years do not match.
 
 **Response**:
 ```json

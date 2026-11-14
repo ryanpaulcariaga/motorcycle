@@ -8,6 +8,11 @@ export default function AnalyticsFilterForm({ children }: { children: ReactNode 
     <form
       action="/bikes"
       className="mb-4 flex flex-wrap items-end gap-3"
+      onInvalidCapture={(event) => {
+        if (event.target instanceof HTMLElement) {
+          event.target.closest('details')?.setAttribute('open', '');
+        }
+      }}
       onSubmit={(event) => {
         const data = new FormData(event.currentTarget);
         for (const [field, type] of [['brandId', 'brand_filter'], ['categoryId', 'category_filter']] as const) {

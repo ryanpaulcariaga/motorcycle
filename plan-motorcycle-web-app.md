@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse, search, filter by brand and category, detail page; compact mobile home and browse bike cards |
+| F-01 | ✅ Public catalog: browse, search, filter by brand and category with expandable year, MSRP and engine displacement filters, detail page; compact mobile home and browse bike cards |
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
@@ -94,7 +94,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 
 | # | Status | Task | Notes | Gate |
 |---|---|---|---|---|
-| T-16 | ⬜ | Public: `/bikes` search and filters | Verify combined brand/category filters and sidebar navigation | G-05 |
+| T-16 | ⬜ | Public: `/bikes` search and filters | Verify advanced filter toggle and combined brand/category/year/price/displacement filters, pagination, and sidebar navigation | G-05 |
 | T-17 | ⬜ | Public: bike detail page and image gallery | | G-05 |
 | T-18 | ⬜ | Public: compare with 2, 5, and 10 bikes | Verify the two-column/three-or-more-row switch, phone side-by-side bike columns, and contained narrow-screen scrolling | G-05, G-08 |
 | T-19 | ⬜ | Public: `sitemap.xml` and `robots.txt` use the production host | | G-05 |
