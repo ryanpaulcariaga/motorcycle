@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 41 of 103 tasks done · 6 in progress · 56 not started.**
+**Progress: 42 of 104 tasks done · 6 in progress · 56 not started.**
 
 **Next up:** Verify interest-profile controls and tracking in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse and search with sidebar brand, category, year, MSRP and engine displacement filters; sort by model, year or price; detail page; compact mobile home and browse bike cards |
+| F-01 | ✅ Public catalog: browse and search with visible brand/category filters and collapsed-by-default advanced year, MSRP and engine displacement filters above results; sort by model, year or price; detail page; compact home and browse bike cards at all widths, with 24 bikes per browse page |
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
@@ -56,7 +56,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; mobile sidebar sections expand independently and pages scroll to content |
 | F-21 | ✅ Admin per-bike, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override and combined review resets |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
-| F-23 | ✅ Shared filter sidebar on public home, catalog, detail, comparison, and settings pages |
+| F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; brand/category filters are visible above browse results, advanced ranges are collapsed by default, and compare-picker filters stay with the compare controls; browse filter state is retained from results to bike details |
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
 
 ## Features (planned)
@@ -94,7 +94,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 
 | # | Status | Task | Notes | Gate |
 |---|---|---|---|---|
-| T-16 | ⬜ | Public: `/bikes` search and filters | Verify advanced filter toggle and combined brand/category/year/price/displacement filters, sorting, pagination, and sidebar navigation | G-05 |
+| T-16 | ⬜ | Public: `/bikes` search and filters | Verify advanced filters above results, combined brand/category/year/price/displacement filters, sorting, pagination, and brand-sidebar navigation | G-05 |
 | T-17 | ⬜ | Public: bike detail page and image gallery | | G-05 |
 | T-18 | ⬜ | Public: compare with 2, 5, and 10 bikes | Verify the two-column/three-or-more-row switch, phone side-by-side bike columns, and contained narrow-screen scrolling | G-05, G-08 |
 | T-19 | ⬜ | Public: `sitemap.xml` and `robots.txt` use the production host | | G-05 |
@@ -229,6 +229,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-104 | ✅ Put catalog filters above browse results | Brand/category visible; advanced ranges collapsed by default with active count. Web lint/build; preserved combined filters, URL state, sorting, pagination, analytics, and brand-sidebar navigation |
 | T-103 | ✅ Share filters across public pages and separate advanced controls | Web lint/build; headless browser verified filtering on home, browse, detail, compare and settings, state retention, divider and mobile layout |
 | T-102 | ✅ Move browse filters into the sidebar and add sorting | Web lint/build; headless browser checked combined filters, model/year/price sorting in both directions, pagination, clearing, and mobile layout |
 | T-101 | ✅ Keep advanced range filters aligned on desktop | Paired two-column layout; public web lint and production build pass |
@@ -250,6 +251,10 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-15** — Moved advanced catalog filters from the shared sidebar to the top of Browse Bikes results. Compare-picker filters remain beside the compare controls; sidebar brand links remain available across public pages. Web lint/build passed; broader T-16 browser acceptance remains.
+
+**2026-11-15** — Kept Brand and Category visible at the top of the browse filter panel and made advanced range filters collapsed by default with an active-range count. Web lint/build passed; broader T-16 browser acceptance remains.
 
 **2026-11-15** — Shared the filter sidebar across all public pages and added a divider above advanced filters. Web lint/build and browser checks passed for submissions from each page, state retention, and mobile layout; broader T-16 acceptance remains.
 

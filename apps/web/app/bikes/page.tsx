@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import CatalogPageShell from '@/components/CatalogPageShell';
 import BikeCardContent from '@/components/BikeCardContent';
+import CatalogFilters from '@/components/CatalogFilters';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import SearchResultLink from '@/components/SearchResultLink';
-import { getBikes, getCategories, getSpecGroups } from '@/lib/api';
-import { buildBrowseHref, isDisplacementFilterAvailable, rangeFields } from '@/lib/catalogFilters';
+import { getBikes, getBrands, getCategories, getSpecGroups } from '@/lib/api';
+import { buildBikeDetailHref, buildBrowseHref, isDisplacementFilterAvailable, rangeFields } from '@/lib/catalogFilters';
 import type { Metadata } from 'next';
 
 interface BikesPageProps {
@@ -67,7 +68,8 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
   const sortBy = params.sortBy === 'price' || params.sortBy === 'year' || params.sortBy === 'model_name'
     ? params.sortBy
     : undefined;
-  const [categories, specGroups] = await Promise.all([
+  const [brands, categories, specGroups] = await Promise.all([
+    getBrands(),
     getCategories(),
     getSpecGroups(),
   ]);
@@ -83,7 +85,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
     ? { items: [], totalPages: 0, totalCount: 0 }
     : await getBikes({
       page,
-      pageSize: 12,
+      pageSize: 24,
       search: params.search,
       brandId: params.brandId,
       categoryId: params.categoryId,
@@ -99,7 +101,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
     });
 
   return (
-    <CatalogPageShell browseParams={params} filterData={{ categories, ccAvailable }}>
+    <CatalogPageShell browseParams={params} catalogBrands={brands}>
           {!filterError && <AnalyticsTracker kind="search" hasSearch={!!params.search?.trim()} zeroResults={totalCount === 0} />}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h1 className="min-w-0 break-words text-2xl font-bold">
@@ -109,6 +111,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
             </h1>
             {!filterError && <p className="shrink-0 text-sm text-brand-grey">{totalCount} bikes</p>}
           </div>
+          <CatalogFilters params={params} brands={brands} categories={categories} ccAvailable={ccAvailable} />
           <form action="/bikes" className="mb-4 flex flex-wrap items-end gap-3">
             {(['search', 'brandId', 'categoryId', ...rangeFields.map(([key]) => key)] as const).map((key) =>
               params[key] ? <input key={key} type="hidden" name={key} value={params[key]} /> : null
@@ -133,11 +136,11 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
             </button>
           </form>
           {filterError && <p role="alert" className="mb-4 text-sm text-red-700">{filterError}</p>}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {bikes.map((bike) => (
               <SearchResultLink
                 key={bike.id}
-                href={`/bikes/${bike.slug}`}
+                href={buildBikeDetailHref(bike.slug, params)}
                 bikeId={bike.id}
                 isSearch={!!params.search?.trim()}
               >

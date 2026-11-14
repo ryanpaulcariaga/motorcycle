@@ -9,6 +9,22 @@ export const rangeFields = [
   ['ccMax', 'Maximum displacement (cc)', false, 0, 1000000000000],
 ] as const;
 
+const browseParamKeys = [
+  'search', 'brandId', 'categoryId', ...rangeFields.map(([key]) => key),
+  'sortBy', 'sortDescending', 'page',
+] as const;
+
+export function getBrowseParams(params: Record<string, string | string[] | undefined>) {
+  const result: Record<string, string | undefined> = {};
+  for (const key of browseParamKeys) {
+    const value = params[key];
+    if (typeof value === 'string' && value) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 export function isDisplacementFilterAvailable(specGroups: SpecGroupDto[]) {
   return specGroups.some((group) => group.definitions.some(
     (definition) => definition.code === 'cc' && definition.isFilterable && definition.filterType === 'range'
@@ -27,4 +43,9 @@ export function buildBrowseHref(
   }
   const search = query.toString();
   return search ? `/bikes?${search}` : '/bikes';
+}
+
+export function buildBikeDetailHref(slug: string, params: Record<string, string | undefined>) {
+  const browseHref = buildBrowseHref(getBrowseParams(params));
+  return `/bikes/${encodeURIComponent(slug)}${browseHref.slice('/bikes'.length)}`;
 }

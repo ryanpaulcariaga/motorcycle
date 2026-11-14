@@ -6,11 +6,13 @@ import Button from '@/components/Button';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import BikeImageGallery from '@/components/BikeImageGallery';
 import { getBikeBySlug, getComparedWith } from '@/lib/api';
+import { buildBikeDetailHref, buildBrowseHref, getBrowseParams } from '@/lib/catalogFilters';
 import { SITE_URL } from '@/lib/site';
 import type { Metadata } from 'next';
 
 interface BikeDetailPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export async function generateMetadata({
@@ -60,8 +62,9 @@ export async function generateMetadata({
 
 export const dynamic = 'force-dynamic';
 
-export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
+export default async function BikeDetailPage({ params, searchParams }: BikeDetailPageProps) {
   const { slug } = await params;
+  const browseParams = getBrowseParams(await searchParams);
 
   let bike;
   try {
@@ -115,12 +118,17 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
   );
 
   return (
-    <CatalogPageShell>
+    <CatalogPageShell browseParams={browseParams}>
       <AnalyticsTracker kind="bike" bikeId={bike.id} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: productJsonLdString }}
       />
+          {Object.keys(browseParams).length > 0 && (
+            <Link href={buildBrowseHref(browseParams)} className="mb-4 inline-block text-sm font-semibold text-brand-button hover:underline">
+              Back to results
+            </Link>
+          )}
           <p className="text-sm text-brand-grey">{bike.categoryName}</p>
           <h1 className="break-words text-2xl font-bold sm:text-3xl">
             {bike.variantName}
@@ -199,7 +207,7 @@ export default async function BikeDetailPage({ params }: BikeDetailPageProps) {
                         {compareCount === 1 ? 'time' : 'times'}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <Link href={`/bikes/${other.slug}`}>
+                        <Link href={buildBikeDetailHref(other.slug, browseParams)}>
                           <Button variant="black">View specs</Button>
                         </Link>
                         <Link href={`/compare?ids=${bike.id},${other.id}`}>
