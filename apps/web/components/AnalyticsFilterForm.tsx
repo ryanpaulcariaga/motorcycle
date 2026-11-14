@@ -7,7 +7,7 @@ export default function AnalyticsFilterForm({ children }: { children: ReactNode 
   return (
     <form
       action="/bikes"
-      className="mb-4 flex flex-wrap items-end gap-3"
+      className="mt-4 border-t border-white/20 pt-4"
       onInvalidCapture={(event) => {
         if (event.target instanceof HTMLElement) {
           event.target.closest('details')?.setAttribute('open', '');

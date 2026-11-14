@@ -1,42 +1,41 @@
 import type { ReactNode } from 'react';
 import PageShell from '@/components/PageShell';
+import CatalogFilters from '@/components/CatalogFilters';
 import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
-import { getBikes, getBrands, getPopularComparisons } from '@/lib/api';
+import { getBikes, getBrands, getCategories, getPopularComparisons, getSpecGroups } from '@/lib/api';
+import { buildBrowseHref, isDisplacementFilterAvailable } from '@/lib/catalogFilters';
+import type { CategoryDto } from '@/lib/types';
 
 interface CatalogPageShellProps {
   children: ReactNode;
   browseParams?: Record<string, string | undefined>;
+  filterData?: { categories: CategoryDto[]; ccAvailable: boolean };
 }
 
 export default async function CatalogPageShell({
   children,
   browseParams,
+  filterData,
 }: CatalogPageShellProps) {
-  const [{ items: latestBikes }, brands, popularComparisons] = await Promise.all([
+  const [{ items: latestBikes }, brands, popularComparisons, filters] = await Promise.all([
     getBikes({ pageSize: 12, sortBy: 'year', sortDescending: true }),
     getBrands(),
     getPopularComparisons(10),
+    filterData ? Promise.resolve(filterData) : Promise.all([getCategories(), getSpecGroups()]).then(
+      ([categories, specGroups]) => ({ categories, ccAvailable: isDisplacementFilterAvailable(specGroups) })
+    ),
   ]);
 
   function brandHref(brandId?: number) {
-    const query = new URLSearchParams();
-    for (const [key, value] of Object.entries(browseParams ?? {})) {
-      if (value && key !== 'brandId' && key !== 'page') {
-        query.set(key, value);
-      }
-    }
-    if (brandId !== undefined) {
-      query.set('brandId', String(brandId));
-    }
-    const search = query.toString();
-    return search ? `/bikes?${search}` : '/bikes';
+    return buildBrowseHref(browseParams ?? {}, { brandId, page: undefined });
   }
 
   return (
     <PageShell bare>
       <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-6">
         <Sidebar>
-          <SidebarSection title="Brands">
+          <SidebarSection title="Filters">
+            <h3 className="mb-2 text-sm font-semibold">Brand</h3>
             <div className="flex flex-col">
               {brands.map((brand) => (
                 <SidebarLink
@@ -52,6 +51,7 @@ export default async function CatalogPageShell({
             <SidebarLink href={brandHref()} active={!!browseParams && !browseParams.brandId}>
               All Brands
             </SidebarLink>
+            <CatalogFilters params={browseParams ?? {}} {...filters} />
           </SidebarSection>
           <SidebarSection title="Latest Bikes">
             <div className="flex flex-col">

@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 38 of 100 tasks done · 6 in progress · 56 not started.**
+**Progress: 41 of 103 tasks done · 6 in progress · 56 not started.**
 
 **Next up:** Verify interest-profile controls and tracking in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse, search, filter by brand and category with expandable year, MSRP and engine displacement filters, detail page; compact mobile home and browse bike cards |
+| F-01 | ✅ Public catalog: browse and search with sidebar brand, category, year, MSRP and engine displacement filters; sort by model, year or price; detail page; compact mobile home and browse bike cards |
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
@@ -56,7 +56,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; mobile sidebar sections expand independently and pages scroll to content |
 | F-21 | ✅ Admin per-bike, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override and combined review resets |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
-| F-23 | ✅ Shared home sidebar on public catalog, detail, and comparison pages |
+| F-23 | ✅ Shared filter sidebar on public home, catalog, detail, comparison, and settings pages |
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
 
 ## Features (planned)
@@ -94,7 +94,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 
 | # | Status | Task | Notes | Gate |
 |---|---|---|---|---|
-| T-16 | ⬜ | Public: `/bikes` search and filters | Verify advanced filter toggle and combined brand/category/year/price/displacement filters, pagination, and sidebar navigation | G-05 |
+| T-16 | ⬜ | Public: `/bikes` search and filters | Verify advanced filter toggle and combined brand/category/year/price/displacement filters, sorting, pagination, and sidebar navigation | G-05 |
 | T-17 | ⬜ | Public: bike detail page and image gallery | | G-05 |
 | T-18 | ⬜ | Public: compare with 2, 5, and 10 bikes | Verify the two-column/three-or-more-row switch, phone side-by-side bike columns, and contained narrow-screen scrolling | G-05, G-08 |
 | T-19 | ⬜ | Public: `sitemap.xml` and `robots.txt` use the production host | | G-05 |
@@ -229,6 +229,9 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-103 | ✅ Share filters across public pages and separate advanced controls | Web lint/build; headless browser verified filtering on home, browse, detail, compare and settings, state retention, divider and mobile layout |
+| T-102 | ✅ Move browse filters into the sidebar and add sorting | Web lint/build; headless browser checked combined filters, model/year/price sorting in both directions, pagination, clearing, and mobile layout |
+| T-101 | ✅ Keep advanced range filters aligned on desktop | Paired two-column layout; public web lint and production build pass |
 | T-01 | ✅ Azure resources provisioned | |
 | T-02 | ✅ OIDC deploy pipeline and first deploy | Run #39211828423, 2026-10-19 |
 | T-03 | ✅ Production reachable; DB, storage, Facebook sign-in confirmed | 2026-10-19, 2026-10-20 |
@@ -247,6 +250,12 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-15** — Shared the filter sidebar across all public pages and added a divider above advanced filters. Web lint/build and browser checks passed for submissions from each page, state retention, and mobile layout; broader T-16 acceptance remains.
+
+**2026-11-15** — Moved Browse Bikes filters into the sidebar and added model, year, and price sorting. Web lint/build and headless browser checks passed for combined filters, sorting directions, pagination, clearing, mobile width, and home sidebar; broader T-16 acceptance remains.
+
+**2026-11-15** — Fixed the public Bikes advanced filters so year, price, and displacement inputs stay paired in a responsive two-column desktop layout instead of leaving a full-width final field. Focused lint and the public web production build passed; broader T-16 browser acceptance remains.
 
 **2026-11-15** — Implemented opt-in daily interest counters and admin dashboard, with 12-month retention and no analytics identifiers or raw search terms. Focused API tests, frontend builds, public browser checks, mocked dashboard rendering, and isolated PostgreSQL ingestion/concurrency/retention checks passed. Authenticated dashboard end-to-end verification, public spec-filter tracking, privacy policy and legal review remain. Existing comparison recommendation counters remain separate.
 

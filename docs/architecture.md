@@ -4,7 +4,7 @@
 
 Full-stack application with a public motorcycle catalog and a private administration site. The public site supports browsing, searching, filtering, and comparison; the admin site maintains catalog data through the shared API.
 
-The public home, browse, bike detail, and comparison pages share the same API-backed catalog sidebar. Browse combines brand and category filters in the main content, retaining the current search and sort when filters change. Comparisons show up to two bikes in columns; three or more use one row per bike in a horizontally scrollable table.
+The public home, browse, bike detail, comparison, and settings pages share the same API-backed catalog sidebar, including brand, category, year, price, and displacement filters. Applying filters opens browse results; when already browsing, filter changes retain the current search and sort. Sorting controls remain above the browse results. Comparisons show up to two bikes in columns; three or more use one row per bike in a horizontally scrollable table.
 
 Optional interest analytics run in the public browser only after opt-in. The browser sends narrowly defined events without credentials or referrer to the shared API; no analytics identifiers or search text are sent. The API validates events and catalog IDs and atomically updates UTC daily aggregates. A hosted retention job deletes counts older than 12 calendar months. The private admin SPA reads aggregates through the active-administrator API; it never accesses the database directly. Analytics failures do not block catalog actions.
 
