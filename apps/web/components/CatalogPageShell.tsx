@@ -53,7 +53,7 @@ export default async function CatalogPageShell({
               All Brands
             </SidebarLink>
           </SidebarSection>
-          <SidebarSection title="Latest Devices">
+          <SidebarSection title="Latest Bikes">
             <div className="flex flex-col">
               {latestBikes.slice(0, 5).map((bike) => (
                 <SidebarLink key={bike.id} href={`/bikes/${bike.slug}`}>
