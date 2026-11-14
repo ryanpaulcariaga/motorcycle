@@ -116,7 +116,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
           <CatalogFilters params={browseParams} brands={brands} categories={categories} ccAvailable={ccAvailable} />
           <CatalogSortControls key={browseParams.sort} params={browseParams} initialSorts={sorts} />
           {filterError && <p role="alert" className="mb-4 text-sm text-red-700">{filterError}</p>}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
             {bikes.map((bike) => (
               <SearchResultLink
                 key={bike.id}

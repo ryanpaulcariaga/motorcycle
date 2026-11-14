@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria; detail page; compact home and browse bike cards at all widths, with 24 bikes per browse page |
+| F-01 | ✅ Public catalog: browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria; detail page; compact home and browse bike cards in one column through tablet widths and responsive desktop columns, with 24 bikes per browse page |
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
@@ -254,6 +254,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-15** — Kept public home and browse bike cards in one column through tablet widths, including the 768px iPad Mini viewport; 2 columns start at `lg` and 3 at `xl`. Focused ESLint and the public production build passed; browser verification was unavailable because the shared browser connection timed out.
 
 **2026-11-15** — Removed position dropdowns from shared reorder controls. Both frontend builds passed; public pointer, touch, and keyboard drag and admin group/definition drag with mocked API responses passed browser checks. No non-drag single-pointer alternative remains; G-08 accessibility review is still open.
 
