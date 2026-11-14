@@ -70,16 +70,15 @@ export default function CatalogSortControls({ params, initialSorts }: CatalogSor
                   </option>
                 ))}
               </select>
-              <label className="sr-only" htmlFor={`sort-direction-${index}`}>Sort direction {index + 1}</label>
-              <select
-                id={`sort-direction-${index}`}
-                value={sort.descending ? 'desc' : 'asc'}
-                onChange={(event) => updateSort(index, { descending: event.target.value === 'desc' })}
-                className="border border-zinc-300 bg-white px-2 py-1.5"
+              <button
+                type="button"
+                aria-label={`${catalogSortFields.find(([field]) => field === sort.field)?.[1] ?? sort.field} ${sort.descending ? 'descending' : 'ascending'}, click to reverse`}
+                title={sort.descending ? 'Descending' : 'Ascending'}
+                onClick={() => updateSort(index, { descending: !sort.descending })}
+                className="border border-zinc-300 bg-white px-2 py-1.5 font-semibold hover:bg-zinc-100"
               >
-                <option value="asc">Ascending</option>
-                <option value="desc">Descending</option>
-              </select>
+                {sort.descending ? 'Z\u2192A' : 'A\u2192Z'}
+              </button>
               {sorts.length > 1 && (
                 <button type="button" onClick={() => setSorts((current) => current.filter((_, sortIndex) => sortIndex !== index))} className="px-1 font-semibold text-brand-button" aria-label={`Remove sort ${index + 1}`}>
                   Remove

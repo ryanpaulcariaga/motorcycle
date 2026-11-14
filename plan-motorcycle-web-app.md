@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 46 of 108 tasks done · 6 in progress · 56 not started.**
+**Progress: 47 of 109 tasks done · 6 in progress · 56 not started.**
 
 **Next up:** Verify interest-profile controls and tracking in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria; detail page; compact home and browse bike cards in one column through tablet widths and responsive desktop columns, with 24 bikes per browse page |
+| F-01 | ✅ Public catalog: browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria and admin-style direction toggles; detail page; compact home and browse bike cards in one column through tablet widths and responsive desktop columns, with 24 bikes per browse page |
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
@@ -230,6 +230,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-109 | ✅ Replace browse sort direction dropdowns with toggles | Each sort level uses the admin-style A→Z/Z→A toggle; existing form serialization remains. Focused web lint and production build pass; browser acceptance remains under T-16 |
 | T-108 | ✅ Add unsupported-browser fallback to both frontends | Capability tests, web lint/build and admin build pass; public nonce and admin production CSP/asset responses checked. Live browser verification unavailable; G-05 remains open |
 | T-107 | ✅ Replace secondary sort control with ordered multi-field sorting | Sort is in a collapsed-by-default bordered box matching Advanced filters; add/remove/reorder supported fields for one or more criteria. API applies all criteria before paging. Focused API test covers three levels and paging; web ESLint/build pass |
 | T-106 | ✅ Reduce browse sort controls and add an optional secondary sort | Compact inline primary sorting; secondary field/order controls are collapsed by default; API sorts before paging and preserves secondary sort in browse URLs. Focused service tests, API compile, web ESLint/build passed |
@@ -256,6 +257,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-15** — Replaced browse sort direction dropdowns with admin-style A→Z/Z→A toggles for each sort level. Focused web lint and build passed; browser connection timed out, so T-16 acceptance remains.
 
 **2026-11-15** — Added an early compatibility notice to both apps for missing browser capabilities or unavailable JavaScript. Capability tests, web lint/build, admin build, and CSP/asset response checks passed. Browser connection timed out; G-05 browser acceptance remains open.
 
