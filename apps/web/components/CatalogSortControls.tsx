@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { moveItem, SortableItem, SortableList } from '@motorcycle/reorder';
 import {
   catalogSortFields,
   serializeCatalogSorts,
@@ -32,13 +33,8 @@ export default function CatalogSortControls({ params, initialSorts }: CatalogSor
     updateSort(index, { field });
   }
 
-  function moveSort(index: number, offset: number) {
-    setSorts((current) => {
-      const reordered = [...current];
-      const [criterion] = reordered.splice(index, 1);
-      reordered.splice(index + offset, 0, criterion);
-      return reordered;
-    });
+  function moveSort(from: number, to: number) {
+    setSorts((current) => moveItem(current, from, to));
   }
 
   return (
@@ -51,10 +47,12 @@ export default function CatalogSortControls({ params, initialSorts }: CatalogSor
           params[key] ? <input key={key} type="hidden" name={key} value={params[key]} /> : null
         )}
         <input type="hidden" name="sort" value={serializeCatalogSorts(sorts)} />
+        <SortableList ids={sorts.map((sort) => sort.field)} onMove={moveSort}>
         <div className="flex flex-col gap-2">
           {sorts.map((sort, index) => (
-            <div key={sort.field} className="flex flex-wrap items-center gap-2">
-              <span className="w-6 font-semibold text-brand-grey">{index + 1}.</span>
+            <SortableItem as="div" id={sort.field} label={`${catalogSortFields.find(([field]) => field === sort.field)?.[1] ?? sort.field} sort`} key={sort.field} className="flex flex-wrap items-center gap-2">
+              {(handle) => <>
+              {handle}
               <label className="sr-only" htmlFor={`sort-field-${index}`}>Sort field {index + 1}</label>
               <select
                 id={`sort-field-${index}`}
@@ -82,24 +80,16 @@ export default function CatalogSortControls({ params, initialSorts }: CatalogSor
                 <option value="asc">Ascending</option>
                 <option value="desc">Descending</option>
               </select>
-              {index > 0 && (
-                <button type="button" onClick={() => moveSort(index, -1)} className="px-1 font-semibold text-brand-button" aria-label={`Move sort ${index + 1} up`}>
-                  Move up
-                </button>
-              )}
-              {index < sorts.length - 1 && (
-                <button type="button" onClick={() => moveSort(index, 1)} className="px-1 font-semibold text-brand-button" aria-label={`Move sort ${index + 1} down`}>
-                  Move down
-                </button>
-              )}
               {sorts.length > 1 && (
                 <button type="button" onClick={() => setSorts((current) => current.filter((_, sortIndex) => sortIndex !== index))} className="px-1 font-semibold text-brand-button" aria-label={`Remove sort ${index + 1}`}>
                   Remove
                 </button>
               )}
-            </div>
+              </>}
+            </SortableItem>
           ))}
         </div>
+        </SortableList>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           {unusedFields.length > 0 && (
             <button

@@ -41,12 +41,14 @@ jobs:
               - '.github/workflows/deploy.yml'
             web:
               - 'apps/web/**'
+              - 'packages/reorder/**'
               - '.github/workflows/deploy.yml'
               - 'package.json'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
             admin:
               - 'apps/admin/**'
+              - 'packages/reorder/**'
               - '.github/workflows/deploy.yml'
               - 'package.json'
               - 'pnpm-lock.yaml'

@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent, useEffect, useState } from 'react';
+import { moveItem, SortableItem, SortableList } from '@motorcycle/reorder';
 import { IconButton } from '@/components/IconButton';
 import {
   AdminApiError,
@@ -97,14 +98,13 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
     }
   }
 
-  async function move(index: number, direction: -1 | 1) {
-    const target = index + direction;
-    if (target < 0 || target >= images.length) {
+  async function move(from: number, to: number) {
+    if (busy || from < 0 || from >= images.length || to < 0 || to >= images.length || from === to) {
       return;
     }
-    const next = [...images];
-    [next[index], next[target]] = [next[target], next[index]];
+    const next = moveItem(images, from, to);
     setBusy(true);
+    setError(null);
     try {
       setImages(
         await reorderAdminBikeImages(
@@ -112,8 +112,8 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
           next.map((image) => image.id)
         )
       );
-    } catch {
-      setError('Unable to reorder images.');
+    } catch (cause) {
+      setError(cause instanceof AdminApiError ? cause.message : 'Unable to reorder images.');
     } finally {
       setBusy(false);
     }
@@ -172,12 +172,19 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
       {images.length === 0 ? (
         <p className="mt-4 text-sm text-brand-grey">No images assigned.</p>
       ) : (
+        <SortableList ids={images.map((image) => image.id)} onMove={(from, to) => void move(from, to)}>
         <div className="mt-4 space-y-3">
           {images.map((image, index) => (
-            <div
+            <SortableItem
+              as="div"
+              id={image.id}
+              label={`image ${index + 1}`}
+              disabled={busy}
               className="flex flex-wrap items-center gap-3 bg-black/5 p-2"
               key={image.id}
             >
+              {(handle) => <>
+              {handle}
               <img
                 src={image.variants?.small ?? image.blobUrl}
                 alt="Bike"
@@ -231,18 +238,6 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
                   />
                 )}
                 <IconButton
-                  icon="up"
-                  label={`Move image ${index + 1} up`}
-                  onClick={() => void move(index, -1)}
-                  disabled={busy || index === 0}
-                />
-                <IconButton
-                  icon="down"
-                  label={`Move image ${index + 1} down`}
-                  onClick={() => void move(index, 1)}
-                  disabled={busy || index === images.length - 1}
-                />
-                <IconButton
                   icon="delete"
                   label="Delete image"
                   variant="danger"
@@ -250,9 +245,11 @@ export default function BikeImageManagement({ bikeId }: { bikeId: number }) {
                   disabled={busy}
                 />
               </div>
-            </div>
+              </>}
+            </SortableItem>
           ))}
         </div>
+        </SortableList>
       )}
     </section>
   );

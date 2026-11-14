@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { moveItem, SortableItem, SortableList } from '@motorcycle/reorder';
 import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
@@ -49,6 +50,7 @@ export default function SpecDefinitionManagement({
   const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [reordering, setReordering] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -176,24 +178,26 @@ export default function SpecDefinitionManagement({
     }
   }
 
-  async function move(definition: SpecDefinitionAdmin, direction: -1 | 1) {
+  async function move(from: number, to: number) {
     const ordered = [...definitions].sort((a, b) => a.sortOrder - b.sortOrder);
-    const index = ordered.findIndex((d) => d.id === definition.id);
-    const swapIndex = index + direction;
-    if (swapIndex < 0 || swapIndex >= ordered.length) {
+    if (reordering || from < 0 || from >= ordered.length || to < 0 || to >= ordered.length || from === to) {
       return;
     }
-    [ordered[index], ordered[swapIndex]] = [ordered[swapIndex], ordered[index]];
+    const reordered = moveItem(ordered, from, to);
+    setLastTouchedId(ordered[from].id);
+    setReordering(true);
     setError(null);
     try {
       setDefinitions(
         await reorderAdminSpecDefinitions(
           groupId,
-          ordered.map((d) => d.id)
+          reordered.map((d) => d.id)
         )
       );
-    } catch {
-      setError('Unable to reorder spec definitions.');
+    } catch (cause) {
+      setError(cause instanceof AdminApiError ? cause.message : 'Unable to reorder spec definitions.');
+    } finally {
+      setReordering(false);
     }
   }
 
@@ -234,13 +238,14 @@ export default function SpecDefinitionManagement({
               icon="refresh"
               label="Refresh"
               onClick={() => void load()}
-              disabled={loading}
+              disabled={loading || reordering}
             />
             <IconButton
               icon="add"
               label="Add spec"
               variant="primary"
               onClick={startCreate}
+              disabled={reordering}
             />
           </div>
         </div>
@@ -259,6 +264,7 @@ export default function SpecDefinitionManagement({
             No spec definitions in this group yet.
           </p>
         ) : (
+          <SortableList ids={ordered.map((definition) => definition.id)} onMove={(from, to) => void move(from, to)}>
           <div className="mt-6 max-w-full overflow-x-auto">
             <table className="w-full min-w-[50rem] text-left text-sm">
               <thead>
@@ -274,35 +280,19 @@ export default function SpecDefinitionManagement({
                 </tr>
               </thead>
               <tbody>
-                {ordered.map((definition, index) => (
-                  <tr
+                {ordered.map((definition) => (
+                  <SortableItem
+                    as="tr"
+                    id={definition.id}
+                    label={`${definition.label} specification`}
+                    disabled={reordering}
                     className={`border-b border-black/10 ${lastTouchedId === definition.id ? 'bg-brand-button/10' : ''}`}
                     key={definition.id}
                     onClick={() => setLastTouchedId(definition.id)}
                   >
-                    <td className="p-2">
-                      <button
-                        className="mr-1 disabled:opacity-30"
-                        disabled={index === 0}
-                        onClick={() => {
-                          setLastTouchedId(definition.id);
-                          void move(definition, -1);
-                        }}
-                        aria-label="Move up"
-                      >
-                        &uarr;
-                      </button>
-                      <button
-                        className="disabled:opacity-30"
-                        disabled={index === ordered.length - 1}
-                        onClick={() => {
-                          setLastTouchedId(definition.id);
-                          void move(definition, 1);
-                        }}
-                        aria-label="Move down"
-                      >
-                        &darr;
-                      </button>
+                    {(handle) => <>
+                    <td className="p-2 whitespace-nowrap">
+                      {handle}
                     </td>
                     <td className="p-2 font-mono text-xs">{definition.code}</td>
                     <td className="p-2">
@@ -321,6 +311,7 @@ export default function SpecDefinitionManagement({
                         <IconButton
                           icon="edit"
                           label="Edit"
+                          disabled={reordering}
                           onClick={() => {
                             setLastTouchedId(definition.id);
                             startEdit(definition);
@@ -329,6 +320,7 @@ export default function SpecDefinitionManagement({
                         <IconButton
                           icon="clone"
                           label="Clone"
+                          disabled={reordering}
                           onClick={() => {
                             setLastTouchedId(definition.id);
                             startClone(definition);
@@ -338,6 +330,7 @@ export default function SpecDefinitionManagement({
                           icon="delete"
                           label="Delete"
                           variant="danger"
+                          disabled={reordering}
                           onClick={() => {
                             setLastTouchedId(definition.id);
                             void remove(definition);
@@ -345,11 +338,13 @@ export default function SpecDefinitionManagement({
                         />
                       </div>
                     </td>
-                  </tr>
+                    </>}
+                  </SortableItem>
                 ))}
               </tbody>
             </table>
           </div>
+          </SortableList>
         )}
       </section>
       {modalOpen && (

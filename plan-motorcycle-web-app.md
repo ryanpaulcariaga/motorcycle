@@ -36,16 +36,16 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with ordered brand, category, model, variant, year, and price criteria; detail page; compact home and browse bike cards at all widths, with 24 bikes per browse page |
+| F-01 | ✅ Public catalog: browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria; detail page; compact home and browse bike cards at all widths, with 24 bikes per browse page |
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
 | F-05 | ✅ Admin sign-in (Facebook PKCE) and admin roles |
 | F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts |
 | F-07 | ✅ Admin: Bike variant CRUD, checkbox controls for publish and reviewed status, move to another model, image-presence filter; model labels show assigned bike counts |
-| F-08 | ✅ Admin: image upload, ordering, primary image, file-signature validation |
-| F-09 | ✅ Admin: spec group/definition management |
-| F-10 | ✅ Admin: Bulk Spec Edit, editable motorcycle/year/MSRP grid fields, shared sorting, Excel export/import |
+| F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
+| F-09 | ✅ Admin: spec group/definition management and drag-and-drop ordering |
+| F-10 | ✅ Admin: Bulk Spec Edit, editable motorcycle/year/MSRP grid fields, draggable shared sorting, Excel export/import |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin; bike variant headers match cell padding; admin modal action icons match grid icon colors |
@@ -254,6 +254,12 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-15** — Removed position dropdowns from shared reorder controls. Both frontend builds passed; public pointer, touch, and keyboard drag and admin group/definition drag with mocked API responses passed browser checks. No non-drag single-pointer alternative remains; G-08 accessibility review is still open.
+
+**2026-11-15** — Removed move up/down buttons from public and admin reorder controls; position selectors provide a non-drag alternative. Both frontend builds and focused lint passed; browser checks covered public keyboard/position ordering and admin position ordering with mocked API responses. Authenticated admin verification remains.
+
+**2026-11-15** — Added shared drag handles to public sort levels and admin sort levels, spec groups/definitions, and bike images; existing move buttons remain. Isolated browser checks covered public pointer, keyboard, touch and URL submission, plus admin ordering with mocked API responses. Authenticated admin end-to-end acceptance remains under T-55.
 
 **2026-11-15** — Replaced the crowded secondary-sort controls with a collapsed bordered box matching Advanced filters and ordered add/remove/reorder sort levels for brand, category, model, variant, year, and price. Added serialized URL/API criteria while retaining compatibility with earlier sort parameters. Focused API tests, web ESLint/build pass; browser verification timed out.
 

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { SortRule } from '@/lib/multiSort';
+import { moveItem, SortableItem, SortableList } from '@motorcycle/reorder';
 
 export const GridSidebarSlot = createContext<HTMLElement | null>(null);
 
@@ -103,10 +104,8 @@ export function SortGroup<K extends string>({
     (field) => !rules.some((rule) => rule.field === field.key)
   );
 
-  function move(index: number, offset: number) {
-    const next = [...rules];
-    [next[index], next[index + offset]] = [next[index + offset], next[index]];
-    onChange(next);
+  function move(from: number, to: number) {
+    onChange(moveItem(rules, from, to));
   }
 
   return (
@@ -114,15 +113,20 @@ export function SortGroup<K extends string>({
       {rules.length === 0 && (
         <p className="text-sm text-white/70">Default order</p>
       )}
+      <SortableList ids={rules.map((rule) => rule.field)} onMove={move}>
       <ol className="space-y-2">
         {rules.map((rule, index) => (
-          <li className="bg-white/10 p-2 text-sm" key={rule.field}>
+          <SortableItem as="li" id={rule.field} label={`${labelOf(rule.field)} sort`} className="bg-white/10 p-2 text-sm" key={rule.field}>
+            {(handle) => <>
+            <div className="flex items-center gap-1">
+            {handle}
             <span
               className="block font-semibold"
               title={`${labelOf(rule.field)} (${rule.direction === 'asc' ? 'ascending' : 'descending'})`}
             >
               {labelOf(rule.field)}
             </span>
+            </div>
             <div className="mt-1 flex items-center justify-end gap-1">            <button
               aria-label={`${labelOf(rule.field)} ${rule.direction === 'asc' ? 'ascending' : 'descending'}, click to reverse`}
               className={iconButton}
@@ -144,26 +148,6 @@ export function SortGroup<K extends string>({
               {rule.direction === 'asc' ? 'A\u2192Z' : 'Z\u2192A'}
             </button>
             <button
-              aria-label={`Move ${labelOf(rule.field)} up`}
-              className={iconButton}
-              disabled={index === 0}
-              onClick={() => move(index, -1)}
-              title="Move up"
-              type="button"
-            >
-              {'\u2191'}
-            </button>
-            <button
-              aria-label={`Move ${labelOf(rule.field)} down`}
-              className={iconButton}
-              disabled={index === rules.length - 1}
-              onClick={() => move(index, 1)}
-              title="Move down"
-              type="button"
-            >
-              {'\u2193'}
-            </button>
-            <button
               aria-label={`Remove ${labelOf(rule.field)} sort`}
               className={iconButton}
               onClick={() =>
@@ -175,9 +159,11 @@ export function SortGroup<K extends string>({
               {'\u2715'}
             </button>
             </div>
-          </li>
+            </>}
+          </SortableItem>
         ))}
       </ol>
+      </SortableList>
       {unused.length > 0 && (
         <SidebarSelect
           label="Add sort"

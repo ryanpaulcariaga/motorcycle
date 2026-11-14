@@ -16,6 +16,8 @@ These are activity counts, not unique visitors: page refreshes and comparison se
 
 On phone-width screens, public and admin sidebar sections start collapsed and expand independently, and pages scroll to their main content. Tablet and desktop layouts keep the sidebars visible.
 
+The public catalog sort and admin sort, specification, and image ordering controls share the `packages/reorder` drag-and-drop components. Handles support pointer, touch, and keyboard interaction. They have no non-drag single-pointer alternative. Public sort changes apply on form submission, admin sort changes apply locally, and admin specification and image changes use their existing reorder API endpoints.
+
 ### Tech Stack
 
 - **Frontend**: Next.js 16 (React, TypeScript, App Router, Tailwind CSS)

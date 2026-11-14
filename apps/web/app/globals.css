@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../../packages/reorder/src";
 
 :root {
   --background: #ffffff;
@@ -37,4 +38,3 @@ body {
   color: var(--foreground);
   font-family: "Aptos", "Segoe UI", sans-serif;
 }
-

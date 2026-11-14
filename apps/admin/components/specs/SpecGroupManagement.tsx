@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { moveItem, SortableItem, SortableList } from '@motorcycle/reorder';
 import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
@@ -25,6 +26,7 @@ export default function SpecGroupManagement() {
   const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [reordering, setReordering] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -117,20 +119,22 @@ export default function SpecGroupManagement() {
     }
   }
 
-  async function move(group: SpecGroupAdmin, direction: -1 | 1) {
+  async function move(from: number, to: number) {
     const ordered = [...groups].sort((a, b) => a.sortOrder - b.sortOrder);
-    const index = ordered.findIndex((g) => g.id === group.id);
-    const swapIndex = index + direction;
-    if (swapIndex < 0 || swapIndex >= ordered.length) {
+    if (reordering || from < 0 || from >= ordered.length || to < 0 || to >= ordered.length || from === to) {
       return;
     }
-    [ordered[index], ordered[swapIndex]] = [ordered[swapIndex], ordered[index]];
+    const reordered = moveItem(ordered, from, to);
+    setLastTouchedId(ordered[from].id);
+    setReordering(true);
     setError(null);
     try {
-      const result = await reorderAdminSpecGroups(ordered.map((g) => g.id));
+      const result = await reorderAdminSpecGroups(reordered.map((g) => g.id));
       setGroups(result);
-    } catch {
-      setError('Unable to reorder spec groups.');
+    } catch (cause) {
+      setError(cause instanceof AdminApiError ? cause.message : 'Unable to reorder spec groups.');
+    } finally {
+      setReordering(false);
     }
   }
 
@@ -174,13 +178,14 @@ export default function SpecGroupManagement() {
                 icon="refresh"
                 label="Refresh"
                 onClick={() => void load()}
-                disabled={loading}
+                disabled={loading || reordering}
               />
               <IconButton
                 icon="add"
                 label="Add group"
                 variant="primary"
                 onClick={startCreate}
+                disabled={reordering}
               />
             </div>
           </div>
@@ -199,6 +204,7 @@ export default function SpecGroupManagement() {
               No spec groups have been created yet.
             </p>
           ) : (
+            <SortableList ids={orderedGroups.map((group) => group.id)} onMove={(from, to) => void move(from, to)}>
             <div className="mt-6 max-w-full overflow-x-auto">
               <table className="w-full min-w-[42rem] text-left text-sm">
                 <thead>
@@ -213,35 +219,19 @@ export default function SpecGroupManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orderedGroups.map((group, index) => (
-                    <tr
+                  {orderedGroups.map((group) => (
+                    <SortableItem
+                      as="tr"
+                      id={group.id}
+                      label={`${group.name} group`}
+                      disabled={reordering}
                       className={`border-b border-black/10 ${lastTouchedId === group.id ? 'bg-brand-button/10' : selectedGroupId === group.id ? 'bg-brand-gold/10' : ''}`}
                       key={group.id}
                       onClick={() => setLastTouchedId(group.id)}
                     >
-                      <td className="p-2">
-                        <button
-                          className="mr-1 disabled:opacity-30"
-                          disabled={index === 0}
-                          onClick={() => {
-                            setLastTouchedId(group.id);
-                            void move(group, -1);
-                          }}
-                          aria-label="Move up"
-                        >
-                          &uarr;
-                        </button>
-                        <button
-                          className="disabled:opacity-30"
-                          disabled={index === orderedGroups.length - 1}
-                          onClick={() => {
-                            setLastTouchedId(group.id);
-                            void move(group, 1);
-                          }}
-                          aria-label="Move down"
-                        >
-                          &darr;
-                        </button>
+                      {(handle) => <>
+                      <td className="p-2 whitespace-nowrap">
+                        {handle}
                       </td>
                       <td className="p-2 font-mono text-xs">{group.code}</td>
                       <td className="p-2">
@@ -258,6 +248,7 @@ export default function SpecGroupManagement() {
                           <IconButton
                             icon="edit"
                             label="Edit"
+                            disabled={reordering}
                             onClick={() => {
                               setLastTouchedId(group.id);
                               startEdit(group);
@@ -266,6 +257,7 @@ export default function SpecGroupManagement() {
                           <IconButton
                             icon="clone"
                             label="Clone"
+                            disabled={reordering}
                             onClick={() => {
                               setLastTouchedId(group.id);
                               startClone(group);
@@ -275,6 +267,7 @@ export default function SpecGroupManagement() {
                             icon="delete"
                             label="Delete"
                             variant="danger"
+                            disabled={reordering}
                             onClick={() => {
                               setLastTouchedId(group.id);
                               void remove(group);
@@ -282,11 +275,13 @@ export default function SpecGroupManagement() {
                           />
                         </div>
                       </td>
-                    </tr>
+                      </>}
+                    </SortableItem>
                   ))}
                 </tbody>
               </table>
             </div>
+            </SortableList>
           )}
         </section>
         {modalOpen && (
@@ -369,6 +364,7 @@ export default function SpecGroupManagement() {
 
       {selectedGroupId !== null && (
         <SpecDefinitionManagement
+          key={selectedGroupId}
           groupId={selectedGroupId}
           groups={orderedGroups}
           onDefinitionCountChanged={() => void load()}
