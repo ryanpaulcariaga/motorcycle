@@ -1,0 +1,30 @@
+html.browser-pending body > :not(#browser-support-notice),
+html.browser-supported #browser-support-notice {
+  display: none !important;
+}
+
+#browser-support-notice {
+  color: #0a0a0a;
+  background: #d99a2b;
+  font-family: Aptos, "Segoe UI", sans-serif;
+  min-height: 100vh;
+}
+
+#browser-support-notice header {
+  background: #0a0a0a;
+  color: #fff;
+  padding: 1.25rem 1.5rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+#browser-support-notice main {
+  background: #fff;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  max-width: 40rem;
+}
+
+#browser-support-notice a {
+  color: #075985;
+}

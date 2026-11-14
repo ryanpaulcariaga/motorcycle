@@ -1,11 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="browser-pending">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MotoCompare Admin</title>
+    <link rel="stylesheet" href="/browser-support.css" />
+    <script src="/browser-support.js"></script>
   </head>
   <body>
+    <div id="browser-support-notice">
+      <header>MotoCompare Admin</header>
+      <main>
+        <h1>Browser not supported</h1>
+        <p>Your browser may be outdated, or JavaScript may be disabled or unavailable.</p>
+        <p>Enable JavaScript and update your browser, or try a current version of Chrome, Edge, Firefox, or Safari.</p>
+      </main>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

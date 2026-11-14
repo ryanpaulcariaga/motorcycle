@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 45 of 107 tasks done · 6 in progress · 56 not started.**
+**Progress: 46 of 108 tasks done · 6 in progress · 56 not started.**
 
 **Next up:** Verify interest-profile controls and tracking in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -58,6 +58,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
+| F-26 | ✅ Public and admin show a browser compatibility notice when required capabilities or JavaScript are unavailable |
 
 ## Features (planned)
 
@@ -229,6 +230,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-108 | ✅ Add unsupported-browser fallback to both frontends | Capability tests, web lint/build and admin build pass; public nonce and admin production CSP/asset responses checked. Live browser verification unavailable; G-05 remains open |
 | T-107 | ✅ Replace secondary sort control with ordered multi-field sorting | Sort is in a collapsed-by-default bordered box matching Advanced filters; add/remove/reorder supported fields for one or more criteria. API applies all criteria before paging. Focused API test covers three levels and paging; web ESLint/build pass |
 | T-106 | ✅ Reduce browse sort controls and add an optional secondary sort | Compact inline primary sorting; secondary field/order controls are collapsed by default; API sorts before paging and preserves secondary sort in browse URLs. Focused service tests, API compile, web ESLint/build passed |
 | T-105 | ✅ Collapse all browse filters by default | Brand, category, and range fields plus apply/clear actions are inside a collapsed-by-default panel; active count includes each filter type. Focused ESLint and production build pass; browser connection timed out |
@@ -254,6 +256,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-15** — Added an early compatibility notice to both apps for missing browser capabilities or unavailable JavaScript. Capability tests, web lint/build, admin build, and CSP/asset response checks passed. Browser connection timed out; G-05 browser acceptance remains open.
 
 **2026-11-15** — Kept public home and browse bike cards in one column through tablet widths, including the 768px iPad Mini viewport; 2 columns start at `lg` and 3 at `xl`. Focused ESLint and the public production build passed; browser verification was unavailable because the shared browser connection timed out.
 

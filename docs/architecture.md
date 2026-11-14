@@ -16,6 +16,8 @@ These are activity counts, not unique visitors: page refreshes and comparison se
 
 On phone-width screens, public and admin sidebar sections start collapsed and expand independently, and pages scroll to their main content. Tablet and desktop layouts keep the sidebars visible.
 
+Both frontend entry documents include the same standalone browser compatibility notice and an ES5 feature check before the application starts. The notice remains visible if JavaScript is unavailable or required module, JavaScript API, and Tailwind CSS capabilities are missing; it recommends enabling JavaScript or updating the browser. The public check carries the request's CSP nonce and the admin check is a same-origin script. The duplicated static assets must stay identical (`node --test packages/browser-support.test.cjs`). This is a baseline capability check, not a guarantee against every browser-specific bug or a substitute for browser acceptance testing.
+
 The public catalog sort and admin sort, specification, and image ordering controls share the `packages/reorder` drag-and-drop components. Handles support pointer, touch, and keyboard interaction. They have no non-drag single-pointer alternative. Public sort changes apply on form submission, admin sort changes apply locally, and admin specification and image changes use their existing reorder API endpoints.
 
 ### Tech Stack
