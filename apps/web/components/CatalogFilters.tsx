@@ -12,7 +12,9 @@ interface CatalogFiltersProps {
 
 export default function CatalogFilters({ params, brands, categories, ccAvailable }: CatalogFiltersProps) {
   const hasCcFilter = !!(params.ccMin || params.ccMax);
-  const activeAdvancedFilters = [
+  const activeFilters = [
+    params.brandId,
+    params.categoryId,
     params.yearMin || params.yearMax,
     params.priceMin || params.priceMax,
     params.ccMin || params.ccMax,
@@ -21,30 +23,28 @@ export default function CatalogFilters({ params, brands, categories, ccAvailable
   return (
     <div className="mb-4 border border-zinc-200 bg-zinc-50 p-4">
       <AnalyticsFilterForm key={JSON.stringify([params.brandId, params.categoryId, ...rangeFields.map(([key]) => params[key])])}>
-        {(['search', 'sortBy', 'sortDescending'] as const).map((key) =>
+        {(['search', 'sort'] as const).map((key) =>
           params[key] ? <input key={key} type="hidden" name={key} value={params[key]} /> : null
         )}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-sm font-semibold">
-            Brand
-            <select name="brandId" defaultValue={params.brandId ?? ''} className="w-full border border-zinc-300 bg-white px-2 py-2 font-normal text-brand-black">
-              <option value="">All brands</option>
-              {brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-semibold">
-            Category
-            <select name="categoryId" defaultValue={params.categoryId ?? ''} className="w-full border border-zinc-300 bg-white px-2 py-2 font-normal text-brand-black">
-              <option value="">All categories</option>
-              {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-            </select>
-          </label>
-        </div>
-        <details className="mt-3">
+        <details>
           <summary className="cursor-pointer text-sm font-semibold text-brand-button hover:underline">
-            Advanced filters{activeAdvancedFilters > 0 ? ` (${activeAdvancedFilters} active)` : ''}
+            Advanced filters{activeFilters > 0 ? ` (${activeFilters} active)` : ''}
           </summary>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm font-semibold">
+              Brand
+              <select name="brandId" defaultValue={params.brandId ?? ''} className="w-full border border-zinc-300 bg-white px-2 py-2 font-normal text-brand-black">
+                <option value="">All brands</option>
+                {brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-semibold">
+              Category
+              <select name="categoryId" defaultValue={params.categoryId ?? ''} className="w-full border border-zinc-300 bg-white px-2 py-2 font-normal text-brand-black">
+                <option value="">All categories</option>
+                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+              </select>
+            </label>
             {rangeFields.map(([key, label, integer, min, max]) => (
               (ccAvailable || (key !== 'ccMin' && key !== 'ccMax') || hasCcFilter) && (
                 <label key={key} className="flex flex-col gap-1 text-sm font-semibold">
@@ -64,21 +64,21 @@ export default function CatalogFilters({ params, brands, categories, ccAvailable
           </div>
           <p className="mt-3 text-xs text-brand-grey">Range filters exclude bikes with missing values.</p>
           {!ccAvailable && <p className="mt-2 text-xs text-brand-grey">The displacement filter is currently unavailable.</p>}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button type="submit" className="bg-brand-button px-4 py-2 text-sm font-semibold text-white">
+              Apply filters
+            </button>
+            <Link
+              href={buildBrowseHref(params, {
+                brandId: undefined, categoryId: undefined, yearMin: undefined, yearMax: undefined,
+                priceMin: undefined, priceMax: undefined, ccMin: undefined, ccMax: undefined, page: undefined,
+              })}
+              className="py-2 text-sm font-semibold text-brand-button hover:underline"
+            >
+              Clear filters
+            </Link>
+          </div>
         </details>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <button type="submit" className="bg-brand-button px-4 py-2 text-sm font-semibold text-white">
-            Apply filters
-          </button>
-          <Link
-            href={buildBrowseHref(params, {
-              brandId: undefined, categoryId: undefined, yearMin: undefined, yearMax: undefined,
-              priceMin: undefined, priceMax: undefined, ccMin: undefined, ccMax: undefined, page: undefined,
-            })}
-            className="py-2 text-sm font-semibold text-brand-button hover:underline"
-          >
-            Clear filters
-          </Link>
-        </div>
       </AnalyticsFilterForm>
     </div>
   );

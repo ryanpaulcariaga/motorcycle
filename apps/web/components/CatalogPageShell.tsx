@@ -30,8 +30,7 @@ export default async function CatalogPageShell({
     <PageShell bare>
       <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-6">
         <Sidebar>
-          <SidebarSection title="Filters">
-            <h3 className="mb-2 text-sm font-semibold">Brand</h3>
+          <SidebarSection title="Brands">
             <div className="flex flex-col">
               {brands.map((brand) => (
                 <SidebarLink

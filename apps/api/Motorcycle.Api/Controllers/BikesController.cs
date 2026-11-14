@@ -24,8 +24,11 @@ public class BikesController : ControllerBase
     public async Task<IActionResult> GetBikes(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
+        [FromQuery] string? sort = null,
         [FromQuery] string? sortBy = null,
         [FromQuery] bool sortDescending = false,
+        [FromQuery] string? thenSortBy = null,
+        [FromQuery] bool thenSortDescending = false,
         [FromQuery] string? search = null,
         [FromQuery] int? brandId = null,
         [FromQuery] int? categoryId = null,
@@ -40,12 +43,29 @@ public class BikesController : ControllerBase
         [FromQuery] string? specValues = null,
         CancellationToken ct = default)
     {
+        var sortCriteria = new List<BikeSortCriterion>();
+        if (!string.IsNullOrWhiteSpace(sort)) {
+            foreach (var rule in sort.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)) {
+                var parts = rule.Split(':', StringSplitOptions.TrimEntries);
+                if (parts.Length != 2 ||
+                    parts[1] is not ("asc" or "desc") ||
+                    parts[0] is not ("brand" or "category" or "model_name" or "variant_name" or "year" or "price")) {
+                    return BadRequest(new { message = "Sort must contain supported field:direction pairs." });
+                }
+
+                sortCriteria.Add(new BikeSortCriterion(parts[0], parts[1] == "desc"));
+            }
+        }
+
         var query = new BikeQueryParameters
         {
             Page = page < 1 ? 1 : page,
             PageSize = pageSize is < 1 or > 100 ? 20 : pageSize,
+            Sorts = sortCriteria,
             SortBy = sortBy,
             SortDescending = sortDescending,
+            ThenSortBy = thenSortBy,
+            ThenSortDescending = thenSortDescending,
             Search = search,
             BrandId = brandId,
             CategoryId = categoryId,

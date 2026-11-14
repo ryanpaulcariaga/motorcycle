@@ -150,8 +150,11 @@ export interface CompareResultDto {
 export interface BikesQuery {
   page?: number;
   pageSize?: number;
+  sort?: string;
   sortBy?: "price" | "year" | "model_name";
   sortDescending?: boolean;
+  thenSortBy?: "price" | "year" | "model_name";
+  thenSortDescending?: boolean;
   search?: string;
   brandId?: string;
   categoryId?: string;

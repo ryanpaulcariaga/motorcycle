@@ -2,10 +2,11 @@ import Link from 'next/link';
 import CatalogPageShell from '@/components/CatalogPageShell';
 import BikeCardContent from '@/components/BikeCardContent';
 import CatalogFilters from '@/components/CatalogFilters';
+import CatalogSortControls from '@/components/CatalogSortControls';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import SearchResultLink from '@/components/SearchResultLink';
 import { getBikes, getBrands, getCategories, getSpecGroups } from '@/lib/api';
-import { buildBikeDetailHref, buildBrowseHref, isDisplacementFilterAvailable, rangeFields } from '@/lib/catalogFilters';
+import { buildBikeDetailHref, buildBrowseHref, getBrowseParams, getCatalogSorts, isDisplacementFilterAvailable, rangeFields, serializeCatalogSorts } from '@/lib/catalogFilters';
 import type { Metadata } from 'next';
 
 interface BikesPageProps {
@@ -19,8 +20,11 @@ interface BikesPageProps {
     priceMax?: string;
     ccMin?: string;
     ccMax?: string;
+    sort?: string;
     sortBy?: string;
     sortDescending?: string;
+    thenSortBy?: string;
+    thenSortDescending?: string;
     page?: string;
   }>;
 }
@@ -65,9 +69,8 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
     params[min] && params[max] && Number(params[min]) > Number(params[max])
   );
   const hasCcFilter = !!(params.ccMin || params.ccMax);
-  const sortBy = params.sortBy === 'price' || params.sortBy === 'year' || params.sortBy === 'model_name'
-    ? params.sortBy
-    : undefined;
+  const sorts = getCatalogSorts(params.sort, params);
+  const browseParams = getBrowseParams({ ...params, sort: serializeCatalogSorts(sorts) });
   const [brands, categories, specGroups] = await Promise.all([
     getBrands(),
     getCategories(),
@@ -96,12 +99,11 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
       specCode: hasCcFilter ? 'cc' : undefined,
       specMin: params.ccMin ? String(Number(params.ccMin)) : undefined,
       specMax: params.ccMax ? String(Number(params.ccMax)) : undefined,
-      sortBy,
-      sortDescending: params.sortDescending === 'true',
+      sort: browseParams.sort,
     });
 
   return (
-    <CatalogPageShell browseParams={params} catalogBrands={brands}>
+    <CatalogPageShell browseParams={browseParams} catalogBrands={brands}>
           {!filterError && <AnalyticsTracker kind="search" hasSearch={!!params.search?.trim()} zeroResults={totalCount === 0} />}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h1 className="min-w-0 break-words text-2xl font-bold">
@@ -111,36 +113,14 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
             </h1>
             {!filterError && <p className="shrink-0 text-sm text-brand-grey">{totalCount} bikes</p>}
           </div>
-          <CatalogFilters params={params} brands={brands} categories={categories} ccAvailable={ccAvailable} />
-          <form action="/bikes" className="mb-4 flex flex-wrap items-end gap-3">
-            {(['search', 'brandId', 'categoryId', ...rangeFields.map(([key]) => key)] as const).map((key) =>
-              params[key] ? <input key={key} type="hidden" name={key} value={params[key]} /> : null
-            )}
-            <label className="flex flex-col gap-1 text-sm font-semibold">
-              Sort by
-              <select name="sortBy" defaultValue={sortBy ?? 'model_name'} className="border border-zinc-300 bg-white px-2 py-2 font-normal">
-                <option value="model_name">Model name</option>
-                <option value="year">Year</option>
-                <option value="price">Price</option>
-              </select>
-            </label>
-            <label className="flex flex-col gap-1 text-sm font-semibold">
-              Order
-              <select name="sortDescending" defaultValue={params.sortDescending === 'true' ? 'true' : 'false'} className="border border-zinc-300 bg-white px-2 py-2 font-normal">
-                <option value="false">Ascending</option>
-                <option value="true">Descending</option>
-              </select>
-            </label>
-            <button type="submit" className="bg-brand-button px-4 py-2 text-sm font-semibold text-white">
-              Apply sort
-            </button>
-          </form>
+          <CatalogFilters params={browseParams} brands={brands} categories={categories} ccAvailable={ccAvailable} />
+          <CatalogSortControls key={browseParams.sort} params={browseParams} initialSorts={sorts} />
           {filterError && <p role="alert" className="mb-4 text-sm text-red-700">{filterError}</p>}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {bikes.map((bike) => (
               <SearchResultLink
                 key={bike.id}
-                href={buildBikeDetailHref(bike.slug, params)}
+                href={buildBikeDetailHref(bike.slug, browseParams)}
                 bikeId={bike.id}
                 isSearch={!!params.search?.trim()}
               >
@@ -173,7 +153,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <Link
                   key={p}
-                  href={buildBrowseHref(params, { page: String(p) })}
+                  href={buildBrowseHref(browseParams, { page: String(p) })}
                   className={`px-3 py-1.5 text-sm ${
                     p === page
                       ? 'bg-brand-button text-white'

@@ -19,8 +19,8 @@ List motorcycles with pagination, sorting, and filtering.
 **Query Parameters**:
 - `page` (int, default 1)
 - `pageSize` (int, default 20)
-- `sortBy` (string: `model_name`, `year`, `price`, default `model_name`)
-- `sortDescending` (boolean, default `false`)
+- `sort` (optional comma-separated ordered criteria, each `field:asc` or `field:desc`; supported fields: `brand`, `category`, `model_name`, `variant_name`, `year`, `price`; for example, `year:desc,price:asc,model_name:asc`)
+- Legacy `sortBy`, `sortDescending`, `thenSortBy`, and `thenSortDescending` parameters remain supported when `sort` is omitted.
 - `search` (string: free-text match against model name, variant name, or brand name; used by the compare-page bike picker)
 - `brandId`, `categoryId` (int, optional)
 - `yearMin`, `yearMax` (int, inclusive bounds)

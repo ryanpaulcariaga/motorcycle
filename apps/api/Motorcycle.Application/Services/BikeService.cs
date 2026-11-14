@@ -56,7 +56,9 @@ public class BikeService : IBikeService
             })).ToList();
         }
 
-        bikes = ApplySort(bikes, query.SortBy, query.SortDescending);
+        bikes = ApplySort(query.Sorts.Count > 0
+            ? query.Sorts
+            : CreateLegacySorts(query.SortBy, query.SortDescending, query.ThenSortBy, query.ThenSortDescending), bikes);
 
         var totalCount = bikes.Count;
         var pageItems = bikes
@@ -190,15 +192,52 @@ public class BikeService : IBikeService
         }
     }
 
-    private static List<Bike> ApplySort(List<Bike> bikes, string? sortBy, bool descending)
+    private static List<BikeSortCriterion> CreateLegacySorts(
+        string? sortBy,
+        bool descending,
+        string? thenSortBy,
+        bool thenSortDescending)
     {
-        IEnumerable<Bike> sorted = sortBy?.ToLowerInvariant() switch
+        var criteria = new List<BikeSortCriterion>
         {
-            "price" => descending ? bikes.OrderByDescending(b => b.MsrpPrice) : bikes.OrderBy(b => b.MsrpPrice),
-            "year" => descending ? bikes.OrderByDescending(b => b.Year) : bikes.OrderBy(b => b.Year),
-            "model_name" => descending ? bikes.OrderByDescending(b => b.Model.Name) : bikes.OrderBy(b => b.Model.Name),
-            _ => bikes.OrderBy(b => b.Model.Name).ThenBy(b => b.VariantName)
+            new(sortBy ?? "model_name", descending)
         };
+        if (!string.IsNullOrWhiteSpace(thenSortBy) && thenSortBy != sortBy) {
+            criteria.Add(new BikeSortCriterion(thenSortBy, thenSortDescending));
+        }
+        return criteria;
+    }
+
+    private static List<Bike> ApplySort(IReadOnlyList<BikeSortCriterion> criteria, List<Bike> bikes)
+    {
+        IOrderedEnumerable<Bike>? sorted = null;
+        foreach (var criterion in criteria) {
+            if (sorted is null) {
+                sorted = criterion.Field switch
+                {
+                    "brand" => criterion.Descending ? bikes.OrderByDescending(b => b.Model.Brand.Name) : bikes.OrderBy(b => b.Model.Brand.Name),
+                    "category" => criterion.Descending ? bikes.OrderByDescending(b => b.Model.Category.Name) : bikes.OrderBy(b => b.Model.Category.Name),
+                    "variant_name" => criterion.Descending ? bikes.OrderByDescending(b => b.VariantName) : bikes.OrderBy(b => b.VariantName),
+                    "year" => criterion.Descending ? bikes.OrderByDescending(b => b.Year) : bikes.OrderBy(b => b.Year),
+                    "price" => criterion.Descending ? bikes.OrderByDescending(b => b.MsrpPrice) : bikes.OrderBy(b => b.MsrpPrice),
+                    _ => criterion.Descending ? bikes.OrderByDescending(b => b.Model.Name) : bikes.OrderBy(b => b.Model.Name)
+                };
+                continue;
+            }
+
+            sorted = criterion.Field switch
+            {
+                "brand" => criterion.Descending ? sorted.ThenByDescending(b => b.Model.Brand.Name) : sorted.ThenBy(b => b.Model.Brand.Name),
+                "category" => criterion.Descending ? sorted.ThenByDescending(b => b.Model.Category.Name) : sorted.ThenBy(b => b.Model.Category.Name),
+                "variant_name" => criterion.Descending ? sorted.ThenByDescending(b => b.VariantName) : sorted.ThenBy(b => b.VariantName),
+                "year" => criterion.Descending ? sorted.ThenByDescending(b => b.Year) : sorted.ThenBy(b => b.Year),
+                "price" => criterion.Descending ? sorted.ThenByDescending(b => b.MsrpPrice) : sorted.ThenBy(b => b.MsrpPrice),
+                _ => criterion.Descending ? sorted.ThenByDescending(b => b.Model.Name) : sorted.ThenBy(b => b.Model.Name)
+            };
+        }
+
+        sorted ??= bikes.OrderBy(b => b.Model.Name);
+        sorted = sorted.ThenBy(b => b.Model.Name).ThenBy(b => b.VariantName).ThenBy(b => b.Id);
         return sorted.ToList();
     }
 

@@ -1,3 +1,4 @@
+using Motorcycle.Application.Common;
 using Motorcycle.Application.Interfaces;
 using Motorcycle.Application.Services;
 using Motorcycle.Domain;
@@ -11,7 +12,7 @@ public class BikeCompareServiceTests
     {
         var requestedOrder = new[] { 2, 3, 1, 2 };
         var repository = new FakeBikeRepository(
-            new[] { 3, 1, 2 }.Select(CreateBike).ToList());
+            new[] { 3, 1, 2 }.Select(id => CreateBike(id)).ToList());
         var service = new BikeService(
             repository,
             new EmptySpecGroupRepository(),
@@ -23,17 +24,56 @@ public class BikeCompareServiceTests
         Assert.Equal(new[] { 2, 3, 1 }, result.Bikes.Select(bike => bike.Id));
     }
 
-    private static Bike CreateBike(int id) => new()
+    [Fact]
+    public async Task GetBikesAsync_AppliesMultipleSortCriteriaBeforePaging()
+    {
+        var bikes = new List<Bike>
+        {
+            CreateBike(1, year: 2024, price: 100),
+            CreateBike(2, year: 2024, price: 100),
+            CreateBike(3, year: 2024, price: 90),
+            CreateBike(4, year: 2023, price: 50)
+        };
+        bikes[0].Model.Name = "Honda";
+        bikes[1].Model.Name = "Yamaha";
+        bikes[2].Model.Name = "Suzuki";
+        var repository = new FakeBikeRepository(bikes);
+        var service = new BikeService(
+            repository,
+            new EmptySpecGroupRepository(),
+            new UnusedSpecFilterStrategyFactory(),
+            new EmptyBikeComparisonRepository());
+
+        var result = await service.GetBikesAsync(new BikeQueryParameters
+        {
+            Page = 1,
+            PageSize = 2,
+            Sorts =
+            [
+                new BikeSortCriterion("year", true),
+                new BikeSortCriterion("price", false),
+                new BikeSortCriterion("model_name", false)
+            ]
+        });
+
+        Assert.Equal(new[] { 3, 1 }, result.Items.Select(bike => bike.Id));
+        Assert.Equal(4, result.TotalCount);
+    }
+
+    private static Bike CreateBike(int id, int year = 2024, decimal? price = 100) => new()
     {
         Id = id,
         ModelId = id,
         VariantName = $"Variant {id}",
         Slug = $"bike-{id}",
+        Year = year,
+        MsrpPrice = price,
         Model = new BikeModel
         {
             Id = id,
             Name = $"Model {id}",
-            Brand = new Brand { Name = "Brand" }
+            Brand = new Brand { Name = "Brand" },
+            Category = new Category { Name = "Category" }
         }
     };
 
@@ -54,7 +94,7 @@ public class BikeCompareServiceTests
             decimal? priceMin,
             decimal? priceMax,
             CancellationToken ct = default) =>
-            Task.FromResult(new List<Bike>());
+            Task.FromResult(bikes);
     }
 
     private sealed class EmptySpecGroupRepository : ISpecGroupRepository

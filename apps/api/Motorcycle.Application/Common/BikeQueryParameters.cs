@@ -4,8 +4,11 @@ public class BikeQueryParameters
 {
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
+    public List<BikeSortCriterion> Sorts { get; set; } = new();
     public string? SortBy { get; set; } // "price", "year", "model_name"
     public bool SortDescending { get; set; } = false;
+    public string? ThenSortBy { get; set; } // Optional secondary sort field
+    public bool ThenSortDescending { get; set; } = false;
 
     public string? Search { get; set; }
     public int? BrandId { get; set; }
@@ -17,6 +20,8 @@ public class BikeQueryParameters
 
     public List<SpecFilterRequest> SpecFilters { get; set; } = new();
 }
+
+public record BikeSortCriterion(string Field, bool Descending);
 
 public class SpecFilterRequest
 {

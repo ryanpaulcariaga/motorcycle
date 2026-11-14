@@ -1,5 +1,21 @@
 import type { SpecGroupDto } from '@/lib/types';
 
+export const catalogSortFields = [
+  ['brand', 'Brand'],
+  ['category', 'Category'],
+  ['model_name', 'Model name'],
+  ['variant_name', 'Variant name'],
+  ['year', 'Year'],
+  ['price', 'Price'],
+] as const;
+
+export type CatalogSortField = (typeof catalogSortFields)[number][0];
+
+export interface CatalogSortCriterion {
+  field: CatalogSortField;
+  descending: boolean;
+}
+
 export const rangeFields = [
   ['yearMin', 'Year from', true, 1, 2147483647],
   ['yearMax', 'Year to', true, 1, 2147483647],
@@ -11,7 +27,7 @@ export const rangeFields = [
 
 const browseParamKeys = [
   'search', 'brandId', 'categoryId', ...rangeFields.map(([key]) => key),
-  'sortBy', 'sortDescending', 'page',
+  'sort', 'page',
 ] as const;
 
 export function getBrowseParams(params: Record<string, string | string[] | undefined>) {
@@ -29,6 +45,53 @@ export function isDisplacementFilterAvailable(specGroups: SpecGroupDto[]) {
   return specGroups.some((group) => group.definitions.some(
     (definition) => definition.code === 'cc' && definition.isFilterable && definition.filterType === 'range'
   ));
+}
+
+export function getCatalogSorts(
+  sort: string | undefined,
+  legacy: {
+    sortBy?: string;
+    sortDescending?: string;
+    thenSortBy?: string;
+    thenSortDescending?: string;
+  }
+): CatalogSortCriterion[] {
+  if (sort) {
+    const parsed: CatalogSortCriterion[] = [];
+    for (const rule of sort.split(',')) {
+      const [field, direction] = rule.split(':');
+      if (
+        catalogSortFields.some(([knownField]) => knownField === field) &&
+        (direction === 'asc' || direction === 'desc') &&
+        !parsed.some((criterion) => criterion.field === field)
+      ) {
+        parsed.push({ field: field as CatalogSortField, descending: direction === 'desc' });
+      }
+    }
+    if (parsed.length > 0) {
+      return parsed;
+    }
+  }
+
+  const primaryField = catalogSortFields.some(([field]) => field === legacy.sortBy)
+    ? legacy.sortBy as CatalogSortField
+    : 'model_name';
+  const criteria: CatalogSortCriterion[] = [{
+    field: primaryField,
+    descending: legacy.sortDescending === 'true',
+  }];
+  const secondaryField = catalogSortFields.find(([field]) => field === legacy.thenSortBy)?.[0];
+  if (secondaryField && secondaryField !== primaryField) {
+    criteria.push({
+      field: secondaryField,
+      descending: legacy.thenSortDescending === 'true',
+    });
+  }
+  return criteria;
+}
+
+export function serializeCatalogSorts(criteria: CatalogSortCriterion[]) {
+  return criteria.map(({ field, descending }) => `${field}:${descending ? 'desc' : 'asc'}`).join(',');
 }
 
 export function buildBrowseHref(
