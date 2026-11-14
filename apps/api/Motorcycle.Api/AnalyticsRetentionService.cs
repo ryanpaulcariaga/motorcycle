@@ -9,18 +9,28 @@ public sealed class AnalyticsRetentionService(IServiceScopeFactory scopeFactory,
         using var timer = new PeriodicTimer(TimeSpan.FromHours(24));
         do
         {
-            try
+            foreach (var serviceType in new[] { typeof(IAnalyticsService), typeof(IUserInterestService) })
             {
-                using var scope = scopeFactory.CreateScope();
-                await scope.ServiceProvider.GetRequiredService<IAnalyticsService>().DeleteExpiredAsync(stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                return;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to delete expired analytics counts.");
+                try
+                {
+                    using var scope = scopeFactory.CreateScope();
+                    if (serviceType == typeof(IAnalyticsService))
+                    {
+                        await scope.ServiceProvider.GetRequiredService<IAnalyticsService>().DeleteExpiredAsync(stoppingToken);
+                    }
+                    else
+                    {
+                        await scope.ServiceProvider.GetRequiredService<IUserInterestService>().DeleteExpiredAsync(stoppingToken);
+                    }
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to delete expired counts for {ServiceType}.", serviceType.Name);
+                }
             }
         }
         while (await timer.WaitForNextTickAsync(stoppingToken));

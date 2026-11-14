@@ -25,6 +25,7 @@ public class MotorcycleDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<UserExternalLogin> UserExternalLogins => Set<UserExternalLogin>();
     public DbSet<AnalyticsDailyCount> AnalyticsDailyCounts => Set<AnalyticsDailyCount>();
+    public DbSet<UserInterestDailyCount> UserInterestDailyCounts => Set<UserInterestDailyCount>();
 
     // Future tables (Phase 5+)
     public DbSet<BikeComparison> BikeComparisons => Set<BikeComparison>();
@@ -42,6 +43,14 @@ public class MotorcycleDbContext : DbContext
         {
             a.HasKey(x => new { x.Day, x.Metric, x.Dimension1, x.Dimension2 });
             a.Property(x => x.Metric).HasMaxLength(32).IsRequired();
+        });
+
+        modelBuilder.Entity<UserInterestDailyCount>(interest =>
+        {
+            interest.HasKey(x => new { x.UserId, x.Day, x.Metric, x.CatalogId });
+            interest.Property(x => x.Metric).HasMaxLength(32).IsRequired();
+            interest.HasIndex(x => x.Day);
+            interest.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // Value comparers for JSON columns

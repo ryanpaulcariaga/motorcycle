@@ -2,6 +2,7 @@
 
 import { sendAnalyticsEvent } from '@/lib/api';
 import type { AnalyticsEvent } from '@/lib/types';
+import { trackUserInterest } from '@/lib/user-interest';
 
 export const CONSENT_KEY = 'mc_analytics_consent';
 const SEARCH_PENDING_KEY = 'mc_analytics_search_pending';
@@ -17,6 +18,9 @@ export function hasAnalyticsConsent(): boolean {
 }
 
 export function trackAnalytics(event: AnalyticsEvent): void {
+  if (event.type !== 'search') {
+    trackUserInterest(event);
+  }
   if (!hasAnalyticsConsent()) {
     return;
   }

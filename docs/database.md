@@ -228,6 +228,12 @@ CREATE TABLE analytics_daily_counts (
 
 Only opt-in browser activity is collected. UTC daily counters store a metric and catalog IDs, never a visitor or session ID, search text, or individual event. Metrics are `bike_view`, `brand_filter`, `category_filter`, `comparison`, `comparison_pair`, `search`, and `zero_results`. Zero dimensions indicate no catalog dimension; pair IDs are sorted. Counters are upserted atomically in one transaction per event. A hosted job deletes dates before the current UTC date minus 12 calendar months, on startup and approximately daily thereafter. Catalog deletion does not delete historical totals; the dashboard labels missing items as deleted.
 
+### user_interest_daily_counts
+
+`users.interest_tracking_enabled` defaults to false. When enabled by an active signed-in user, `user_interest_daily_counts` stores `(user_id, day, metric, catalog_id, count)` with that tuple as the primary key. The user foreign key cascades on account deletion and `day` is indexed for retention. Metrics are `bike_view`, `bike_search_selection`, `brand_filter`, `category_filter`, and `comparison`; the latter counts each compared bike. Search text is not stored. Catalog identifiers are retained as historical numeric dimensions even if catalog entries are deleted.
+
+An ingestion or preference-change transaction locks the user row. Withdrawal disables profiling and deletes all user counters atomically, preventing concurrent events from recreating deleted data. A hosted job deletes dates before the current UTC date minus 12 calendar months.
+
 ### Future Tables (Schema Stubs)
 ```sql
 -- Unused analytics stubs; the aggregate analytics feature uses analytics_daily_counts instead.

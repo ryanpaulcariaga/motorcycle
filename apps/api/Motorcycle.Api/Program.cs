@@ -56,8 +56,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISpecGroupAdminRepository, SpecGroupAdminRepository>();
 builder.Services.AddScoped<ISpecDefinitionAdminRepository, SpecDefinitionAdminRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+builder.Services.AddScoped<IUserInterestRepository, UserInterestRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IUserInterestService, UserInterestService>();
 builder.Services.AddHostedService<AnalyticsRetentionService>();
 
 // Spec filter strategies (Strategy pattern)
@@ -259,14 +261,15 @@ if (swaggerEnabled) {
 app.UseCors(CorsPolicy);
 app.Use(async (context, next) =>
 {
-    var isAdminMutation = context.Request.Path.StartsWithSegments("/api/admin") &&
+    var isProtectedMutation = (context.Request.Path.StartsWithSegments("/api/admin") ||
+        context.Request.Path.StartsWithSegments("/api/user/interests")) &&
         !HttpMethods.IsGet(context.Request.Method) &&
         !HttpMethods.IsHead(context.Request.Method) &&
         !HttpMethods.IsOptions(context.Request.Method);
-    if (isAdminMutation) {
+    if (isProtectedMutation) {
         var requestOrigin = context.Request.Headers.Origin.ToString();
         if (!AdminOriginValidator.IsAllowed(requestOrigin, allowedOrigins)) {
-            app.Logger.LogWarning("Rejected admin mutation with missing or untrusted Origin header. RequestId: {RequestId}", context.TraceIdentifier);
+            app.Logger.LogWarning("Rejected protected mutation with missing or untrusted Origin header. RequestId: {RequestId}", context.TraceIdentifier);
             await Results.Problem(
                 title: "The request origin is not allowed.",
                 statusCode: StatusCodes.Status403Forbidden).ExecuteAsync(context);

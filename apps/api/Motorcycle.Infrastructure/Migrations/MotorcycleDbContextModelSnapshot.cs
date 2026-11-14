@@ -784,6 +784,10 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("email_verified");
 
+                    b.Property<bool>("InterestTrackingEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("interest_tracking_enabled");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
@@ -843,6 +847,38 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasDatabaseName("ix_user_external_logins_provider_provider_user_id");
 
                     b.ToTable("user_external_logins");
+                });
+
+            modelBuilder.Entity("Motorcycle.Domain.UserInterestDailyCount", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date")
+                        .HasColumnName("day");
+
+                    b.Property<string>("Metric")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("metric");
+
+                    b.Property<int>("CatalogId")
+                        .HasColumnType("integer")
+                        .HasColumnName("catalog_id");
+
+                    b.Property<long>("Count")
+                        .HasColumnType("bigint")
+                        .HasColumnName("count");
+
+                    b.HasKey("UserId", "Day", "Metric", "CatalogId")
+                        .HasName("pk_user_interest_daily_counts");
+
+                    b.HasIndex("Day")
+                        .HasDatabaseName("ix_user_interest_daily_counts_day");
+
+                    b.ToTable("user_interest_daily_counts");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.Bike", b =>
@@ -954,6 +990,16 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasConstraintName("fk_user_external_logins_users_user_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Motorcycle.Domain.UserInterestDailyCount", b =>
+                {
+                    b.HasOne("Motorcycle.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_interest_daily_counts_users_user_id");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.Bike", b =>

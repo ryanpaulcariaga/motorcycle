@@ -8,6 +8,7 @@ public class User
     public bool EmailVerified { get; set; }
     public string? DisplayName { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool InterestTrackingEnabled { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

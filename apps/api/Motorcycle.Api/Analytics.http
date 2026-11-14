@@ -20,3 +20,30 @@ Content-Type: application/json
 
 ### Admin dashboard (requires an active administrator session cookie)
 GET {{baseUrl}}/api/admin/analytics
+
+### Interest profile preference (requires the public user session cookie)
+GET {{baseUrl}}/api/user/interests/preference
+
+### Opt in (the request header triggers CORS preflight)
+PUT {{baseUrl}}/api/user/interests/preference
+Content-Type: application/json
+X-Interest-Request: 1
+Origin: https://localhost:3000
+
+{ "enabled": true }
+
+### Record a selected published bike
+POST {{baseUrl}}/api/user/interests/events
+Content-Type: application/json
+X-Interest-Request: 1
+Origin: https://localhost:3000
+
+{ "type": "bike_search_selection", "id": 1 }
+
+### Withdraw consent and delete the account's activity
+PUT {{baseUrl}}/api/user/interests/preference
+Content-Type: application/json
+X-Interest-Request: 1
+Origin: https://localhost:3000
+
+{ "enabled": false }

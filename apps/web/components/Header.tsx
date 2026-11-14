@@ -11,6 +11,7 @@ import {
 } from '@/lib/api';
 import type { BikeListItemDto, UserSessionDto } from '@/lib/types';
 import { markSearchSubmitted } from '@/lib/analytics';
+import { trackUserInterest, updateCachedInterestPreference } from '@/lib/user-interest';
 
 const navLinks = [
   { href: '/bikes', label: 'Browse Bikes' },
@@ -119,6 +120,8 @@ export default function Header() {
   async function handleSignOut() {
     await signOutUser();
     setSession(null);
+    updateCachedInterestPreference(null);
+    window.dispatchEvent(new Event('mc-user-signout'));
   }
 
   function renderAccountControl(stacked = false) {
@@ -132,7 +135,9 @@ export default function Header() {
             stacked ? 'flex-col items-end' : 'items-center'
           }`}
         >
-          <span>{session.displayName ?? session.email ?? 'Signed in'}</span>
+          <Link href="/settings" className="underline" onClick={() => setIsMenuOpen(false)}>
+            {session.displayName ?? session.email ?? 'Signed in'}
+          </Link>
           <button
             type="button"
             onClick={() => void handleSignOut()}
@@ -144,12 +149,14 @@ export default function Header() {
       );
     }
     return (
-      <a
-        href={facebookSignInUrl()}
-        className="text-sm underline"
-      >
-        Sign in with Facebook
-      </a>
+      <div className={`flex gap-3 text-sm ${stacked ? 'flex-col items-end' : 'items-center'}`}>
+        <Link href="/settings" className="underline" onClick={() => setIsMenuOpen(false)}>
+          Settings
+        </Link>
+        <a href={facebookSignInUrl()} className="underline">
+          Sign in with Facebook
+        </a>
+      </div>
     );
   }
 
@@ -285,7 +292,10 @@ export default function Header() {
                   <Link
                     key={bike.id}
                     href={`/bikes/${bike.slug}`}
-                    onClick={() => setIsSearchFocused(false)}
+                    onClick={() => {
+                      trackUserInterest({ type: 'bike_search_selection', id: bike.id });
+                      setIsSearchFocused(false);
+                    }}
                     className="flex items-center gap-2 bg-white p-2 text-sm text-black hover:bg-zinc-100 focus:bg-zinc-100 focus:outline-none"
                   >
                     <span className="relative h-8 w-10 shrink-0 overflow-hidden bg-zinc-100">

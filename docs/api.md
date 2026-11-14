@@ -204,6 +204,12 @@ Bike IDs must be published; brand and category IDs must exist. Comparisons requi
 }
 ```
 
+### Account interest profiles
+
+These endpoints require the public user session and an active account; they are independent of anonymous aggregate analytics. `GET /api/user/interests/preference` returns `{ "enabled": false }` by default. `PUT /api/user/interests/preference` accepts `{ "enabled": true }` to opt in or `{ "enabled": false }` to withdraw and delete all recorded profile activity. Mutations require a configured allowed `Origin`, the `X-Interest-Request` header, and JSON. Browser cross-origin requests are subject to the credentialed CORS policy.
+
+`POST /api/user/interests/events` accepts `{ "type": "bike_view", "id": 1 }`, `bike_search_selection`, `brand_filter`, `category_filter`, or `{ "type": "comparison", "bikeIds": [1, 2] }`. Unknown fields, including raw search text, are rejected. Bikes must be published; brand and category IDs must exist; comparisons contain 2–25 distinct positive IDs. Responses are `204` for recorded events, `400` for invalid input, `401` for an unauthenticated or inactive user, `403` if profiling is off, and `429` when rate limited. The API checks consent for each event, not just in the browser. Account-linked counters expire after 12 calendar months; no endpoint exposes profile data to admins or third parties.
+
 ### Health and Errors
 
 - `GET /health` returns `200` while the process is running (liveness).

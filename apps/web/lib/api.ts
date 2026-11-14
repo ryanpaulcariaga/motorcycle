@@ -11,6 +11,8 @@ import type {
   PopularComparisonDto,
   SpecGroupDto,
   UserSessionDto,
+  UserInterestEvent,
+  UserInterestPreference,
 } from "./types";
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7240";
@@ -94,6 +96,7 @@ async function authFetch<T>(path: string, options?: RequestInit): Promise<T | nu
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     credentials: "include",
+    cache: "no-store",
     headers: { Accept: "application/json", ...options?.headers },
   });
 
@@ -111,6 +114,36 @@ async function authFetch<T>(path: string, options?: RequestInit): Promise<T | nu
 
 export function getUserSession(): Promise<UserSessionDto | null> {
   return authFetch<UserSessionDto>("/api/auth/session");
+}
+
+export function getUserInterestPreference(): Promise<UserInterestPreference | null> {
+  return authFetch<UserInterestPreference>("/api/user/interests/preference");
+}
+
+export async function setUserInterestPreference(enabled: boolean): Promise<UserInterestPreference> {
+  const result = await authFetch<UserInterestPreference>("/api/user/interests/preference", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-Interest-Request": "1" },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!result) {
+    throw new Error("Please sign in again to change your interest preference.");
+  }
+  return result;
+}
+
+export async function sendUserInterestEvent(event: UserInterestEvent): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/user/interests/events`, {
+    method: "POST",
+    credentials: "include",
+    referrerPolicy: "no-referrer",
+    headers: { "Content-Type": "application/json", "X-Interest-Request": "1" },
+    body: JSON.stringify(event),
+    keepalive: true,
+  });
+  if (!res.ok) {
+    throw new Error(`Interest event request failed: ${res.status}`);
+  }
 }
 
 export async function signOutUser(): Promise<void> {

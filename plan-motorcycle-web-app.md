@@ -13,9 +13,9 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 37 of 97 tasks done · 4 in progress · 56 not started.**
+**Progress: 38 of 100 tasks done · 6 in progress · 56 not started.**
 
-**Next up:** Verify the analytics dashboard with an authenticated admin session and decide when to add public spec filters; review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
+**Next up:** Verify interest-profile controls and tracking in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
 ## Idea intake and triage
 
@@ -57,7 +57,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-21 | ✅ Admin per-bike, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override and combined review resets |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared home sidebar on public catalog, detail, and comparison pages |
-| F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms |
+| F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
 
 ## Features (planned)
 
@@ -65,6 +65,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 |---|---|
 | F-14 | Catalog data transparency and user-submitted correction reports |
 | F-15 | Shareable comparisons and saved bikes/comparisons |
+| F-25 | 🔄 Signed-in, separately opted-in interest profiles with deletion and 12-month retention; authenticated browser verification remains |
 
 ## Release gates
 
@@ -221,6 +222,8 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-87 | ⬜ | Let users report incorrect or missing catalog data | Add a public correction-report flow and an admin review path; do not publish reports directly as catalog changes | |
 | T-88 | ⬜ | Add shareable comparison URLs | Define and enforce a reasonable comparison size limit; preserve the selected bikes when the URL is shared | |
 | T-89 | ⬜ | Let users save bikes and comparisons | Decide whether sign-in is required and how saved items behave across devices | |
+| T-99 | 🔄 | Record structured user interest signals | API and web instrumentation implemented; focused tests, PostgreSQL and web build pass. Verify the signals with an authenticated public browser session. | |
+| T-100 | 🔄 | Add user controls for interest profiles | Settings page and opt-in/withdrawal UI verified in a browser with mocked API; live authenticated end-to-end verification and G-10 privacy review remain. | |
 
 ### Done
 
@@ -239,6 +242,7 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-90 | ✅ Public header bike search and submitted browse results | API-backed suggestions; web lint and production build pass |
 | T-91 | ✅ Add shared sorting to Bulk Spec Edit | Main-page sort selection applies to both the grid and Excel export |
 | T-97 | ✅ Remove redundant brand prefixes from bike and model display labels | Admin and web lint/build pass; separate brand data and Product JSON-LD brand remain intact |
+| T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
 

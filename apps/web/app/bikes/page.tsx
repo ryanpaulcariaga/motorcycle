@@ -3,6 +3,7 @@ import Image from 'next/image';
 import CatalogPageShell from '@/components/CatalogPageShell';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import AnalyticsFilterForm from '@/components/AnalyticsFilterForm';
+import SearchResultLink from '@/components/SearchResultLink';
 import { getBikes, getBrands, getCategories } from '@/lib/api';
 import type { Metadata } from 'next';
 
@@ -109,10 +110,11 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {bikes.map((bike) => (
-              <Link
+              <SearchResultLink
                 key={bike.id}
                 href={`/bikes/${bike.slug}`}
-                className=" border border-zinc-200 overflow-hidden hover:shadow-md transition-shadow"
+                bikeId={bike.id}
+                isSearch={!!params.search?.trim()}
               >
                 <div className="relative aspect-[4/3] bg-zinc-100">
                   {bike.primaryImageUrl && (
@@ -137,7 +139,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                       : ''}
                   </p>
                 </div>
-              </Link>
+              </SearchResultLink>
             ))}
           </div>
 

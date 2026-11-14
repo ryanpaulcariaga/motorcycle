@@ -9,6 +9,14 @@ export type AnalyticsEvent =
   | { type: 'comparison'; bikeIds: number[] }
   | { type: 'search'; zeroResults: boolean };
 
+export type UserInterestEvent =
+  | { type: 'bike_view' | 'bike_search_selection' | 'brand_filter' | 'category_filter'; id: number }
+  | { type: 'comparison'; bikeIds: number[] };
+
+export interface UserInterestPreference {
+  enabled: boolean;
+}
+
 export interface UserSessionDto {
   userId: number;
   email: string | null;
