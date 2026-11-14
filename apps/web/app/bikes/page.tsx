@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import CatalogPageShell from '@/components/CatalogPageShell';
+import BikeCardContent from '@/components/BikeCardContent';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import AnalyticsFilterForm from '@/components/AnalyticsFilterForm';
 import SearchResultLink from '@/components/SearchResultLink';
@@ -116,18 +116,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                 bikeId={bike.id}
                 isSearch={!!params.search?.trim()}
               >
-                <div className="relative aspect-[4/3] bg-zinc-100">
-                  {bike.primaryImageUrl && (
-                    <Image
-                      src={bike.primaryImageVariants?.medium ?? bike.primaryImageUrl}
-                      alt={bike.variantName}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                  )}
-                </div>
-                <div className="p-2">
+                <BikeCardContent bike={bike}>
                   <p className="text-xs text-brand-grey">{bike.categoryName}</p>
                   <p className="font-semibold">
                     {bike.variantName}
@@ -138,7 +127,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                       ? `· $${bike.msrpPrice.toLocaleString()}`
                       : ''}
                   </p>
-                </div>
+                </BikeCardContent>
               </SearchResultLink>
             ))}
           </div>

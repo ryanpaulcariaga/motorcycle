@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import CatalogPageShell from '@/components/CatalogPageShell';
+import BikeCardContent from '@/components/BikeCardContent';
 import { getBikes } from '@/lib/api';
 import type { Metadata } from 'next';
 
@@ -25,18 +25,7 @@ export default async function Home() {
                 href={`/bikes/${bike.slug}`}
                 className=" border border-zinc-200 overflow-hidden hover:shadow-md transition-shadow"
               >
-                <div className="relative aspect-[4/3] bg-zinc-100">
-                  {bike.primaryImageUrl && (
-                    <Image
-                      src={bike.primaryImageVariants?.medium ?? bike.primaryImageUrl}
-                      alt={bike.variantName}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                  )}
-                </div>
-                <div className="p-2">
+                <BikeCardContent bike={bike}>
                   <p className="font-semibold">
                     {bike.variantName}
                   </p>
@@ -46,7 +35,7 @@ export default async function Home() {
                       ? `· MSRP $${bike.msrpPrice.toLocaleString()}`
                       : ''}
                   </p>
-                </div>
+                </BikeCardContent>
               </Link>
             ))}
           </div>

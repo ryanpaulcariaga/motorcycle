@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse, search, filter by brand and category, detail page |
+| F-01 | ✅ Public catalog: browse, search, filter by brand and category, detail page; compact mobile home and browse bike cards |
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
