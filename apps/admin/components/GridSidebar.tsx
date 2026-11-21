@@ -93,10 +93,12 @@ export function SortGroup<K extends string>({
   fields,
   rules,
   onChange,
+  inline = false,
 }: {
   fields: { key: K; label: string }[];
   rules: SortRule<K>[];
   onChange: (rules: SortRule<K>[]) => void;
+  inline?: boolean;
 }) {
   const labelOf = (key: K) =>
     fields.find((field) => field.key === key)?.label ?? key;
@@ -106,6 +108,95 @@ export function SortGroup<K extends string>({
 
   function move(from: number, to: number) {
     onChange(moveItem(rules, from, to));
+  }
+
+  if (inline) {
+    const summary = rules.slice(0, 2).map((rule) =>
+      `${labelOf(rule.field)} ${rule.direction === 'asc' ? 'ascending' : 'descending'}`
+    ).join(', then ');
+    return (
+      <details className="mb-4 border border-zinc-200 bg-zinc-50 p-4 text-sm">
+        <summary className="cursor-pointer font-semibold text-brand-button hover:underline">
+          Sort: {summary || 'Default order'}{rules.length > 2 ? `, then ${rules.length - 2} more` : ''}
+        </summary>
+        <div className="mt-3">
+          <SortableList ids={rules.map((rule) => rule.field)} onMove={move}>
+            <div className="flex flex-col gap-2">
+              {rules.map((rule, index) => (
+                <SortableItem
+                  as="div"
+                  id={rule.field}
+                  label={`${labelOf(rule.field)} sort`}
+                  key={rule.field}
+                  className="flex flex-wrap items-center gap-2"
+                >
+                  {(handle) => <>
+                    {handle}
+                    <label className="sr-only" htmlFor={`inline-sort-${index}`}>
+                      Sort field {index + 1}
+                    </label>
+                    <select
+                      className="min-w-0 border border-zinc-300 bg-white px-2 py-2"
+                      id={`inline-sort-${index}`}
+                      value={rule.field}
+                      onChange={(event) =>
+                        onChange(rules.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, field: event.target.value as K } : item
+                        ))
+                      }
+                    >
+                      {fields.map((field) => (
+                        <option
+                          key={field.key}
+                          value={field.key}
+                          disabled={rule.field !== field.key && rules.some((item) => item.field === field.key)}
+                        >
+                          {field.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      aria-label={`${labelOf(rule.field)} ${rule.direction === 'asc' ? 'ascending' : 'descending'}, click to reverse`}
+                      title={rule.direction === 'asc' ? 'Ascending' : 'Descending'}
+                      className="border border-zinc-300 bg-white px-2 py-2 font-semibold hover:bg-zinc-100"
+                      onClick={() =>
+                        onChange(rules.map((item, itemIndex) =>
+                          itemIndex === index
+                            ? { ...item, direction: item.direction === 'asc' ? 'desc' : 'asc' }
+                            : item
+                        ))
+                      }
+                    >
+                      {rule.direction === 'asc' ? 'A→Z' : 'Z→A'}
+                    </button>
+                    <button
+                      type="button"
+                      className="px-1 font-semibold text-brand-button hover:underline"
+                      onClick={() => onChange(rules.filter((_, itemIndex) => itemIndex !== index))}
+                      aria-label={`Remove sort ${index + 1}`}
+                    >
+                      Remove
+                    </button>
+                  </>}
+                </SortableItem>
+              ))}
+            </div>
+          </SortableList>
+          {unused.length > 0 && (
+            <button
+              type="button"
+              className="mt-3 font-semibold text-brand-button hover:underline"
+              onClick={() =>
+                onChange([...rules, { field: unused[0].key, direction: 'asc' }])
+              }
+            >
+              + Add sort level
+            </button>
+          )}
+        </div>
+      </details>
+    );
   }
 
   return (

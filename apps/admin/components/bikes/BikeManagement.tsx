@@ -25,13 +25,7 @@ import type { BikeAdminListItem, BikeModel, LookupOption, ReviewStatus } from '@
 import { reviewStatusOptions } from '@/lib/reviewStatus';
 import { bikeModelLabel } from '@/lib/bikeModelLabel';
 import { getBikeModelListSearch } from '@/lib/bikeModelListState';
-import {
-  ClearFiltersButton,
-  GridSidebar,
-  SidebarGroup,
-  SidebarSelect,
-  SortGroup,
-} from '@/components/GridSidebar';
+import { SortGroup } from '@/components/GridSidebar';
 import { compareText, sortRows, type SortRule } from '@/lib/multiSort';
 import BikeImageManagement from './BikeImageManagement';
 
@@ -97,6 +91,7 @@ export default function BikeManagement({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [brandFilter, setBrandFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [modelFilter, setModelFilter] = useState(
     () =>
       (modelId === undefined &&
@@ -107,6 +102,10 @@ export default function BikeManagement({
   const [reviewFilter, setReviewFilter] = useState('');
   const [imageFilter, setImageFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [yearMin, setYearMin] = useState('');
+  const [yearMax, setYearMax] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [sortRules, setSortRules] = useState<SortRule<SortField>[]>(
     modelId
       ? [{ field: 'year', direction: 'desc' }]
@@ -114,17 +113,28 @@ export default function BikeManagement({
   );
   const showModel = modelId === undefined;
   const modelBikeCounts = new Map(models.map((model) => [model.id, model.bikeCount]));
+  const modelById = new Map(models.map((model) => [model.id, model]));
   const brandNames = [...new Set(models.map((model) => model.brandName))].sort(
     (a, b) => a.localeCompare(b)
   );
+  const categoryNames = [...new Set(models.map((model) => model.categoryName))].sort(
+    (a, b) => a.localeCompare(b)
+  );
   const filterModels = models.filter(
-    (model) => !brandFilter || model.brandName === brandFilter
+    (model) =>
+      (!brandFilter || model.brandName === brandFilter) &&
+      (!categoryFilter || model.categoryName === categoryFilter)
   );
   const visibleBikes = sortRows(
     bikes.filter(
       (bike) =>
         (!brandFilter || bike.brandName === brandFilter) &&
+        (!categoryFilter || modelById.get(bike.modelId)?.categoryName === categoryFilter) &&
         (!modelFilter || String(bike.modelId) === modelFilter) &&
+        (!yearMin || bike.year >= Number(yearMin)) &&
+        (!yearMax || bike.year <= Number(yearMax)) &&
+        (!minPrice || bike.msrpPrice !== null && bike.msrpPrice >= Number(minPrice)) &&
+        (!maxPrice || bike.msrpPrice !== null && bike.msrpPrice <= Number(maxPrice)) &&
         (!statusFilter ||
           (statusFilter === 'published') === bike.isPublished) &&
         (!reviewFilter || bike.reviewStatus === reviewFilter) &&
@@ -149,6 +159,17 @@ export default function BikeManagement({
     }
   );
   const primarySort = sortRules[0];
+  const activeFilterCount = [
+    search,
+    brandFilter,
+    categoryFilter,
+    modelFilter,
+    yearMin || yearMax,
+    minPrice || maxPrice,
+    statusFilter,
+    reviewFilter,
+    imageFilter,
+  ].filter(Boolean).length;
 
   function sortHeader(field: SortField, label: string) {
     return (
@@ -554,101 +575,143 @@ export default function BikeManagement({
           </p>
         )}
         {!embedded && (
-        <GridSidebar>
-          <SidebarGroup
-            title="Filters"
-            action={
-              <ClearFiltersButton
-                disabled={
-                  !search &&
-                  !brandFilter &&
-                  !modelFilter &&
-                  !statusFilter &&
-                  !reviewFilter &&
-                  !imageFilter
-                }
+          <>
+            <details className="mb-4 mt-6 border border-zinc-200 bg-zinc-50 p-4 text-sm">
+              <summary className="cursor-pointer font-semibold text-brand-button hover:underline">
+                Filters{activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}
+              </summary>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <label className="block text-sm font-semibold">
+                  Search
+                  <input
+                    className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 text-sm font-normal"
+                    placeholder="Search variants"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                </label>
+                {showModel && (
+                  <label className="block text-sm font-semibold">
+                    Brand
+                    <select
+                      className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal"
+                      value={brandFilter}
+                      onChange={(event) => {
+                        setBrandFilter(event.target.value);
+                        setModelFilter('');
+                      }}
+                    >
+                      <option value="">All brands</option>
+                      {brandNames.map((brand) => (
+                        <option key={brand} value={brand}>{brand}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                {showModel && (
+                  <label className="block text-sm font-semibold">
+                    Category
+                    <select
+                      className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal"
+                      value={categoryFilter}
+                      onChange={(event) => {
+                        setCategoryFilter(event.target.value);
+                        setModelFilter('');
+                      }}
+                    >
+                      <option value="">All categories</option>
+                      {categoryNames.map((category) => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                {showModel && (
+                  <label className="block text-sm font-semibold">
+                    Model
+                    <select
+                      className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal"
+                      value={modelFilter}
+                      onChange={(event) => setModelFilter(event.target.value)}
+                    >
+                      <option value="">All models</option>
+                      {filterModels.map((model) => (
+                        <option key={model.id} value={model.id}>{model.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <label className="block text-sm font-semibold">
+                  Year from
+                  <input className="mt-1 w-full border border-black/20 bg-white px-3 py-2 font-normal" min="1" step="1" type="number" value={yearMin} onChange={(event) => setYearMin(event.target.value)} />
+                </label>
+                <label className="block text-sm font-semibold">
+                  Year to
+                  <input className="mt-1 w-full border border-black/20 bg-white px-3 py-2 font-normal" min="1" step="1" type="number" value={yearMax} onChange={(event) => setYearMax(event.target.value)} />
+                </label>
+                <label className="block text-sm font-semibold">
+                  Minimum price ($)
+                  <input className="mt-1 w-full border border-black/20 bg-white px-3 py-2 font-normal" min="0" step="0.01" type="number" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} />
+                </label>
+                <label className="block text-sm font-semibold">
+                  Maximum price ($)
+                  <input className="mt-1 w-full border border-black/20 bg-white px-3 py-2 font-normal" min="0" step="0.01" type="number" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} />
+                </label>
+                <label className="block text-sm font-semibold">
+                  Status
+                  <select className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                    <option value="">All statuses</option>
+                    <option value="published">Published</option>
+                    <option value="unpublished">Unpublished</option>
+                  </select>
+                </label>
+                <label className="block text-sm font-semibold">
+                  Review status
+                  <select className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal" value={reviewFilter} onChange={(event) => setReviewFilter(event.target.value)}>
+                    <option value="">All review statuses</option>
+                    {reviewStatusOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-sm font-semibold">
+                  Images
+                  <select className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal" value={imageFilter} onChange={(event) => setImageFilter(event.target.value)}>
+                    <option value="">All bikes</option>
+                    <option value="has-images">Has images</option>
+                    <option value="no-images">No images</option>
+                  </select>
+                </label>
+              </div>
+              <p className="mt-3 text-xs text-brand-grey">Range filters exclude motorcycles with missing values.</p>
+              <button
+                className="mt-3 text-sm font-semibold text-brand-button underline disabled:opacity-40 disabled:no-underline"
+                disabled={activeFilterCount === 0}
+                type="button"
                 onClick={() => {
                   setSearch('');
                   setBrandFilter('');
+                  setCategoryFilter('');
                   setModelFilter('');
+                  setYearMin('');
+                  setYearMax('');
+                  setMinPrice('');
+                  setMaxPrice('');
                   setStatusFilter('');
                   setReviewFilter('');
                   setImageFilter('');
                 }}
-              />
-            }
-          >
-            <label className="block text-sm font-semibold">
-              Search
-              <input
-                className="mt-1 block w-full px-2 py-2 text-sm font-normal text-brand-black"
-                placeholder="Search variants"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </label>
-            {showModel && (
-              <SidebarSelect
-                label="Brand"
-                value={brandFilter}
-                onChange={(value) => {
-                  setBrandFilter(value);
-                  setModelFilter('');
-                }}
               >
-                <option value="">All brands</option>
-                {brandNames.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand}
-                  </option>
-                ))}
-              </SidebarSelect>
-            )}
-            {showModel && (
-              <SidebarSelect
-                label="Model"
-                value={modelFilter}
-                onChange={setModelFilter}
-              >
-                <option value="">All models</option>
-                {filterModels.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name}
-                  </option>
-                ))}
-              </SidebarSelect>
-            )}
-            <SidebarSelect
-              label="Status"
-              value={statusFilter}
-              onChange={setStatusFilter}
-            >
-              <option value="">All statuses</option>
-              <option value="published">Published</option>
-              <option value="unpublished">Unpublished</option>
-            </SidebarSelect>
-            <SidebarSelect label="Review status" value={reviewFilter} onChange={setReviewFilter}>
-              <option value="">All review statuses</option>
-              {reviewStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </SidebarSelect>
-            <SidebarSelect
-              label="Images"
-              value={imageFilter}
-              onChange={setImageFilter}
-            >
-              <option value="">All bikes</option>
-              <option value="has-images">Has images</option>
-              <option value="no-images">No images</option>
-            </SidebarSelect>
-          </SidebarGroup>
-          <SortGroup
-            fields={sortFieldOptions}
-            rules={sortRules}
-            onChange={setSortRules}
-          />
-        </GridSidebar>
+                Clear filters
+              </button>
+            </details>
+            <SortGroup
+              fields={sortFieldOptions}
+              inline
+              rules={sortRules}
+              onChange={setSortRules}
+            />
+          </>
         )}
         {loading && bikes.length === 0 ? (
           <p className="mt-8 text-brand-grey">Loading bikes...</p>
