@@ -16,7 +16,7 @@ export function AdminToolbarButton({
   return (
     <button
       {...props}
-      className={`w-full border border-black/30 px-4 py-2 text-center text-sm font-semibold disabled:opacity-50 sm:w-auto ${className}`}
+      className={`w-full border border-black/30 px-4 py-2 text-center text-sm font-semibold transition-colors hover:border-brand-button hover:bg-brand-button hover:text-white disabled:hover:border-black/30 disabled:hover:bg-transparent disabled:hover:text-inherit disabled:opacity-50 sm:w-auto ${className}`}
       type={type}
     />
   );

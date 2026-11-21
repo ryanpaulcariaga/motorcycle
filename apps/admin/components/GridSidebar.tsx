@@ -94,12 +94,15 @@ export function SortGroup<K extends string>({
   rules,
   onChange,
   inline = false,
+  defaultInlineOpen = false,
 }: {
   fields: { key: K; label: string }[];
   rules: SortRule<K>[];
   onChange: (rules: SortRule<K>[]) => void;
   inline?: boolean;
+  defaultInlineOpen?: boolean;
 }) {
+  const [inlineOpen, setInlineOpen] = useState(defaultInlineOpen);
   const labelOf = (key: K) =>
     fields.find((field) => field.key === key)?.label ?? key;
   const unused = fields.filter(
@@ -115,7 +118,11 @@ export function SortGroup<K extends string>({
       `${labelOf(rule.field)} ${rule.direction === 'asc' ? 'ascending' : 'descending'}`
     ).join(', then ');
     return (
-      <details className="mb-4 border border-zinc-200 bg-zinc-50 p-4 text-sm">
+      <details
+        className="mt-4 border border-zinc-200 bg-zinc-50 p-4 text-sm"
+        open={inlineOpen}
+        onToggle={(event) => setInlineOpen(event.currentTarget.open)}
+      >
         <summary className="cursor-pointer font-semibold text-brand-button hover:underline">
           Sort: {summary || 'Default order'}{rules.length > 2 ? `, then ${rules.length - 2} more` : ''}
         </summary>

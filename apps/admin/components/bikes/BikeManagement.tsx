@@ -122,6 +122,9 @@ export default function BikeManagement({
   const [reviewFilter, setReviewFilter] = useState('');
   const [imageFilter, setImageFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(() =>
+    window.matchMedia('(min-width: 768px)').matches
+  );
   const [yearMin, setYearMin] = useState('');
   const [yearMax, setYearMax] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -631,6 +634,49 @@ export default function BikeManagement({
     }
   }
 
+  const managementActions = (
+    <AdminToolbar>
+      {!embedded && modelId === undefined && (
+        <>
+          <AdminToolbarButton
+            disabled={loading || openingGrid || visibleBikes.length === 0}
+            onClick={() => void openDisplayedGrid()}
+          >
+            {openingGrid
+              ? 'Opening...'
+              : `Bulk edit displayed (${visibleBikes.length})`}
+          </AdminToolbarButton>
+          <AdminToolbarButton
+            disabled={loading || exporting || visibleBikes.length === 0}
+            onClick={() => void exportDisplayed()}
+          >
+            {exporting ? 'Exporting...' : 'Export displayed'}
+          </AdminToolbarButton>
+          <AdminToolbarButton
+            disabled={loading}
+            onClick={() => {
+              setError(null);
+              setImportErrors([]);
+              setImportOpen(true);
+            }}
+          >
+            Import Excel
+          </AdminToolbarButton>
+        </>
+      )}
+      <AdminToolbarButton
+        disabled={loading || resettingTags || visibleBikes.length === 0}
+        onClick={() => void resetVisibleConfirmations()}
+      >
+        {resettingTags ? 'Resetting...' : 'Reset displayed reviews'}
+      </AdminToolbarButton>
+      <AdminToolbarButton disabled={loading} onClick={() => void load()}>
+        {loading ? 'Refreshing...' : 'Refresh'}
+      </AdminToolbarButton>
+      <AdminToolbarButton onClick={startCreate}>Add variant</AdminToolbarButton>
+    </AdminToolbar>
+  );
+
   return (
     <div>
       <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
@@ -650,49 +696,7 @@ export default function BikeManagement({
               <h1 className="mt-2 text-xl font-bold">Bike Variants</h1>
             )}
           </div>
-          <AdminToolbar>
-            {!embedded && modelId === undefined && (
-              <>
-                <AdminToolbarButton
-                  disabled={loading || openingGrid || visibleBikes.length === 0}
-                  onClick={() => void openDisplayedGrid()}
-                >
-                  {openingGrid ? 'Opening...' : `Bulk edit displayed (${visibleBikes.length})`}
-                </AdminToolbarButton>
-                <AdminToolbarButton
-                  disabled={loading || exporting || visibleBikes.length === 0}
-                  onClick={() => void exportDisplayed()}
-                >
-                  {exporting ? 'Exporting...' : 'Export displayed'}
-                </AdminToolbarButton>
-                <AdminToolbarButton
-                  disabled={loading}
-                  onClick={() => {
-                    setError(null);
-                    setImportErrors([]);
-                    setImportOpen(true);
-                  }}
-                >
-                  Import Excel
-                </AdminToolbarButton>
-              </>
-            )}
-            <AdminToolbarButton
-              disabled={loading || resettingTags || visibleBikes.length === 0}
-              onClick={() => void resetVisibleConfirmations()}
-            >
-              {resettingTags ? 'Resetting...' : 'Reset displayed reviews'}
-            </AdminToolbarButton>
-            <AdminToolbarButton
-              disabled={loading}
-              onClick={() => void load()}
-            >
-              {loading ? 'Refreshing...' : 'Refresh'}
-            </AdminToolbarButton>
-            <AdminToolbarButton onClick={startCreate}>
-              Add variant
-            </AdminToolbarButton>
-          </AdminToolbar>
+          {embedded && managementActions}
         </div>
         {error && !modalOpen && !reassignTargetBike && (
           <p
@@ -712,7 +716,11 @@ export default function BikeManagement({
         )}
         {!embedded && (
           <>
-            <details className="mb-4 mt-6 border border-zinc-200 bg-zinc-50 p-4 text-sm">
+            <details
+              className="mb-4 mt-6 border border-zinc-200 bg-zinc-50 p-4 text-sm"
+              open={filtersOpen}
+              onToggle={(event) => setFiltersOpen(event.currentTarget.open)}
+            >
               <summary className="cursor-pointer font-semibold text-brand-button hover:underline">
                 Filters{activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}
               </summary>
@@ -843,10 +851,12 @@ export default function BikeManagement({
             </details>
             <SortGroup
               fields={sortFieldOptions}
+              defaultInlineOpen={window.matchMedia('(min-width: 768px)').matches}
               inline
               rules={sortRules}
               onChange={setSortRules}
             />
+            <div className="mt-4">{managementActions}</div>
           </>
         )}
         {loading && bikes.length === 0 ? (

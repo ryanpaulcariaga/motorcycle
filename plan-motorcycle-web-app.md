@@ -41,7 +41,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
 | F-05 | ✅ Admin sign-in (Facebook PKCE) and admin roles |
-| F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts |
+| F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts; Bike Models filters and ordered sorting stay above the grid instead of in the sidebar |
 | F-07 | ✅ Admin: Bike variant CRUD, publish control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus publish/review/image state, and Bulk-style ordered multi-sort; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management and drag-and-drop ordering |
@@ -260,7 +260,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
 
-**2026-11-22** — Unified single and bulk bike administration on the Bikes screen. Current filters and sorting now drive spreadsheet editing and Excel export for only the displayed variants, with Excel import available in the same UI; the old bulk URL renders the unified screen. Shared toolbar components now give Bikes, Bike Models, Specifications, Brands, Categories, Administrators, and Audit the same readable Refresh/Add treatment: full-width stacked actions on mobile and natural-width wrapping buttons on larger screens. Added exact bike-ID filtering to the API, with 40 focused API tests, admin production build and lint passing (six unrelated lint warnings remain). Authenticated browser acceptance remains under T-23 and T-24.
+**2026-11-22** — Moved Bike Models brand/category filters and ordered sorting from the admin sidebar into collapsed controls above the models grid, matching the Bikes screen. Unified single and bulk bike administration on the Bikes screen. Current filters and sorting now drive spreadsheet editing and Excel export for only the displayed variants, with Excel import available in the same UI; the old bulk URL renders the unified screen. Shared toolbar components now give Bikes, Bike Models, Specifications, Brands, Categories, Administrators, and Audit the same readable Refresh/Add treatment: full-width stacked actions on mobile and natural-width wrapping buttons on larger screens. Added exact bike-ID filtering to the API, with 40 focused API tests, admin production build and lint passing (six unrelated lint warnings remain). Authenticated browser acceptance remains under T-23 and T-24.
 
 **2026-11-22** — Expanded Bulk Spec Edit and standardized admin bike controls: Single Edit filters and Bulk-style sorting now live in collapsed panels above results. Both use active filter counts and ordered sort controls with drag handles, field changes, directions, removal, and add-level actions. Bulk grid/Excel share inclusive year/displacement filters and ordered sorts. 38 focused API tests, the admin production build, and admin lint passed (lint retains six unrelated warnings). Browser acceptance remains under T-23 and T-24.
 

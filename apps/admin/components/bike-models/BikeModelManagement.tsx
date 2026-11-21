@@ -22,13 +22,7 @@ import {
   type BikeModelSortField,
 } from '@/lib/bikeModelListState';
 import { compareText, sortRows } from '@/lib/multiSort';
-import {
-  ClearFiltersButton,
-  GridSidebar,
-  SidebarGroup,
-  SidebarSelect,
-  SortGroup,
-} from '@/components/GridSidebar';
+import { SortGroup } from '@/components/GridSidebar';
 
 const emptyForm = { brandId: '', categoryId: '', name: '' };
 
@@ -44,6 +38,9 @@ export default function BikeModelManagement() {
     initialListState.categoryFilter
   );
   const [sortRules, setSortRules] = useState(initialListState.sort);
+  const [filtersOpen, setFiltersOpen] = useState(() =>
+    window.matchMedia('(min-width: 768px)').matches
+  );
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -54,6 +51,7 @@ export default function BikeModelManagement() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const primarySort = sortRules[0];
+  const activeFilterCount = [brandFilter, categoryFilter].filter(Boolean).length;
   const filteredModels = sortRows(
     models.filter(
       (model) =>
@@ -205,6 +203,17 @@ export default function BikeModelManagement() {
     }
   }
 
+  const managementActions = (
+    <AdminToolbar>
+      <AdminToolbarButton onClick={() => void load()} disabled={loading}>
+        {loading ? 'Refreshing...' : 'Refresh'}
+      </AdminToolbarButton>
+      <AdminToolbarButton onClick={startCreate}>
+        Add BikeModel
+      </AdminToolbarButton>
+    </AdminToolbar>
+  );
+
   return (
     <div>
       <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
@@ -212,15 +221,6 @@ export default function BikeModelManagement() {
           <div>
             <h1 className="text-xl font-bold">Bikes Model</h1>
           </div>
-          <AdminToolbar>
-            <AdminToolbarButton
-              onClick={() => void load()}
-              disabled={loading}
-            >
-              {loading ? 'Refreshing...' : 'Refresh'}
-            </AdminToolbarButton>
-            <AdminToolbarButton onClick={startCreate}>Add BikeModel</AdminToolbarButton>
-          </AdminToolbar>
         </div>
         {error && !modalOpen && (
           <p
@@ -231,61 +231,86 @@ export default function BikeModelManagement() {
           </p>
         )}
         {loading && models.length === 0 ? (
-          <p className="mt-8 text-brand-grey">Loading bikes...</p>
+          <>
+            <p className="mt-8 text-brand-grey">Loading bikes...</p>
+            <div className="mt-4">{managementActions}</div>
+          </>
         ) : models.length === 0 ? (
-          <p className="mt-8 text-brand-grey">No bikes have been added.</p>
+          <>
+            <p className="mt-8 text-brand-grey">No bikes have been added.</p>
+            <div className="mt-4">{managementActions}</div>
+          </>
         ) : (
-          <div className="mt-6 space-y-4">
-            <GridSidebar>
-              <SidebarGroup
-                title="Filters"
-                action={
-                  <ClearFiltersButton
-                    disabled={!brandFilter && !categoryFilter}
-                    onClick={() => {
-                      setBrandFilter('');
-                      setCategoryFilter('');
-                    }}
-                  />
-                }
+          <div className="mt-6">
+            <details
+              className="border border-zinc-200 bg-zinc-50 p-4 text-sm"
+              open={filtersOpen}
+              onToggle={(event) => setFiltersOpen(event.currentTarget.open)}
+            >
+              <summary className="cursor-pointer font-semibold text-brand-button hover:underline">
+                Filters
+                {activeFilterCount > 0
+                  ? ` (${activeFilterCount} active)`
+                  : ''}
+              </summary>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="block text-sm font-semibold">
+                  Brand
+                  <select
+                    className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal"
+                    value={brandFilter}
+                    onChange={(event) => setBrandFilter(event.target.value)}
+                  >
+                    <option value="">All brands</option>
+                    {brands.map((brand) => (
+                      <option key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-sm font-semibold">
+                  Category
+                  <select
+                    className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal"
+                    value={categoryFilter}
+                    onChange={(event) => setCategoryFilter(event.target.value)}
+                  >
+                    <option value="">All categories</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <button
+                className="mt-3 text-sm font-semibold text-brand-button underline disabled:opacity-40 disabled:no-underline"
+                disabled={activeFilterCount === 0}
+                type="button"
+                onClick={() => {
+                  setBrandFilter('');
+                  setCategoryFilter('');
+                }}
               >
-                <SidebarSelect
-                  label="Brand"
-                  value={brandFilter}
-                  onChange={setBrandFilter}
-                >
-                  <option value="">All brands</option>
-                  {brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </option>
-                  ))}
-                </SidebarSelect>
-                <SidebarSelect
-                  label="Category"
-                  value={categoryFilter}
-                  onChange={setCategoryFilter}
-                >
-                  <option value="">All categories</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </SidebarSelect>
-              </SidebarGroup>
-              <SortGroup
-                fields={[
-                  { key: 'brand', label: 'Brand' },
-                  { key: 'category', label: 'Category' },
-                  { key: 'name', label: 'Model' },
-                ]}
-                rules={sortRules}
-                onChange={setSortRules}
-              />
-            </GridSidebar>{' '}
+                Clear filters
+              </button>
+            </details>
+            <SortGroup
+              fields={[
+                { key: 'brand', label: 'Brand' },
+                { key: 'category', label: 'Category' },
+                { key: 'name', label: 'Model' },
+              ]}
+              defaultInlineOpen={window.matchMedia('(min-width: 768px)').matches}
+              inline
+              rules={sortRules}
+              onChange={setSortRules}
+            />
+            <div className="mt-4">{managementActions}</div>
             {filteredModels.length === 0 ? (
-              <p className="py-4 text-brand-grey" role="status">
+              <p className="mt-6 py-4 text-brand-grey" role="status">
                 No bike models match the selected filters.
               </p>
             ) : (
