@@ -183,6 +183,8 @@ CREATE INDEX idx_user_external_logins_user_id ON user_external_logins(user_id);
 
 A `User` is the durable public-catalog identity; `user_external_logins` links it to one or more sign-in providers so the same person can sign in with Facebook, and later Google or another provider, and land on the same account. New sign-ins reuse an existing `User` when the incoming external login is already linked, or when the provider supplies a verified email that matches an existing `User.email`; unverified emails never trigger auto-linking. No public self-registration form exists — any active external identity can sign in and a `User` row is created on first sign-in.
 
+The account privacy API exports the `users`, `user_external_logins`, `user_interest_daily_counts`, `bike_comments`, and `bike_discussion_comments` rows owned by the signed-in user. Deleting the user cascades through all of those relationships; anonymous `analytics_daily_counts` have no user relationship and remain aggregate-only.
+
 ### spec_definitions
 ```sql
 CREATE TABLE spec_definitions (

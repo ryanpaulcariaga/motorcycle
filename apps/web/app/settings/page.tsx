@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AccountPrivacyControls from '@/components/AccountPrivacyControls';
 import AnalyticsConsent from '@/components/AnalyticsConsent';
 import CatalogPageShell from '@/components/CatalogPageShell';
 import UserInterestPreference from '@/components/UserInterestPreference';
@@ -17,6 +18,7 @@ export default function SettingsPage() {
       <div className="space-y-6">
         <AnalyticsConsent mode="settings" />
         <UserInterestPreference />
+        <AccountPrivacyControls />
       </div>
     </CatalogPageShell>
   );

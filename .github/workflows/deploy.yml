@@ -145,6 +145,9 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+          LEGAL_OPERATOR_NAME: ${{ vars.LEGAL_OPERATOR_NAME }}
+          PRIVACY_CONTACT_EMAIL: ${{ vars.PRIVACY_CONTACT_EMAIL }}
+          LEGAL_JURISDICTION: ${{ vars.LEGAL_JURISDICTION }}
 
       - name: Assemble standalone package
         run: |

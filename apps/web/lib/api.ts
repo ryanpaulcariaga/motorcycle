@@ -13,6 +13,7 @@ import type {
   PagedResult,
   PopularComparisonDto,
   SpecGroupDto,
+  UserDataExport,
   UserSessionDto,
   UserInterestEvent,
   UserInterestPreference,
@@ -125,6 +126,26 @@ async function authFetch<T>(path: string, options?: RequestInit): Promise<T | nu
 
 export function getUserSession(): Promise<UserSessionDto | null> {
   return authFetch<UserSessionDto>("/api/auth/session");
+}
+
+export async function exportUserData(): Promise<UserDataExport> {
+  const result = await authFetch<UserDataExport>("/api/user/account/export");
+  if (!result) {
+    throw new Error("Please sign in again to export your data.");
+  }
+  return result;
+}
+
+export async function deleteUserAccount(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/user/account`, {
+    method: "DELETE",
+    credentials: "include",
+    cache: "no-store",
+    headers: { "X-Account-Request": "1" },
+  });
+  if (!response.ok) {
+    throw new Error(`Delete account request failed: ${response.status}`);
+  }
 }
 
 export function getUserInterestPreference(): Promise<UserInterestPreference | null> {

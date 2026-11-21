@@ -76,7 +76,7 @@ export default function UserInterestPreference() {
               to your account for future recommendations. No search text is saved. Activity is kept for 12 months;
               turning this off deletes it. This does not enable marketing emails or sharing personal profiles.
             </p>
-            <button type="button" className="border border-brand-grey px-3 py-2" disabled={saving}
+            <button type="button" className="border border-brand-grey px-3 py-2 transition-colors hover:border-brand-button hover:bg-brand-button hover:text-white disabled:hover:border-brand-grey disabled:hover:bg-transparent disabled:hover:text-inherit" disabled={saving}
               onClick={() => void change(!enabled)}>
               {saving ? 'Saving...' : enabled ? 'Turn off and delete activity' : 'Allow interest profile'}
             </button>

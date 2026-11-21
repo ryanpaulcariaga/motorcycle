@@ -56,10 +56,10 @@ export default function AnalyticsConsent({ mode = 'prompt' }: { mode?: 'prompt' 
           </p>
           {mode === 'settings' && <p>Current preference: <strong>{choice === 'yes' ? 'Allowed' : choice === 'no' ? 'Declined' : 'Not set'}</strong></p>}
           <div className="flex flex-wrap gap-3">
-            <button type="button" className="border border-brand-grey px-3 py-2" onClick={() => choose('no')} disabled={choice === 'no'}>
+            <button type="button" className="border border-brand-grey px-3 py-2 transition-colors hover:border-brand-button hover:bg-brand-button hover:text-white disabled:hover:border-brand-grey disabled:hover:bg-transparent disabled:hover:text-inherit" onClick={() => choose('no')} disabled={choice === 'no'}>
               {mode === 'settings' ? 'Turn off analytics' : 'Decline'}
             </button>
-            <button type="button" className="bg-brand-button px-3 py-2 font-semibold text-white" onClick={() => choose('yes')} disabled={choice === 'yes'}>Allow analytics</button>
+            <button type="button" className="bg-brand-button px-3 py-2 font-semibold text-white transition-colors hover:bg-brand-sidebar disabled:hover:bg-brand-button" onClick={() => choose('yes')} disabled={choice === 'yes'}>Allow analytics</button>
           </div>
           {error && <p role="alert" className="w-full text-red-700">{error}</p>}
         </div>

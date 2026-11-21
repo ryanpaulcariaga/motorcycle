@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Header from '@/components/Header';
 import AnalyticsConsent from '@/components/AnalyticsConsent';
+import Footer from '@/components/Footer';
 import { SITE_URL } from '@/lib/site';
 import './globals.css';
 
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
         </div>
         <Header />
         {children}
+        <Footer />
         <AnalyticsConsent />
       </body>
     </html>

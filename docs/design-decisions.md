@@ -57,7 +57,7 @@ Why the system is built the way it is, plus the quality targets reviewed against
 - Dependency and secret scanning in CI remain open.
 
 **Privacy and legal**
-- Privacy policy and terms; cookie consent before analytics or advertising cookies; public user data export/deletion; Facebook app review and data-use requirements; image licensing/attribution policy.
+- Privacy and terms pages, opt-in consent controls, signed-in account JSON export, and cascade-backed account deletion are implemented. `LEGAL_OPERATOR_NAME`, `PRIVACY_CONTACT_EMAIL`, and `LEGAL_JURISDICTION` must be configured and the copy reviewed before public promotion. Facebook app review/data-use requirements and image licensing/attribution policy remain open.
 
 **Content and data**
 - Define sourcing and verification workflow, what `review_status` means, and who may publish. Decide units (metric/imperial), MSRP currency, and localization for Southeast Asia.

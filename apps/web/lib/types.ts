@@ -23,6 +23,47 @@ export interface UserSessionDto {
   displayName: string | null;
 }
 
+export interface UserDataExport {
+  schemaVersion: string;
+  generatedAtUtc: string;
+  account: {
+    id: number;
+    email: string | null;
+    emailVerified: boolean;
+    displayName: string | null;
+    interestTrackingEnabled: boolean;
+    createdAtUtc: string;
+    updatedAtUtc: string;
+  };
+  externalLogins: Array<{
+    provider: string;
+    providerUserId: string;
+    emailAtProvider: string | null;
+    linkedAtUtc: string;
+  }>;
+  interestActivity: Array<{
+    day: string;
+    metric: string;
+    catalogId: number;
+    count: number;
+  }>;
+  reviews: Array<{
+    id: number;
+    bikeId: number;
+    rating: number;
+    body: string | null;
+    createdAtUtc: string;
+    updatedAtUtc: string;
+  }>;
+  comments: Array<{
+    id: number;
+    bikeId: number;
+    body: string;
+    createdAtUtc: string;
+    updatedAtUtc: string;
+  }>;
+}
+
 export interface BikeReviewDto {
   id: number;
   authorName: string;

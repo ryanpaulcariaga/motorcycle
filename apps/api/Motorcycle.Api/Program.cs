@@ -57,11 +57,13 @@ builder.Services.AddScoped<ISpecGroupAdminRepository, SpecGroupAdminRepository>(
 builder.Services.AddScoped<ISpecDefinitionAdminRepository, SpecDefinitionAdminRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 builder.Services.AddScoped<IUserInterestRepository, UserInterestRepository>();
+builder.Services.AddScoped<IUserPrivacyRepository, UserPrivacyRepository>();
 builder.Services.AddScoped<IBikeReviewRepository, BikeReviewRepository>();
 builder.Services.AddScoped<IBikeCommentRepository, BikeCommentRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IUserInterestService, UserInterestService>();
+builder.Services.AddScoped<IUserPrivacyService, UserPrivacyService>();
 builder.Services.AddScoped<IBikeReviewService, BikeReviewService>();
 builder.Services.AddScoped<IBikeCommentService, BikeCommentService>();
 builder.Services.AddHostedService<AnalyticsRetentionService>();
@@ -266,7 +268,8 @@ app.UseCors(CorsPolicy);
 app.Use(async (context, next) =>
 {
     var isProtectedMutation = (context.Request.Path.StartsWithSegments("/api/admin") ||
-        context.Request.Path.StartsWithSegments("/api/user/interests")) &&
+        context.Request.Path.StartsWithSegments("/api/user/interests") ||
+        context.Request.Path.StartsWithSegments("/api/user/account")) &&
         !HttpMethods.IsGet(context.Request.Method) &&
         !HttpMethods.IsHead(context.Request.Method) &&
         !HttpMethods.IsOptions(context.Request.Method);

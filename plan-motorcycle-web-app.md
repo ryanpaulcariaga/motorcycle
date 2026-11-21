@@ -13,9 +13,9 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 49 of 111 tasks done · 7 in progress · 55 not started.**
+**Progress: 52 of 112 tasks done · 7 in progress · 53 not started.**
 
-**Next up:** Verify ratings/comments and interest-profile controls in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
+**Next up:** Configure the production legal operator/contact/jurisdiction values and complete the privacy, terms, log-retention, and backup-deletion review in T-112 before G-10 can be ticked. Verify ratings/comments, interest-profile, and account privacy controls in authenticated public browser sessions, and verify the analytics dashboard with an authenticated admin session. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
 ## Idea intake and triage
 
@@ -59,6 +59,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
 | F-26 | ✅ Public and admin show a browser compatibility notice when required capabilities or JavaScript are unavailable |
+| F-28 | ✅ Public privacy and terms pages, global legal links, and authenticated JSON account export plus permanent cascade-backed account deletion from Settings |
 
 ## Features (planned)
 
@@ -154,9 +155,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 
 | # | Status | Task | Notes | Gate |
 |---|---|---|---|---|
-| T-49 | ⬜ | Privacy policy page | None exists | G-10 |
-| T-50 | ⬜ | Terms page | None exists | G-10 |
-| T-51 | ⬜ | Define the user data export and deletion process | | G-10 |
+| T-112 | ⬜ | Configure and approve production legal details before promotion | Set `LEGAL_OPERATOR_NAME`, `PRIVACY_CONTACT_EMAIL`, and `LEGAL_JURISDICTION`; review the final privacy/terms text, hosting-log retention, and backup/restore behavior for deletion obligations | G-10 |
 
 ### Quality before promotion
 
@@ -231,6 +230,9 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-51 | ✅ Define and implement the user data export and deletion process | `GET /api/user/account/export`, `DELETE /api/user/account`, Settings controls, versioned JSON export, database-cascade deletion, session clearing, CSRF-origin checks, 3 passing focused tests, and an optional PostgreSQL cascade test |
+| T-50 | ✅ Terms page | `/terms`, shared footer link, configurable operator/contact/jurisdiction, web lint and production build pass |
+| T-49 | ✅ Privacy policy page | `/privacy`, shared footer link, configured data/consent/retention/deletion disclosures, web lint and production build pass |
 | T-111 | ✅ Unify admin editing toolbars | Bikes supports single and displayed-bike grid editing, Excel export/import, and one unified UI with exact-ID protection. All admin CRUD tabs use shared readable Refresh/Add buttons with one color treatment, full-width on mobile and natural width on larger screens. 40 focused API tests, admin build and lint pass; authenticated browser acceptance remains under T-23/T-24 |
 | T-110 | ✅ Track shared admin review progress | Three-state status in one database column, per-spec verification, list/grid/export filtering and bulk marking; focused API tests and admin build pass. Authenticated browser acceptance remains under T-55 |
 | T-109 | ✅ Replace browse sort direction dropdowns with toggles | Each sort level uses the admin-style A→Z/Z→A toggle; existing form serialization remains. Focused web lint and production build pass; browser acceptance remains under T-16 |
@@ -260,6 +262,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Added public Privacy and Terms pages with shared footer links and deployment-time operator, contact, and jurisdiction settings. Settings now offers signed-in JSON account export and confirmed permanent account deletion; the API exports account, linked sign-in, interest, review, and comment data and deletes user-owned relational rows through existing cascades before clearing the session. Three focused API tests, web lint, and the production web build pass; the optional PostgreSQL cascade test is present but skipped without its dedicated test database. G-10 remains open under T-112 for production legal details, hosting-log retention, and backup/deletion review.
 
 **2026-11-22** — Added a Bikes-screen action that marks every currently displayed variant In review in one atomic update while preserving spec verifications. The action confirms the bulk status change, refreshes the filtered grid, and reports the updated count; admin production build and focused lint passed (one pre-existing hook dependency warning remains).
 

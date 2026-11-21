@@ -6,6 +6,10 @@ API startup migrations create `analytics_daily_counts`. The API deletes aggregat
 
 The same migration process creates `user_interest_daily_counts` and an account-level profiling preference. Profile events use the same per-IP analytics limit; their retention cleanup runs independently of aggregate cleanup. Restrict database access and review backups, restoration, and infrastructure logs for personal data and deletion obligations. Email campaigns and third-party profile sharing are not implemented.
 
+The public `/privacy` and `/terms` pages are built with `LEGAL_OPERATOR_NAME`, `PRIVACY_CONTACT_EMAIL`, and `LEGAL_JURISDICTION`. Configure them in the GitHub `production` environment before promotion; they are embedded during the web build. If `PRIVACY_CONTACT_EMAIL` is absent, the pages explicitly disclose that no public privacy channel is configured while preserving the signed-in self-service export/deletion controls.
+
+Account export and deletion are available in `/settings` for active public-user sessions. `GET /api/user/account/export` is sensitive and sent with `no-store`; `DELETE /api/user/account` requires an allowed browser Origin and the `X-Account-Request` header. Deletion relies on user foreign-key cascades and also clears the session. Review database backup retention and restore behavior before promoting the legal guarantee that deletion removes all personal data.
+
 Azure resources, production URLs, deployment history and lessons, and local development notes. Step-by-step deployment instructions are in the root [README](../README.md#deploying-to-azure). What still needs doing is tracked in [plan-motorcycle-web-app.md](../plan-motorcycle-web-app.md).
 
 ## Local development
@@ -46,7 +50,7 @@ Storage__ConnectionString = @Microsoft.KeyVault(SecretUri=https://motorcycle-pro
 ConnectionStrings__DefaultConnection = @Microsoft.KeyVault(SecretUri=https://motorcycle-prod-kv.vault.azure.net/secrets/PostgresConnectionString/)
 ```
 
-GitHub's `production` environment variables `NEXT_PUBLIC_API_URL` and `VITE_API_URL` point at the API domain; `NEXT_PUBLIC_SITE_URL` points at the public web domain. They are build-time frontend settings, so changing them needs a frontend redeploy. Both production Facebook callback URLs must also be registered in the Facebook app (see the API README).
+GitHub's `production` environment variables `NEXT_PUBLIC_API_URL` and `VITE_API_URL` point at the API domain; `NEXT_PUBLIC_SITE_URL` points at the public web domain. The public app also reads `LEGAL_OPERATOR_NAME`, `PRIVACY_CONTACT_EMAIL`, and `LEGAL_JURISDICTION` while building the policy pages. They are build-time frontend settings, so changing them needs a frontend redeploy. Both production Facebook callback URLs must also be registered in the Facebook app (see the API README).
 
 The API enables forwarded-header processing only in Production, with a one-hop limit for `X-Forwarded-For` and `X-Forwarded-Proto`; the Production configuration clears ASP.NET Core's static trusted-proxy lists because Azure App Service ingress addresses are platform-managed. Do not enable that setting when exposing the API directly or behind a different topology without configuring its trusted ingress.
 
