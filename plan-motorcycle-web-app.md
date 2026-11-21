@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria and admin-style direction toggles; detail page; compact home and browse bike cards in one column through tablet widths and responsive desktop columns, with 24 bikes per browse page |
+| F-01 | ✅ Public catalog: browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria and admin-style direction toggles; detail page; compact home and browse bike cards with gold hover borders and no hover shadow in one column through tablet widths and responsive desktop columns, with 24 bikes per browse page |
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
@@ -274,6 +274,8 @@ Newest first. Added at "update the plan for our progress"; read when asked "what
 **2026-11-22** — Moved Bike Models brand/category filters and ordered sorting from the admin sidebar into collapsed controls above the models grid, matching the Bikes screen. Unified single and bulk bike administration on the Bikes screen. Current filters and sorting now drive spreadsheet editing and Excel export for only the displayed variants, with Excel import available in the same UI; the old bulk URL renders the unified screen. Shared toolbar components now give Bikes, Bike Models, Specifications, Brands, Categories, Administrators, and Audit the same readable Refresh/Add treatment: full-width stacked actions on mobile and natural-width wrapping buttons on larger screens. Added exact bike-ID filtering to the API, with 40 focused API tests, admin production build and lint passing (six unrelated lint warnings remain). Authenticated browser acceptance remains under T-23 and T-24.
 
 **2026-11-22** — Expanded Bulk Spec Edit and standardized admin bike controls: Single Edit filters and Bulk-style sorting now live in collapsed panels above results. Both use active filter counts and ordered sort controls with drag handles, field changes, directions, removal, and add-level actions. Bulk grid/Excel share inclusive year/displacement filters and ordered sorts. 38 focused API tests, the admin production build, and admin lint passed (lint retains six unrelated warnings). Browser acceptance remains under T-23 and T-24.
+
+**2026-11-22** — Changed public bike-card hover styling from a raised shadow to a gold border. Focused web lint and the public web production build passed; admin styling remains unchanged.
 
 **2026-11-21** — Added shared per-bike review status and bulk review tracking while preserving per-spec verification; consolidated status storage into one column. Focused API tests, admin build and migration snapshot check passed; authenticated browser verification remains under T-55.
 

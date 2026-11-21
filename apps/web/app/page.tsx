@@ -23,7 +23,7 @@ export default async function Home() {
               <Link
                 key={bike.id}
                 href={`/bikes/${bike.slug}`}
-                className=" border border-zinc-200 overflow-hidden hover:shadow-md transition-shadow"
+                className="border border-zinc-200 overflow-hidden transition-colors hover:border-brand-gold"
               >
                 <BikeCardContent bike={bike}>
                   <p className="font-semibold">
