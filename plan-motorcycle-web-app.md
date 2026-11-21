@@ -45,7 +45,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-07 | ✅ Admin: Bike variant CRUD, publish control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus publish/review/image state, and Bulk-style ordered multi-sort; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management and drag-and-drop ordering |
-| F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, Excel export, and Excel import for exactly the displayed variants |
+| F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, displayed-bike review updates, Excel export, and Excel import for exactly the displayed variants |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin; top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; bike variant headers match cell padding; admin modal action icons match grid icon colors |
@@ -54,7 +54,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; mobile sidebar sections expand independently and pages scroll to content |
-| F-21 | ✅ Admin shared per-bike Not reviewed/In review/Reviewed status, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override and combined review resets |
+| F-21 | ✅ Admin shared per-bike Not reviewed/In review/Reviewed status, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override, displayed-bike In review updates, and combined review resets |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
@@ -260,6 +260,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Added a Bikes-screen action that marks every currently displayed variant In review in one atomic update while preserving spec verifications. The action confirms the bulk status change, refreshes the filtered grid, and reports the updated count; admin production build and focused lint passed (one pre-existing hook dependency warning remains).
 
 **2026-11-22** — Moved ratings/reviews out of the bike-detail page body into a User reviews dialog opened beside Compare. The action row displays the current average and rating count; rating-free discussion comments remain directly below Full Specifications. API tests, web lint/build and migration checks passed; authenticated browser acceptance remains.
 

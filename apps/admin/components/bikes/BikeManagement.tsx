@@ -90,6 +90,7 @@ export default function BikeManagement({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [resettingTags, setResettingTags] = useState(false);
+  const [markingDisplayedInReview, setMarkingDisplayedInReview] = useState(false);
   const [openingGrid, setOpeningGrid] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [gridBikes, setGridBikes] = useState<BikeSpecGridRow[]>([]);
@@ -439,6 +440,44 @@ export default function BikeManagement({
     }
   }
 
+  async function markDisplayedInReview() {
+    const bikesToUpdate = visibleBikes.filter(
+      (bike) => bike.reviewStatus !== 'inReview'
+    );
+    if (
+      bikesToUpdate.length === 0 ||
+      !window.confirm(
+        `Mark ${bikesToUpdate.length} displayed bike${bikesToUpdate.length === 1 ? '' : 's'} In review? Existing spec verifications will be kept.`
+      )
+    ) {
+      return;
+    }
+
+    setMarkingDisplayedInReview(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const result = await updateAdminBikeSpecGrid({
+        reviewStatusChanges: bikesToUpdate.map((bike) => ({
+          bikeId: bike.id,
+          reviewStatus: 'inReview',
+        })),
+      });
+      await load();
+      setNotice(
+        `Marked ${result.updatedCount} displayed bike${result.updatedCount === 1 ? '' : 's'} In review.`
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to mark displayed bikes In review.'
+      );
+    } finally {
+      setMarkingDisplayedInReview(false);
+    }
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
@@ -644,13 +683,13 @@ export default function BikeManagement({
           >
             {openingGrid
               ? 'Opening...'
-              : `Bulk edit displayed (${visibleBikes.length})`}
+              : 'Edit All'}
           </AdminToolbarButton>
           <AdminToolbarButton
             disabled={loading || exporting || visibleBikes.length === 0}
             onClick={() => void exportDisplayed()}
           >
-            {exporting ? 'Exporting...' : 'Export displayed'}
+            {exporting ? 'Exporting...' : 'Export'}
           </AdminToolbarButton>
           <AdminToolbarButton
             disabled={loading}
@@ -660,15 +699,33 @@ export default function BikeManagement({
               setImportOpen(true);
             }}
           >
-            Import Excel
+            Import
           </AdminToolbarButton>
         </>
       )}
       <AdminToolbarButton
-        disabled={loading || resettingTags || visibleBikes.length === 0}
+        disabled={
+          loading ||
+          resettingTags ||
+          markingDisplayedInReview ||
+          !visibleBikes.some((bike) => bike.reviewStatus !== 'inReview')
+        }
+        onClick={() => void markDisplayedInReview()}
+      >
+        {markingDisplayedInReview
+          ? 'Marking...'
+          : "Set All to 'In review'"}
+      </AdminToolbarButton>
+      <AdminToolbarButton
+        disabled={
+          loading ||
+          resettingTags ||
+          markingDisplayedInReview ||
+          visibleBikes.length === 0
+        }
         onClick={() => void resetVisibleConfirmations()}
       >
-        {resettingTags ? 'Resetting...' : 'Reset displayed reviews'}
+        {resettingTags ? 'Resetting...' : "Set All to 'Not reviewed'"}
       </AdminToolbarButton>
       <AdminToolbarButton disabled={loading} onClick={() => void load()}>
         {loading ? 'Refreshing...' : 'Refresh'}
@@ -1277,7 +1334,7 @@ export default function BikeManagement({
               disabled={!importFile || importing}
               onClick={() => void importExcel()}
             >
-              {importing ? 'Importing...' : 'Import Excel'}
+              {importing ? 'Importing...' : 'Import'}
             </button>
           </ModalFooter>
         </Modal>
