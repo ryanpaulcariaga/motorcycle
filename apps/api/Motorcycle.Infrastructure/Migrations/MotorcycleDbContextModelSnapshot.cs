@@ -351,6 +351,49 @@ namespace Motorcycle.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Motorcycle.Domain.BikeDiscussionComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BikeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("bike_id");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("body");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bike_discussion_comments");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_bike_discussion_comments_user_id");
+
+                    b.HasIndex("BikeId", "CreatedAt")
+                        .HasDatabaseName("ix_bike_discussion_comments_bike_id_created_at");
+
+                    b.ToTable("bike_discussion_comments");
+                });
+
             modelBuilder.Entity("Motorcycle.Domain.BikeImage", b =>
                 {
                     b.Property<int>("Id")
@@ -956,6 +999,27 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.Navigation("BikeA");
 
                     b.Navigation("BikeB");
+                });
+
+            modelBuilder.Entity("Motorcycle.Domain.BikeDiscussionComment", b =>
+                {
+                    b.HasOne("Motorcycle.Domain.Bike", "Bike")
+                        .WithMany()
+                        .HasForeignKey("BikeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bike_discussion_comments_bikes_bike_id");
+
+                    b.HasOne("Motorcycle.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bike_discussion_comments_users_user_id");
+
+                    b.Navigation("Bike");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.BikeImage", b =>

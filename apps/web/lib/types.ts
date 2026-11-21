@@ -38,6 +38,14 @@ export interface BikeReviewsDto {
   reviews: BikeReviewDto[];
 }
 
+export interface BikeCommentDto {
+  id: number;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 export interface CategoryDto {
   id: number;

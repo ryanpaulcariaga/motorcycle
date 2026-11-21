@@ -34,6 +34,7 @@ public class MotorcycleDbContext : DbContext
     public DbSet<BikeVote> BikeVotes => Set<BikeVote>();
     public DbSet<BikeComment> BikeComments => Set<BikeComment>();
     public DbSet<SurveyResponse> SurveyResponses => Set<SurveyResponse>();
+    public DbSet<BikeDiscussionComment> BikeDiscussionComments => Set<BikeDiscussionComment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -273,6 +274,18 @@ public class MotorcycleDbContext : DbContext
                 .HasColumnType("jsonb")
                 .HasConversion(dictConverter)
                 .Metadata.SetValueComparer(dictComparer);
+        });
+
+        modelBuilder.Entity<BikeDiscussionComment>(comment =>
+        {
+            comment.HasKey(x => x.Id);
+            comment.Property(x => x.Body).IsRequired().HasMaxLength(1000);
+            comment.Property(x => x.CreatedAt).IsRequired();
+            comment.Property(x => x.UpdatedAt).IsRequired();
+            comment.HasIndex(x => new { x.BikeId, x.CreatedAt });
+            comment.HasIndex(x => x.UserId);
+            comment.HasOne(x => x.Bike).WithMany().HasForeignKey(x => x.BikeId).OnDelete(DeleteBehavior.Cascade);
+            comment.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         ApplySnakeCaseNames(modelBuilder);

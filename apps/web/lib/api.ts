@@ -2,6 +2,7 @@ import type {
   AnalyticsEvent,
   BikeDetailDto,
   BikeListItemDto,
+  BikeCommentDto,
   BikeReviewDto,
   BikeReviewsDto,
   BikesQuery,
@@ -81,6 +82,10 @@ export function getBikeReviews(bikeId: number): Promise<BikeReviewsDto> {
   return apiFetch(`/api/bikes/${bikeId}/reviews`);
 }
 
+export function getBikeComments(bikeId: number): Promise<BikeCommentDto[]> {
+  return apiFetch(`/api/bikes/${bikeId}/comments`);
+}
+
 export function getPopularComparisons(limit = 10): Promise<PopularComparisonDto[]> {
   return apiFetch(`/api/bikes/popular-comparisons${buildQueryString({ limit })}`);
 }
@@ -130,6 +135,10 @@ export function getMyBikeReview(bikeId: number): Promise<BikeReviewDto | null> {
   return authFetch<BikeReviewDto>(`/api/bikes/${bikeId}/reviews/mine`);
 }
 
+export async function getMyBikeComments(bikeId: number): Promise<BikeCommentDto[]> {
+  return (await authFetch<BikeCommentDto[]>(`/api/bikes/${bikeId}/comments/mine`)) ?? [];
+}
+
 export async function saveBikeReview(
   bikeId: number,
   review: { rating: number; body: string },
@@ -154,6 +163,49 @@ export async function deleteBikeReview(bikeId: number): Promise<void> {
   });
   if (!res.ok) {
     throw new Error(`Delete review request failed: ${res.status}`);
+  }
+}
+
+export async function createBikeComment(bikeId: number, body: string): Promise<BikeCommentDto> {
+  const result = await authFetch<BikeCommentDto>(`/api/bikes/${bikeId}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Review-Request": "1" },
+    body: JSON.stringify({ body }),
+  });
+  if (!result) {
+    throw new Error("Please sign in again to post your comment.");
+  }
+  return result;
+}
+
+export async function updateBikeComment(
+  bikeId: number,
+  commentId: number,
+  body: string,
+): Promise<BikeCommentDto> {
+  const result = await authFetch<BikeCommentDto>(
+    `/api/bikes/${bikeId}/comments/${commentId}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "X-Review-Request": "1" },
+      body: JSON.stringify({ body }),
+    },
+  );
+  if (!result) {
+    throw new Error("Please sign in again to update your comment.");
+  }
+  return result;
+}
+
+export async function deleteBikeComment(bikeId: number, commentId: number): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/bikes/${bikeId}/comments/${commentId}`, {
+    method: "DELETE",
+    credentials: "include",
+    cache: "no-store",
+    headers: { "X-Review-Request": "1" },
+  });
+  if (!res.ok) {
+    throw new Error(`Delete comment request failed: ${res.status}`);
   }
 }
 

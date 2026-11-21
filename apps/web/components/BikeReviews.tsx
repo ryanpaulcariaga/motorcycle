@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Button from '@/components/Button';
 import {
   deleteBikeReview,
   facebookSignInUrl,
@@ -17,6 +18,7 @@ interface BikeReviewsProps {
 }
 
 export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [reviews, setReviews] = useState(initialReviews);
   const [mine, setMine] = useState<BikeReviewDto | null>(null);
   const [rating, setRating] = useState(0);
@@ -26,8 +28,13 @@ export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
     let cancelled = false;
     Promise.all([getUserSession(), getMyBikeReview(bikeId)])
       .then(([session, ownReview]) => {
@@ -51,7 +58,28 @@ export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps
     return () => {
       cancelled = true;
     };
-  }, [bikeId]);
+  }, [bikeId, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isOpen]);
 
   async function refreshReviews() {
     setReviews(await getBikeReviews(bikeId));
@@ -95,100 +123,147 @@ export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps
     }
   }
 
+  function openReviews() {
+    setLoadingSession(true);
+    setIsOpen(true);
+  }
+
   return (
-    <section className="mt-8" aria-labelledby="reviews-heading">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="reviews-heading" className="text-xl font-bold">Ratings and comments</h2>
-        <p className="text-sm font-semibold text-brand-button">
+    <>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="button" variant="black" onClick={openReviews}>
+          User reviews
+        </Button>
+        <p className="text-sm font-semibold">
           {reviews.averageRating === null
             ? 'No ratings yet'
-            : `${reviews.averageRating.toFixed(1)} / 5 · ${reviews.ratingCount} ${
-                reviews.ratingCount === 1 ? 'rating' : 'ratings'
-              }`}
+            : (
+              <>
+                <span className="text-brand-gold">★</span>{' '}
+                {reviews.averageRating.toFixed(1)} / 5
+                <span className="font-normal text-brand-grey">
+                  {' '}({reviews.ratingCount})
+                </span>
+              </>
+            )}
         </p>
       </div>
 
-      {loadingSession ? null : isSignedIn ? (
-        <form onSubmit={handleSubmit} className="mt-4 border border-zinc-200 p-4">
-          <fieldset>
-            <legend className="font-semibold">{mine ? 'Edit your review' : 'Add your review'}</legend>
-            <div className="mt-2 flex gap-1" aria-label="Rating">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className="min-h-10 min-w-10 text-2xl text-brand-gold"
-                  aria-label={`${value} ${value === 1 ? 'star' : 'stars'}`}
-                  aria-pressed={rating === value}
-                  onClick={() => setRating(value)}
-                >
-                  {value <= rating ? '★' : '☆'}
-                </button>
-              ))}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reviews-heading"
+          ref={dialogRef}
+          tabIndex={-1}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsOpen(false);
+            }
+          }}
+        >
+          <section className="max-h-[90vh] w-full max-w-3xl overflow-y-auto bg-white p-4 shadow-lg md:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 id="reviews-heading" className="text-xl font-bold">User ratings and reviews</h2>
+                <p className="mt-1 text-sm font-semibold text-brand-button">
+                  {reviews.averageRating === null
+                    ? 'No ratings yet'
+                    : `${reviews.averageRating.toFixed(1)} / 5 · ${reviews.ratingCount} ${
+                        reviews.ratingCount === 1 ? 'rating' : 'ratings'
+                      }`}
+                </p>
+              </div>
+              <Button type="button" variant="grey" onClick={() => setIsOpen(false)}>
+                Close
+              </Button>
             </div>
-          </fieldset>
-          <label className="mt-3 block text-sm font-semibold" htmlFor="bike-review-body">
-            Comment <span className="font-normal text-brand-grey">(optional)</span>
-          </label>
-          <textarea
-            id="bike-review-body"
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            maxLength={1000}
-            rows={4}
-            className="mt-1 w-full border border-zinc-300 bg-white p-3"
-            placeholder="Share your experience with this bike."
-          />
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <button
-              type="submit"
-              disabled={saving || rating < 1}
-              className="bg-brand-button px-4 py-2 font-semibold text-white disabled:opacity-50"
-            >
-              {saving ? 'Saving…' : mine ? 'Save changes' : 'Post review'}
-            </button>
-            {mine && (
-              <button
-                type="button"
-                onClick={() => void handleDelete()}
-                disabled={deleting}
-                className="border border-zinc-400 px-4 py-2 font-semibold disabled:opacity-50"
-              >
-                {deleting ? 'Removing…' : 'Remove review'}
-              </button>
+
+            {loadingSession ? null : isSignedIn ? (
+              <form onSubmit={handleSubmit} className="mt-4 border border-zinc-200 p-4">
+                <fieldset>
+                  <legend className="font-semibold">{mine ? 'Edit your review' : 'Add your review'}</legend>
+                  <div className="mt-2 flex gap-1" aria-label="Rating">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        className="min-h-10 min-w-10 text-2xl text-brand-gold"
+                        aria-label={`${value} ${value === 1 ? 'star' : 'stars'}`}
+                        aria-pressed={rating === value}
+                        onClick={() => setRating(value)}
+                      >
+                        {value <= rating ? '★' : '☆'}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+                <label className="mt-3 block text-sm font-semibold" htmlFor="bike-review-body">
+                  Review text <span className="font-normal text-brand-grey">(optional)</span>
+                </label>
+                <textarea
+                  id="bike-review-body"
+                  value={body}
+                  onChange={(event) => setBody(event.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                  className="mt-1 w-full border border-zinc-300 bg-white p-3"
+                  placeholder="Share your experience with this bike."
+                />
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={saving || rating < 1}
+                    className="bg-brand-button px-4 py-2 font-semibold text-white disabled:opacity-50"
+                  >
+                    {saving ? 'Saving…' : mine ? 'Save changes' : 'Post review'}
+                  </button>
+                  {mine && (
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete()}
+                      disabled={deleting}
+                      className="border border-zinc-400 px-4 py-2 font-semibold disabled:opacity-50"
+                    >
+                      {deleting ? 'Removing…' : 'Remove review'}
+                    </button>
+                  )}
+                  <span className="text-sm text-brand-grey" role="status">{message}</span>
+                </div>
+              </form>
+            ) : (
+              <div className="mt-4 border border-zinc-200 p-4">
+                <a href={facebookSignInUrl()} className="font-semibold text-brand-button underline">
+                  Sign in with Facebook to rate or review this bike.
+                </a>
+              </div>
             )}
-            <span className="text-sm text-brand-grey" role="status">{message}</span>
-          </div>
-        </form>
-      ) : (
-        <div className="mt-4 border border-zinc-200 p-4">
-          <a href={facebookSignInUrl()} className="font-semibold text-brand-button underline">
-            Sign in with Facebook to rate or comment on this bike.
-          </a>
+
+            <div className="mt-4 space-y-3">
+              {reviews.reviews.map((review) => (
+                <article key={review.id} className="border border-zinc-200 p-4">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="font-semibold">{review.authorName}</h3>
+                    <p className="text-brand-gold" aria-label={`${review.rating} out of 5 stars`}>
+                      {'★'.repeat(review.rating)}
+                      <span className="text-zinc-300">{'★'.repeat(5 - review.rating)}</span>
+                    </p>
+                  </div>
+                  {review.body && <p className="mt-2 whitespace-pre-wrap break-words">{review.body}</p>}
+                  <p className="mt-2 text-xs text-brand-grey">
+                    {new Date(review.updatedAt).toLocaleDateString()}
+                    {review.id === mine?.id ? ' · Your review' : ''}
+                  </p>
+                </article>
+              ))}
+              {reviews.reviews.length === 0 && (
+                <p className="text-sm text-brand-grey">Be the first rider to review this bike.</p>
+              )}
+            </div>
+          </section>
         </div>
       )}
-
-      <div className="mt-4 space-y-3">
-        {reviews.reviews.map((review) => (
-          <article key={review.id} className="border border-zinc-200 p-4">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h3 className="font-semibold">{review.authorName}</h3>
-              <p className="text-brand-gold" aria-label={`${review.rating} out of 5 stars`}>
-                {'★'.repeat(review.rating)}
-                <span className="text-zinc-300">{'★'.repeat(5 - review.rating)}</span>
-              </p>
-            </div>
-            {review.body && <p className="mt-2 whitespace-pre-wrap break-words">{review.body}</p>}
-            <p className="mt-2 text-xs text-brand-grey">
-              {new Date(review.updatedAt).toLocaleDateString()}
-              {review.id === mine?.id ? ' · Your review' : ''}
-            </p>
-          </article>
-        ))}
-        {reviews.reviews.length === 0 && (
-          <p className="text-sm text-brand-grey">Be the first rider to review this bike.</p>
-        )}
-      </div>
-    </section>
+    </>
   );
 }

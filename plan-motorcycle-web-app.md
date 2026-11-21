@@ -67,7 +67,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-14 | Catalog data transparency and user-submitted correction reports |
 | F-15 | Shareable comparisons and saved bikes/comparisons |
 | F-25 | 🔄 Signed-in, separately opted-in interest profiles with deletion and 12-month retention; authenticated browser verification remains |
-| F-27 | 🔄 Signed-in bike ratings and optional comments; authenticated browser verification remains |
+| F-27 | 🔄 Bike detail action-row rating summary and user-review dialog, plus independent rating-free comments directly below specs; authenticated browser verification remains |
 
 ## Release gates
 
@@ -215,7 +215,7 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-70 | ⬜ | Replace placeholder "Top 10" sidebar sections with real data | Needs T-68 |
 | T-71 | ⬜ | Dealer links: records, moderation, API, UI | |
 | T-72 | ⬜ | Advertising: placements, delivery, labeling, admin | |
-| T-73 | 🔄 | Ratings and comments | API, migration, public bike-detail UI, ownership/edit/delete flow, 4 focused review tests and 112 passing API tests, web lint and production build pass; authenticated browser acceptance remains |
+| T-73 | 🔄 | Ratings and comments | Rating summary and User reviews button sit beside Compare; reviews use a modal, while independent discussion comments sit directly below full specs. APIs, migrations, ownership/edit/delete flows and tests pass; authenticated browser acceptance remains |
 | T-74 | ⬜ | Annual survey | |
 | T-75 | ⬜ | AI pros/cons for compared bikes | |
 | T-76 | ⬜ | CDN or Front Door for images | |
@@ -261,7 +261,9 @@ The API stores the uploaded original and generates smaller copies for the public
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
 
-**2026-11-22** — Added signed-in bike ratings and optional comments: one 1–5 review per user and bike, edit/delete ownership, public aggregate/list display, rate limiting, CSRF request-header protection, and concurrency-safe PostgreSQL upserts. Added the migration, 4 focused API tests, docs, and public web UI; API tests, web lint, and the production build pass. Authenticated browser acceptance remains.
+**2026-11-22** — Moved ratings/reviews out of the bike-detail page body into a User reviews dialog opened beside Compare. The action row displays the current average and rating count; rating-free discussion comments remain directly below Full Specifications. API tests, web lint/build and migration checks passed; authenticated browser acceptance remains.
+
+**2026-11-22** — Added signed-in bike ratings and optional reviews: one 1–5 review per user and bike, edit/delete ownership, public aggregate/list display, rate limiting, CSRF request-header protection, and concurrency-safe PostgreSQL upserts. Added the migration, 4 focused API tests, docs, and public web UI; API tests, web lint, and the production build pass. Authenticated browser acceptance remains.
 
 **2026-11-22** — Moved Bike Models brand/category filters and ordered sorting from the admin sidebar into collapsed controls above the models grid, matching the Bikes screen. Unified single and bulk bike administration on the Bikes screen. Current filters and sorting now drive spreadsheet editing and Excel export for only the displayed variants, with Excel import available in the same UI; the old bulk URL renders the unified screen. Shared toolbar components now give Bikes, Bike Models, Specifications, Brands, Categories, Administrators, and Audit the same readable Refresh/Add treatment: full-width stacked actions on mobile and natural-width wrapping buttons on larger screens. Added exact bike-ID filtering to the API, with 40 focused API tests, admin production build and lint passing (six unrelated lint warnings remain). Authenticated browser acceptance remains under T-23 and T-24.
 

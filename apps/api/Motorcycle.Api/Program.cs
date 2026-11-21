@@ -58,10 +58,12 @@ builder.Services.AddScoped<ISpecDefinitionAdminRepository, SpecDefinitionAdminRe
 builder.Services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 builder.Services.AddScoped<IUserInterestRepository, UserInterestRepository>();
 builder.Services.AddScoped<IBikeReviewRepository, BikeReviewRepository>();
+builder.Services.AddScoped<IBikeCommentRepository, BikeCommentRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IUserInterestService, UserInterestService>();
 builder.Services.AddScoped<IBikeReviewService, BikeReviewService>();
+builder.Services.AddScoped<IBikeCommentService, BikeCommentService>();
 builder.Services.AddHostedService<AnalyticsRetentionService>();
 
 // Spec filter strategies (Strategy pattern)

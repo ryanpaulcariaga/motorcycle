@@ -254,6 +254,23 @@ CREATE TABLE bike_comments (
 );
 ```
 
+### bike_discussion_comments
+
+`bike_discussion_comments` stores rating-free public discussion, separate from `bike_comments` review records. Each row belongs to one published bike and active user through cascading foreign keys. A user may create multiple comments; the API limits the displayed anonymous feed to the latest 200 and supports only owner-scoped edit/delete operations. Comment text is required and limited to 1,000 characters.
+
+```sql
+CREATE TABLE bike_discussion_comments (
+  id SERIAL PRIMARY KEY,
+  bike_id INT NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body VARCHAR(1000) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+```
+
+The `(bike_id, created_at)` index supports newest-first detail-page reads, and `user_id` supports ownership queries.
+
 ### Future Tables (Schema Stubs)
 ```sql
 -- Unused analytics stubs; the aggregate analytics feature uses analytics_daily_counts instead.

@@ -6,7 +6,8 @@ import Button from '@/components/Button';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import BikeImageGallery from '@/components/BikeImageGallery';
 import BikeReviews from '@/components/BikeReviews';
-import { getBikeBySlug, getBikeReviews, getComparedWith } from '@/lib/api';
+import BikeComments from '@/components/BikeComments';
+import { getBikeBySlug, getBikeComments, getBikeReviews, getComparedWith } from '@/lib/api';
 import { buildBikeDetailHref, buildBrowseHref, getBrowseParams } from '@/lib/catalogFilters';
 import { SITE_URL } from '@/lib/site';
 import type { Metadata } from 'next';
@@ -74,9 +75,10 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
     notFound();
   }
 
-  const [comparedWith, bikeReviews] = await Promise.all([
+  const [comparedWith, bikeReviews, bikeComments] = await Promise.all([
     getComparedWith(slug).catch(() => []),
     getBikeReviews(bike.id),
+    getBikeComments(bike.id),
   ]);
 
   const groupsWithSpecs = bike.specGroups.filter(
@@ -95,6 +97,17 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
     model: bike.variantName,
     category: bike.categoryName,
     image: bike.images.map((image) => image.blobUrl),
+    ...(bikeReviews.averageRating !== null
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: bikeReviews.averageRating,
+            reviewCount: bikeReviews.ratingCount,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
     additionalProperty: bike.specGroups.flatMap((group) =>
       group.specs.flatMap((spec) => {
         if (
@@ -176,6 +189,7 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
                 <Link href={`/compare?ids=${bike.id}`}>
                   <Button variant="gold">Compare</Button>
                 </Link>
+                <BikeReviews bikeId={bike.id} initialReviews={bikeReviews} />
               </div>
             </div>
           </div>
@@ -256,7 +270,7 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
             ))}
           </div>
 
-          <BikeReviews bikeId={bike.id} initialReviews={bikeReviews} />
+          <BikeComments bikeId={bike.id} initialComments={bikeComments} />
     </CatalogPageShell>
   );
 }

@@ -49,3 +49,16 @@ public class SurveyResponse
     public Dictionary<string, object> Payload { get; set; } = new();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
+
+public class BikeDiscussionComment
+{
+    public int Id { get; set; }
+    public int BikeId { get; set; }
+    public int UserId { get; set; }
+    public string Body { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public Bike Bike { get; set; } = null!;
+    public User User { get; set; } = null!;
+}
