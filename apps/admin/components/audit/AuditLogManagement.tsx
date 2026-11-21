@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { AdminApiError, getAdminAuditLogs } from '@/lib/api';
+import { AdminToolbar, AdminToolbarButton } from '@/components/AdminToolbar';
 import type { AdminAuditLogPage } from '@/lib/types';
 
 const pageSize = 50;
@@ -35,21 +36,21 @@ export default function AuditLogManagement() {
 
   return (
     <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold">Administrator audit log</h1>
           <p className="mt-1 text-sm text-brand-grey">
             Administrative changes, actors, and affected fields. Field values are not stored.
           </p>
         </div>
-        <button
-          className="bg-brand-button px-4 py-2 text-sm font-semibold text-white hover:bg-brand-button-active disabled:opacity-50"
-          type="button"
-          disabled={loading}
-          onClick={() => void loadLogs(page)}
-        >
-          Refresh
-        </button>
+        <AdminToolbar>
+          <AdminToolbarButton
+            disabled={loading}
+            onClick={() => void loadLogs(page)}
+          >
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </AdminToolbarButton>
+        </AdminToolbar>
       </div>
 
       {error && (

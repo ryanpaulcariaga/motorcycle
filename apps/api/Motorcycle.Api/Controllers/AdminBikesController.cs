@@ -38,6 +38,7 @@ public sealed class AdminBikesController : ControllerBase
         [FromQuery] string? sortBy,
         [FromQuery] string? sortDirection,
         [FromQuery] string? reviewStatus,
+        [FromQuery] string? bikeIds,
         CancellationToken ct)
     {
         if (brandId.HasValue && brandId <= 0) {
@@ -58,7 +59,8 @@ public sealed class AdminBikesController : ControllerBase
                 yearMin,
                 yearMax,
                 ccMin,
-                ccMax);
+                ccMax,
+                ParseBikeIds(bikeIds));
             return File(BikeWorkbook.Build(export), BikeWorkbook.ContentType, $"bikes-{DateTime.UtcNow:yyyyMMdd-HHmmss}.xlsx");
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
@@ -134,6 +136,7 @@ public sealed class AdminBikesController : ControllerBase
         [FromQuery] string? sortBy,
         [FromQuery] string? sortDirection,
         [FromQuery] string? reviewStatus,
+        [FromQuery] string? bikeIds,
         CancellationToken ct)
     {
         if (brandId.HasValue && brandId <= 0) {
@@ -154,7 +157,8 @@ public sealed class AdminBikesController : ControllerBase
                 yearMin,
                 yearMax,
                 ccMin,
-                ccMax));
+                ccMax,
+                ParseBikeIds(bikeIds)));
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
         }
@@ -170,6 +174,21 @@ public sealed class AdminBikesController : ControllerBase
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    private static IReadOnlyCollection<int>? ParseBikeIds(string? bikeIds)
+    {
+        if (string.IsNullOrWhiteSpace(bikeIds)) {
+            return null;
+        }
+
+        var values = bikeIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (values.Length == 0
+            || values.Any(value => !int.TryParse(value, out var id) || id <= 0)) {
+            throw new ArgumentException("Bike IDs must be positive integers.");
+        }
+
+        return values.Select(int.Parse).Distinct().ToArray();
     }
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BikeAdminDetailDto>> GetById(int id, CancellationToken ct)

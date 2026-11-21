@@ -119,6 +119,7 @@ type BikeGridFilters = Omit<SpecValueFilters, "specCode"> & {
   ccMin?: number;
   ccMax?: number;
   reviewStatus?: import("./types").ReviewStatus;
+  bikeIds?: number[];
 };
 
 function bikeGridParams(filters: BikeGridFilters, sorts: BikeGridSort[]) {
@@ -149,6 +150,9 @@ function bikeGridParams(filters: BikeGridFilters, sorts: BikeGridSort[]) {
   }
   if (filters.reviewStatus) {
     params.set("reviewStatus", filters.reviewStatus);
+  }
+  if (filters.bikeIds) {
+    params.set("bikeIds", filters.bikeIds.join(","));
   }
   if (sorts.length > 0) {
     params.set(

@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { moveItem, SortableItem, SortableList } from '@motorcycle/reorder';
 import { IconButton } from '@/components/IconButton';
+import { AdminToolbar, AdminToolbarButton } from '@/components/AdminToolbar';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
@@ -169,25 +170,24 @@ export default function SpecGroupManagement() {
     <div className="space-y-8">
       <div>
         <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <div>
               <h1 className="text-xl font-bold">Specifications</h1>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <IconButton
-                icon="refresh"
-                label="Refresh"
+            <AdminToolbar>
+              <AdminToolbarButton
                 onClick={() => void load()}
                 disabled={loading || reordering}
-              />
-              <IconButton
-                icon="add"
-                label="Add group"
-                variant="primary"
+              >
+                {loading ? 'Refreshing...' : 'Refresh'}
+              </AdminToolbarButton>
+              <AdminToolbarButton
                 onClick={startCreate}
                 disabled={reordering}
-              />
-            </div>
+              >
+                Add group
+              </AdminToolbarButton>
+            </AdminToolbar>
           </div>
           {error && !modalOpen && (
             <p

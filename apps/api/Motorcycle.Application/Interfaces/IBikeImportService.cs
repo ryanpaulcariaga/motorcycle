@@ -21,5 +21,6 @@ public interface IBikeImportService
         int? minYear = null,
         int? maxYear = null,
         decimal? minDisplacement = null,
-        decimal? maxDisplacement = null);
+        decimal? maxDisplacement = null,
+        IReadOnlyCollection<int>? bikeIds = null);
 }

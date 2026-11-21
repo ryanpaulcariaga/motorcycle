@@ -213,4 +213,21 @@ public class BikeImportServiceTests
             new[] { newestAlpha.Id, newestZulu.Id, older.Id },
             export.Rows.Select(row => row.Id));
     }
+
+    [Fact]
+    public async Task GetExportAsync_FiltersByBikeIds()
+    {
+        var (service, repository) = CreateService();
+        var first = await AddBikeAsync(repository, "First");
+        var second = await AddBikeAsync(repository, "Second");
+
+        var export = await service.GetExportAsync(
+            null,
+            null,
+            null,
+            null,
+            bikeIds: [second.Id, first.Id]);
+
+        Assert.Equal(new[] { second.Id, first.Id }, export.Rows.Select(row => row.Id));
+    }
 }

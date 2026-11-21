@@ -4,7 +4,6 @@ import BikeModelManagement from '@/components/bike-models/BikeModelManagement';
 import CategoryManagement from '@/components/categories/CategoryManagement';
 import BrandManagement from '@/components/brands/BrandManagement';
 import BikeManagement from '@/components/bikes/BikeManagement';
-import BulkSpecEditor from '@/components/bikes/BulkSpecEditor';
 import RoleManagement from '@/components/roles/RoleManagement';
 import AuditLogManagement from '@/components/audit/AuditLogManagement';
 import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
@@ -89,7 +88,7 @@ function AdminShell({ session }: { session: AdminSession }) {
   const content = match ? (
     <BikeManagement modelId={Number(match[1])} />
   ) : pathname === '/admin/bulk-spec' ? (
-    <BulkSpecEditor />
+    <BikeManagement />
   ) : pathname === '/admin/brands' ? (
     <BrandManagement />
   ) : pathname === '/admin/categories' ? (

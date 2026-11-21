@@ -9,25 +9,37 @@ import {
   createBikeModel,
   updateBikeModel,
   deleteAdminBike,
+  exportAdminBikes,
   getAdminBike,
+  getAdminBikeSpecGrid,
   getAdminBikes,
   getBikeModels,
   getBrands,
   getCategories,
   getSpecGroups,
+  importAdminBikes,
   publishAdminBike,
   reassignAdminBikeModel,
   unpublishAdminBike,
   updateAdminBike,
   updateAdminBikeSpecGrid,
 } from '@/lib/api';
-import type { BikeAdminListItem, BikeModel, LookupOption, ReviewStatus } from '@/lib/types';
+import type {
+  BikeAdminListItem,
+  BikeImportError,
+  BikeModel,
+  BikeSpecGridRow,
+  LookupOption,
+  ReviewStatus,
+} from '@/lib/types';
 import { reviewStatusOptions } from '@/lib/reviewStatus';
 import { bikeModelLabel } from '@/lib/bikeModelLabel';
 import { getBikeModelListSearch } from '@/lib/bikeModelListState';
 import { SortGroup } from '@/components/GridSidebar';
 import { compareText, sortRows, type SortRule } from '@/lib/multiSort';
+import { AdminToolbar, AdminToolbarButton } from '@/components/AdminToolbar';
 import BikeImageManagement from './BikeImageManagement';
+import SpecGridModal from './SpecGridModal';
 
 type SpecGroup = Awaited<ReturnType<typeof getSpecGroups>>[number];
 
@@ -78,6 +90,14 @@ export default function BikeManagement({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [resettingTags, setResettingTags] = useState(false);
+  const [openingGrid, setOpeningGrid] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [gridBikes, setGridBikes] = useState<BikeSpecGridRow[]>([]);
+  const [gridOpen, setGridOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importErrors, setImportErrors] = useState<BikeImportError[]>([]);
   const [reassigning, setReassigning] = useState(false);
   const [creatingModel, setCreatingModel] = useState(false);
   const [modelFormMode, setModelFormMode] = useState<'new' | 'edit' | 'clone'>('new');
@@ -223,6 +243,109 @@ export default function BikeManagement({
     setEditingId(null);
     setError(null);
     setModalOpen(true);
+  }
+
+  function displayedGridOptions() {
+    return {
+      filters: { bikeIds: visibleBikes.map((bike) => bike.id) },
+      sorts: [],
+    };
+  }
+
+  async function openDisplayedGrid() {
+    if (visibleBikes.length === 0) {
+      return;
+    }
+
+    setOpeningGrid(true);
+    setError(null);
+    try {
+      const options = displayedGridOptions();
+      const rows = await getAdminBikeSpecGrid(options.filters, options.sorts);
+      setGridBikes(rows);
+      setGridOpen(true);
+    } catch (cause) {
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to open the displayed motorcycles in the grid.'
+      );
+    } finally {
+      setOpeningGrid(false);
+    }
+  }
+
+  async function exportDisplayed() {
+    if (visibleBikes.length === 0) {
+      return;
+    }
+
+    setExporting(true);
+    setError(null);
+    try {
+      const options = displayedGridOptions();
+      const blob = await exportAdminBikes(options.filters, options.sorts);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bikes-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (cause) {
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to export the displayed motorcycles.'
+      );
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  function closeImport() {
+    if (importing) {
+      return;
+    }
+    setImportOpen(false);
+    setImportFile(null);
+    setImportErrors([]);
+  }
+
+  async function importExcel() {
+    if (!importFile) {
+      return;
+    }
+
+    setImporting(true);
+    setError(null);
+    setNotice(null);
+    setImportErrors([]);
+    try {
+      const result = await importAdminBikes(importFile);
+      setImportOpen(false);
+      setImportFile(null);
+      setNotice(
+        `Import complete: ${result.created} added, ${result.updated} updated, ${result.unchanged} unchanged.`
+      );
+      await load();
+    } catch (cause) {
+      if (cause instanceof AdminApiError && cause.details?.errors?.length) {
+        setImportErrors(cause.details.errors);
+      } else {
+        setImportErrors([
+          {
+            row: 0,
+            column: 'File',
+            message:
+              cause instanceof AdminApiError
+                ? cause.message
+                : 'Unable to import the file.',
+          },
+        ]);
+      }
+    } finally {
+      setImporting(false);
+    }
   }
 
   async function loadBikeForm(bike: BikeAdminListItem) {
@@ -511,7 +634,7 @@ export default function BikeManagement({
   return (
     <div>
       <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
             {modelId !== undefined && !embedded && (
               <a
@@ -527,36 +650,49 @@ export default function BikeManagement({
               <h1 className="mt-2 text-xl font-bold">Bike Variants</h1>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <AdminToolbar>
             {!embedded && modelId === undefined && (
-              <a
-                className="text-sm font-semibold text-brand-button underline"
-                href="/admin/bulk-spec"
-              >
-                Bulk Edit
-              </a>
+              <>
+                <AdminToolbarButton
+                  disabled={loading || openingGrid || visibleBikes.length === 0}
+                  onClick={() => void openDisplayedGrid()}
+                >
+                  {openingGrid ? 'Opening...' : `Bulk edit displayed (${visibleBikes.length})`}
+                </AdminToolbarButton>
+                <AdminToolbarButton
+                  disabled={loading || exporting || visibleBikes.length === 0}
+                  onClick={() => void exportDisplayed()}
+                >
+                  {exporting ? 'Exporting...' : 'Export displayed'}
+                </AdminToolbarButton>
+                <AdminToolbarButton
+                  disabled={loading}
+                  onClick={() => {
+                    setError(null);
+                    setImportErrors([]);
+                    setImportOpen(true);
+                  }}
+                >
+                  Import Excel
+                </AdminToolbarButton>
+              </>
             )}
-            <button
-              type="button"
-              className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
+            <AdminToolbarButton
               disabled={loading || resettingTags || visibleBikes.length === 0}
               onClick={() => void resetVisibleConfirmations()}
             >
               {resettingTags ? 'Resetting...' : 'Reset displayed reviews'}
-            </button>
-            <IconButton
-              icon="refresh"
-              label="Refresh"
-              onClick={() => void load()}
+            </AdminToolbarButton>
+            <AdminToolbarButton
               disabled={loading}
-            />
-            <IconButton
-              icon="add"
-              label="Add variant"
-              variant="primary"
-              onClick={startCreate}
-            />
-          </div>
+              onClick={() => void load()}
+            >
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </AdminToolbarButton>
+            <AdminToolbarButton onClick={startCreate}>
+              Add variant
+            </AdminToolbarButton>
+          </AdminToolbar>
         </div>
         {error && !modalOpen && !reassignTargetBike && (
           <p
@@ -1063,6 +1199,77 @@ export default function BikeManagement({
               </button>
             </ModalFooter>
           </form>
+        </Modal>
+      )}
+      {gridOpen && (
+        <SpecGridModal
+          title={`Edit displayed motorcycles (${gridBikes.length})`}
+          bikes={gridBikes}
+          specGroups={specGroups}
+          onClose={() => {
+            setGridOpen(false);
+            setGridBikes([]);
+            void load();
+          }}
+        />
+      )}
+      {importOpen && (
+        <Modal title="Import motorcycles from Excel" error={error} onClose={closeImport}>
+          <p className="mt-4 text-sm text-brand-grey">
+            Upload an exported .xlsx file. Rows with an Id update that
+            motorcycle; rows without an Id add a new unpublished motorcycle.
+            If any row is invalid, nothing is saved.
+          </p>
+          <label className="mt-4 block text-sm font-semibold" htmlFor="bike-import-file">
+            Excel file (.xlsx)
+          </label>
+          <input
+            accept=".xlsx"
+            className="mt-2 block w-full text-sm"
+            id="bike-import-file"
+            type="file"
+            onChange={(event) => {
+              setImportFile(event.target.files?.[0] ?? null);
+              setImportErrors([]);
+            }}
+          />
+          {importErrors.length > 0 && (
+            <div
+              className="mt-4 border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"
+              role="alert"
+            >
+              <p className="font-semibold">
+                Import rejected: {importErrors.length} problem
+                {importErrors.length === 1 ? '' : 's'} found. Nothing was saved.
+              </p>
+              <ul className="mt-2 max-h-64 list-disc overflow-y-auto pl-5">
+                {importErrors.map((item, index) => (
+                  <li key={index}>
+                    {item.row > 0 ? `Row ${item.row}` : 'File'} · {item.column}:{' '}
+                    {item.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <ModalFooter>
+            <button
+              type="button"
+              className="border border-black/30 px-4 py-2 font-semibold"
+              disabled={importing}
+              onClick={closeImport}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="bg-brand-button px-4 py-2 font-semibold text-white disabled:opacity-50"
+              disabled={!importFile || importing}
+              onClick={() => void importExcel()}
+            >
+              {importing ? 'Importing...' : 'Import Excel'}
+            </button>
+          </ModalFooter>
         </Modal>
       )}
       {imagesBike && (

@@ -105,7 +105,8 @@ public sealed class BikeAdminService : IBikeAdminService
         int? minYear = null,
         int? maxYear = null,
         decimal? minDisplacement = null,
-        decimal? maxDisplacement = null)
+        decimal? maxDisplacement = null,
+        IReadOnlyCollection<int>? bikeIds = null)
     {
         if (reviewStatus is not null) {
             BikeReviewStatus.Validate(reviewStatus);
@@ -119,6 +120,10 @@ public sealed class BikeAdminService : IBikeAdminService
             minYear,
             maxYear);
         bikes = BikeSpecGridFilter.Displacement(bikes, minDisplacement, maxDisplacement).ToList();
+        if (bikeIds is not null) {
+            var selectedIds = bikeIds.ToHashSet();
+            bikes = bikes.Where(bike => selectedIds.Contains(bike.Id)).ToList();
+        }
         var rows = bikes.Where(b => reviewStatus is null || BikeReviewStatus.Get(b) == reviewStatus).Select(b => new BikeSpecGridRowDto(
             b.Id,
             b.Model?.Name ?? string.Empty,
@@ -133,6 +138,12 @@ public sealed class BikeAdminService : IBikeAdminService
             BikeReviewStatus.Get(b))).ToList();
         var criteria = BikeSpecGridSorter.ParseCriteria(sort, sortBy, sortDirection);
         if (criteria.Count == 0) {
+            if (bikeIds is not null) {
+                var positionById = bikeIds
+                    .Select((id, index) => (id, index))
+                    .ToDictionary(item => item.id, item => item.index);
+                return rows.OrderBy(row => positionById.GetValueOrDefault(row.Id, int.MaxValue)).ToList();
+            }
             return rows;
         }
 

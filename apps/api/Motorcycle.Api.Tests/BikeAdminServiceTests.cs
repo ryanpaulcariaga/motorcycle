@@ -217,6 +217,25 @@ public class BikeAdminServiceTests
     }
 
     [Fact]
+    public async Task GetSpecGridAsync_FiltersByBikeIds()
+    {
+        var (service, repository) = CreateService();
+        var first = NewBike("First");
+        var second = NewBike("Second");
+        await repository.AddAsync(first);
+        await repository.AddAsync(second);
+
+        var rows = await service.GetSpecGridAsync(
+            null,
+            null,
+            null,
+            null,
+            bikeIds: [second.Id, first.Id]);
+
+        Assert.Equal(new[] { second.Id, first.Id }, rows.Select(row => row.Id));
+    }
+
+    [Fact]
     public async Task CreateAsync_WithValidData_PersistsUnpublishedBike()
     {
         var (service, _) = CreateService();

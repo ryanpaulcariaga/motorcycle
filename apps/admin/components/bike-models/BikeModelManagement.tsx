@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { IconButton } from '@/components/IconButton';
+import { AdminToolbar, AdminToolbarButton } from '@/components/AdminToolbar';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
   AdminApiError,
@@ -207,24 +208,19 @@ export default function BikeModelManagement() {
   return (
     <div>
       <section className="min-w-0 bg-brand-content p-4 shadow-lg sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl font-bold">Bikes Model</h1>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <IconButton
-              icon="refresh"
-              label="Refresh"
+          <AdminToolbar>
+            <AdminToolbarButton
               onClick={() => void load()}
               disabled={loading}
-            />
-            <IconButton
-              icon="add"
-              label="Add BikeModel"
-              variant="primary"
-              onClick={startCreate}
-            />
-          </div>
+            >
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </AdminToolbarButton>
+            <AdminToolbarButton onClick={startCreate}>Add BikeModel</AdminToolbarButton>
+          </AdminToolbar>
         </div>
         {error && !modalOpen && (
           <p

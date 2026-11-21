@@ -20,7 +20,8 @@ public interface IBikeAdminService
         int? minYear = null,
         int? maxYear = null,
         decimal? minDisplacement = null,
-        decimal? maxDisplacement = null);
+        decimal? maxDisplacement = null,
+        IReadOnlyCollection<int>? bikeIds = null);
     Task<int> UpdateSpecGridAsync(UpdateSpecGridRequest request, CancellationToken ct = default);
     Task<BikeAdminDetailDto> GetByIdAsync(int id, CancellationToken ct = default);
     Task<BikeAdminDetailDto> CreateAsync(CreateBikeRequest request, CancellationToken ct = default);

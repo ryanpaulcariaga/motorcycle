@@ -76,7 +76,7 @@ public static class BikeSpecGridSorter
                 throw new ArgumentException($"Unrecognized specification sort field '{criterion.Field}'.", nameof(criteria));
             }
 
-            if (criterion.Field is not ("bike" or "model" or "brand" or "variant" or "year" or "category" or "msrp")
+            if (criterion.Field is not ("bike" or "model" or "brand" or "variant" or "year" or "category" or "msrp" or "status" or "reviewed")
                 && definition is null) {
                 throw new ArgumentException($"Unrecognized sort field '{criterion.Field}'.", nameof(criteria));
             }
@@ -112,7 +112,17 @@ public static class BikeSpecGridSorter
             "year" => row.Year,
             "category" => row.CategoryName,
             "msrp" => row.MsrpPrice,
+            "status" => row.IsPublished,
+            "reviewed" => ReviewRank(row.ReviewStatus),
             _ => GetSpecValue(row, definition!)
+        };
+
+    private static int ReviewRank(string reviewStatus) =>
+        reviewStatus switch {
+            BikeReviewStatus.NotReviewed => 0,
+            BikeReviewStatus.InReview => 1,
+            BikeReviewStatus.Reviewed => 2,
+            _ => 3
         };
 
     private static object? GetSpecValue(BikeSpecGridRowDto row, SpecDefinition definition)

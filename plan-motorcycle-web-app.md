@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 48 of 110 tasks done · 6 in progress · 56 not started.**
+**Progress: 49 of 111 tasks done · 6 in progress · 56 not started.**
 
 **Next up:** Verify interest-profile controls and tracking in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -45,7 +45,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-07 | ✅ Admin: Bike variant CRUD, publish control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus publish/review/image state, and Bulk-style ordered multi-sort; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management and drag-and-drop ordering |
-| F-10 | ✅ Admin: Bulk Spec Edit with the same collapsible filter/sort flow as Single Edit, brand/category/review/MSRP/year/displacement filtering, editable motorcycle/year/MSRP grid fields, draggable ordered multi-field sorting, Excel export/import |
+| F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, Excel export, and Excel import for exactly the displayed variants |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin; bike variant headers match cell padding; admin modal action icons match grid icon colors |
@@ -230,6 +230,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-111 | ✅ Unify admin editing toolbars | Bikes supports single and displayed-bike grid editing, Excel export/import, and one unified UI with exact-ID protection. All admin CRUD tabs use shared readable Refresh/Add buttons with one color treatment, full-width on mobile and natural width on larger screens. 40 focused API tests, admin build and lint pass; authenticated browser acceptance remains under T-23/T-24 |
 | T-110 | ✅ Track shared admin review progress | Three-state status in one database column, per-spec verification, list/grid/export filtering and bulk marking; focused API tests and admin build pass. Authenticated browser acceptance remains under T-55 |
 | T-109 | ✅ Replace browse sort direction dropdowns with toggles | Each sort level uses the admin-style A→Z/Z→A toggle; existing form serialization remains. Focused web lint and production build pass; browser acceptance remains under T-16 |
 | T-108 | ✅ Add unsupported-browser fallback to both frontends | Capability tests, web lint/build and admin build pass; public nonce and admin production CSP/asset responses checked. Live browser verification unavailable; G-05 remains open |
@@ -258,6 +259,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Unified single and bulk bike administration on the Bikes screen. Current filters and sorting now drive spreadsheet editing and Excel export for only the displayed variants, with Excel import available in the same UI; the old bulk URL renders the unified screen. Shared toolbar components now give Bikes, Bike Models, Specifications, Brands, Categories, Administrators, and Audit the same readable Refresh/Add treatment: full-width stacked actions on mobile and natural-width wrapping buttons on larger screens. Added exact bike-ID filtering to the API, with 40 focused API tests, admin production build and lint passing (six unrelated lint warnings remain). Authenticated browser acceptance remains under T-23 and T-24.
 
 **2026-11-22** — Expanded Bulk Spec Edit and standardized admin bike controls: Single Edit filters and Bulk-style sorting now live in collapsed panels above results. Both use active filter counts and ordered sort controls with drag handles, field changes, directions, removal, and add-level actions. Bulk grid/Excel share inclusive year/displacement filters and ordered sorts. 38 focused API tests, the admin production build, and admin lint passed (lint retains six unrelated warnings). Browser acceptance remains under T-23 and T-24.
 
