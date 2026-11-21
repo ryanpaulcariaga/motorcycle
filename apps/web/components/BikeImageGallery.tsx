@@ -158,7 +158,7 @@ export default function BikeImageGallery({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                className="px-3 py-2 text-lg transition-colors hover:bg-brand-gold hover:text-brand-black disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-white"
+                className="px-3 py-2 text-lg transition-colors hover:bg-brand-button hover:text-white disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-white"
                 aria-label="Zoom out"
                 disabled={zoom <= MIN_ZOOM}
                 onClick={() =>
@@ -174,7 +174,7 @@ export default function BikeImageGallery({
               </span>
               <button
                 type="button"
-                className="px-3 py-2 text-lg transition-colors hover:bg-brand-gold hover:text-brand-black disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-white"
+                className="px-3 py-2 text-lg transition-colors hover:bg-brand-button hover:text-white disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-white"
                 aria-label="Zoom in"
                 disabled={zoom >= MAX_ZOOM}
                 onClick={() =>
@@ -187,7 +187,7 @@ export default function BikeImageGallery({
               </button>
               <button
                 type="button"
-                className="ml-2 px-3 py-2 text-sm transition-colors hover:bg-brand-gold hover:text-brand-black"
+                className="ml-2 px-3 py-2 text-sm transition-colors hover:bg-brand-button hover:text-white"
                 onClick={() => setActiveIndex(null)}
               >
                 Close
@@ -216,7 +216,7 @@ export default function BikeImageGallery({
               <>
                 <button
                   type="button"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 px-4 py-3 transition-colors hover:bg-brand-gold hover:text-brand-black"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 px-4 py-3 transition-colors hover:bg-brand-button hover:text-white"
                   aria-label="Previous image"
                   onClick={() => changeImage(-1)}
                 >
@@ -224,7 +224,7 @@ export default function BikeImageGallery({
                 </button>
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 px-4 py-3 transition-colors hover:bg-brand-gold hover:text-brand-black"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 px-4 py-3 transition-colors hover:bg-brand-button hover:text-white"
                   aria-label="Next image"
                   onClick={() => changeImage(1)}
                 >

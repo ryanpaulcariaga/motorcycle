@@ -38,3 +38,12 @@ body {
   color: var(--foreground);
   font-family: "Aptos", "Segoe UI", sans-serif;
 }
+
+a,
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

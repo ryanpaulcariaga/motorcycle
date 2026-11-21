@@ -50,6 +50,16 @@ button:disabled {
   cursor: not-allowed;
 }
 
+button:not(:disabled) {
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+}
+
+button:not(:disabled):hover {
+  background-color: var(--color-brand-button);
+  color: #ffffff;
+}
+
 input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {

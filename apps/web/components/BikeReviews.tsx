@@ -189,7 +189,7 @@ export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps
                       <button
                         key={value}
                         type="button"
-                        className="min-h-10 min-w-10 text-2xl text-brand-gold"
+                        className="min-h-10 min-w-10 text-2xl text-brand-gold transition-colors hover:text-brand-button"
                         aria-label={`${value} ${value === 1 ? 'star' : 'stars'}`}
                         aria-pressed={rating === value}
                         onClick={() => setRating(value)}
@@ -215,7 +215,7 @@ export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps
                   <button
                     type="submit"
                     disabled={saving || rating < 1}
-                    className="bg-brand-button px-4 py-2 font-semibold text-white disabled:opacity-50"
+                    className="bg-brand-black px-4 py-2 font-semibold text-white transition-colors hover:bg-brand-button disabled:opacity-50"
                   >
                     {saving ? 'Saving…' : mine ? 'Save changes' : 'Post review'}
                   </button>
@@ -224,7 +224,7 @@ export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps
                       type="button"
                       onClick={() => void handleDelete()}
                       disabled={deleting}
-                      className="border border-zinc-400 px-4 py-2 font-semibold disabled:opacity-50"
+                      className="border border-zinc-400 px-4 py-2 font-semibold transition-colors hover:bg-brand-button hover:text-white disabled:opacity-50"
                     >
                       {deleting ? 'Removing…' : 'Remove review'}
                     </button>

@@ -48,7 +48,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, Excel export, and Excel import for exactly the displayed variants |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
-| F-13 | ✅ Aligned look and tighter grids across web and admin; bike variant headers match cell padding; admin modal action icons match grid icon colors |
+| F-13 | ✅ Aligned look and tighter grids across web and admin; top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; bike variant headers match cell padding; admin modal action icons match grid icon colors |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results; MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |

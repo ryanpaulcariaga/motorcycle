@@ -141,7 +141,7 @@ export default function BikeComments({ bikeId, initialComments }: BikeCommentsPr
             <button
               type="submit"
               disabled={saving || !body.trim()}
-              className="bg-brand-button px-4 py-2 font-semibold text-white disabled:opacity-50"
+              className="bg-brand-button px-4 py-2 font-semibold text-white transition-colors hover:bg-brand-sidebar disabled:opacity-50"
             >
               {saving ? 'Posting…' : 'Post comment'}
             </button>
@@ -184,7 +184,7 @@ export default function BikeComments({ bikeId, initialComments }: BikeCommentsPr
                       type="button"
                       disabled={saving || !editingBody.trim()}
                       onClick={() => void handleUpdate(comment.id)}
-                      className="bg-brand-button px-4 py-2 font-semibold text-white disabled:opacity-50"
+                      className="bg-brand-button px-4 py-2 font-semibold text-white transition-colors hover:bg-brand-sidebar disabled:opacity-50"
                     >
                       Save
                     </button>
@@ -194,7 +194,7 @@ export default function BikeComments({ bikeId, initialComments }: BikeCommentsPr
                         setEditingId(null);
                         setEditingBody('');
                       }}
-                      className="border border-zinc-400 px-4 py-2 font-semibold"
+                      className="border border-zinc-400 px-4 py-2 font-semibold transition-colors hover:bg-brand-button hover:text-white"
                     >
                       Cancel
                     </button>

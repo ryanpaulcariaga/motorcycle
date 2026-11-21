@@ -115,15 +115,22 @@ function AdminShell({ session }: { session: AdminSession }) {
   return (
     <div className="min-h-screen overflow-x-clip bg-brand-page">
       <header className="relative bg-brand-header text-white">
-        <div className="flex min-h-16 w-full items-center gap-4 px-4 py-3 md:px-6 md:py-4">
-          <a className="mr-auto min-w-0 truncate font-bold tracking-wide" href="/admin">
+        <div className="flex h-16 w-full items-center gap-4 px-4 md:px-6">
+          <a
+            className="-ml-3 mr-auto flex h-full min-w-0 items-center truncate px-3 font-bold tracking-wide transition-colors hover:bg-brand-button hover:text-white"
+            href="/admin"
+          >
             MotoCompare Admin
           </a>
-          <div className="hidden shrink-0 items-center gap-4 text-sm md:flex">
+          <div className="hidden h-full shrink-0 items-center text-sm md:flex">
             <span className="max-w-40 truncate">
               {session.displayName ?? session.facebookUserId}
             </span>
-            <button className="underline" type="button" onClick={() => void signOut()}>
+            <button
+              className="flex h-full items-center px-3 transition-colors hover:bg-brand-button hover:text-white"
+              type="button"
+              onClick={() => void signOut()}
+            >
               Sign out
             </button>
           </div>
@@ -131,7 +138,7 @@ function AdminShell({ session }: { session: AdminSession }) {
             aria-controls="admin-account-menu"
             aria-expanded={isMenuOpen}
             aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-            className="shrink-0 md:hidden"
+            className="-mr-2 flex h-full shrink-0 flex-col items-center justify-center px-2 transition-colors hover:bg-brand-button md:hidden [&:hover>span]:bg-white"
             onClick={() => setIsMenuOpen((open) => !open)}
             type="button"
           >
@@ -142,7 +149,7 @@ function AdminShell({ session }: { session: AdminSession }) {
         </div>
         {isMenuOpen && (
           <div
-            className="flex flex-col items-end gap-3 border-t border-white/10 px-4 py-3 text-right text-sm sm:px-6 md:hidden"
+            className="flex flex-col items-stretch border-t border-white/10 px-4 py-3 text-right text-sm sm:px-6 md:hidden"
             id="admin-account-menu"
             onTouchEnd={(event) => {
               const deltaX = event.changedTouches[0].clientX - swipeStartX.current;
@@ -154,10 +161,14 @@ function AdminShell({ session }: { session: AdminSession }) {
               swipeStartX.current = event.touches[0].clientX;
             }}
           >
-            <span className="max-w-full truncate">
+            <span className="max-w-full truncate px-3 py-2">
               {session.displayName ?? session.facebookUserId}
             </span>
-            <button className="underline" type="button" onClick={() => void signOut()}>
+            <button
+              className="px-3 py-2 text-right transition-colors hover:bg-brand-button hover:text-white"
+              type="button"
+              onClick={() => void signOut()}
+            >
               Sign out
             </button>
           </div>

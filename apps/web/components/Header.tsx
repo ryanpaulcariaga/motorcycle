@@ -131,17 +131,25 @@ export default function Header() {
     if (session) {
       return (
         <div
-          className={`flex gap-3 text-sm ${
-            stacked ? 'flex-col items-end' : 'items-center'
+          className={`flex text-sm ${
+            stacked ? 'w-full flex-col items-stretch' : 'h-full items-center'
           }`}
         >
-          <Link href="/settings" className="underline" onClick={() => setIsMenuOpen(false)}>
+          <Link
+            href="/settings"
+            className={`flex items-center px-3 text-right transition-colors hover:bg-brand-button hover:text-white ${
+              stacked ? 'py-2' : 'h-full'
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
             {session.displayName ?? session.email ?? 'Signed in'}
           </Link>
           <button
             type="button"
             onClick={() => void handleSignOut()}
-            className="underline"
+            className={`flex items-center px-3 text-right transition-colors hover:bg-brand-button hover:text-white ${
+              stacked ? 'py-2' : 'h-full'
+            }`}
           >
             Sign out
           </button>
@@ -149,11 +157,26 @@ export default function Header() {
       );
     }
     return (
-      <div className={`flex gap-3 text-sm ${stacked ? 'flex-col items-end' : 'items-center'}`}>
-        <Link href="/settings" className="underline" onClick={() => setIsMenuOpen(false)}>
+      <div
+        className={`flex text-sm ${
+          stacked ? 'w-full flex-col items-stretch' : 'h-full items-center'
+        }`}
+      >
+        <Link
+          href="/settings"
+          className={`flex items-center px-3 text-right transition-colors hover:bg-brand-button hover:text-white ${
+            stacked ? 'py-2' : 'h-full'
+          }`}
+          onClick={() => setIsMenuOpen(false)}
+        >
           Settings
         </Link>
-        <a href={facebookSignInUrl()} className="underline">
+        <a
+          href={facebookSignInUrl()}
+          className={`flex items-center px-3 text-right transition-colors hover:bg-brand-button hover:text-white ${
+            stacked ? 'py-2' : 'h-full'
+          }`}
+        >
           Sign in with Facebook
         </a>
       </div>
@@ -162,8 +185,11 @@ export default function Header() {
 
   return (
     <header className="relative bg-brand-header text-white">
-      <div className="flex min-h-16 w-full items-center gap-4 px-4 py-3 md:px-6 md:py-4">
-        <Link href="/" className="mr-auto shrink-0 font-bold tracking-wide">
+      <div className="flex h-16 w-full items-center gap-4 px-4 md:px-6">
+        <Link
+          href="/"
+          className="-ml-3 mr-auto flex h-full shrink-0 items-center px-3 font-bold tracking-wide transition-colors hover:bg-brand-button hover:text-white"
+        >
           MotoCompare
         </Link>
 
@@ -202,7 +228,7 @@ export default function Header() {
                 setIsSearchOpen(true);
                 setIsMenuOpen(false);
               }}
-              className="flex h-9 w-9 items-center justify-center text-white/80 hover:text-brand-gold md:hidden"
+              className="flex h-9 w-9 items-center justify-center text-white/80 transition-colors hover:bg-brand-button hover:text-white md:hidden"
             >
               <svg
                 aria-hidden="true"
@@ -243,7 +269,7 @@ export default function Header() {
             <button
               type="submit"
               aria-label="Search bikes"
-              className="absolute right-0 top-0 flex h-full items-center px-2 text-white/80 hover:text-brand-gold"
+              className="absolute right-0 top-0 flex h-full items-center px-2 text-white/80 transition-colors hover:bg-brand-button hover:text-white"
             >
               <svg
                 aria-hidden="true"
@@ -321,12 +347,12 @@ export default function Header() {
           )}
         </form>
 
-        <nav className="hidden shrink-0 items-center gap-4 md:flex">
+        <nav className="hidden h-full shrink-0 items-center md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm hover:text-brand-gold"
+              className="flex h-full items-center px-3 text-sm transition-colors hover:bg-brand-button hover:text-white"
             >
               {link.label}
             </Link>
@@ -336,7 +362,7 @@ export default function Header() {
 
         <button
           type="button"
-          className="shrink-0 md:hidden"
+          className="-mr-2 flex h-full shrink-0 flex-col items-center justify-center px-2 transition-colors hover:bg-brand-button md:hidden [&:hover>span]:bg-white"
           aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isMenuOpen}
           aria-controls="mobile-navigation"
@@ -352,7 +378,7 @@ export default function Header() {
       {isMenuOpen && (
         <nav
           id="mobile-navigation"
-          className="flex flex-col items-end gap-3 border-t border-white/10 px-4 py-3 text-right md:hidden sm:px-6"
+          className="flex flex-col items-stretch border-t border-white/10 px-4 py-3 text-right md:hidden sm:px-6"
           onTouchStart={(event) => {
             swipeStartX.current = event.touches[0].clientX;
           }}
@@ -367,13 +393,13 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm hover:text-brand-gold"
+              className="w-full px-3 py-2 text-sm transition-colors hover:bg-brand-button hover:text-white"
               onClick={() => setIsMenuOpen(false)}
             >
               {link.label}
             </Link>
           ))}
-          <div className="flex w-full justify-end border-t border-white/10 pt-3">
+          <div className="mt-3 flex w-full justify-end border-t border-white/10 pt-3">
             {renderAccountControl(true)}
           </div>
         </nav>

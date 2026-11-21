@@ -105,7 +105,7 @@ export default function AuditLogManagement() {
         </span>
         <div className="flex items-center gap-3">
           <button
-            className="border border-brand-grey/40 px-3 py-2 font-semibold disabled:opacity-50"
+            className="border border-brand-grey/40 px-3 py-2 font-semibold transition-colors hover:border-brand-button hover:bg-brand-button hover:text-white disabled:hover:border-brand-grey/40 disabled:hover:bg-transparent disabled:hover:text-inherit disabled:opacity-50"
             type="button"
             disabled={loading || page <= 1}
             onClick={() => void loadLogs(page - 1)}
@@ -114,7 +114,7 @@ export default function AuditLogManagement() {
           </button>
           <span>Page {page}</span>
           <button
-            className="border border-brand-grey/40 px-3 py-2 font-semibold disabled:opacity-50"
+            className="border border-brand-grey/40 px-3 py-2 font-semibold transition-colors hover:border-brand-button hover:bg-brand-button hover:text-white disabled:hover:border-brand-grey/40 disabled:hover:bg-transparent disabled:hover:text-inherit disabled:opacity-50"
             type="button"
             disabled={loading || !result || page * pageSize >= result.totalCount}
             onClick={() => void loadLogs(page + 1)}

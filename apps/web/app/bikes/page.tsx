@@ -154,9 +154,9 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                 <Link
                   key={p}
                   href={buildBrowseHref(browseParams, { page: String(p) })}
-                  className={`px-3 py-1.5 text-sm ${
+                  className={`px-3 py-1.5 text-sm transition-colors hover:bg-brand-button hover:text-white ${
                     p === page
-                      ? 'bg-brand-button text-white'
+                      ? 'bg-brand-sidebar text-white'
                       : 'bg-zinc-100 text-brand-grey'
                   }`}
                 >
