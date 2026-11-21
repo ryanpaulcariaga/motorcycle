@@ -181,4 +181,36 @@ public class BikeImportServiceTests
 
         Assert.Equal(new[] { higher.Id, lower.Id }, export.Rows.Select(row => row.Id));
     }
+
+    [Fact]
+    public async Task GetExportAsync_UsesMultipleSortsAndExpandedFilters()
+    {
+        var (service, repository) = CreateService();
+        var newestZulu = await AddBikeAsync(repository, "Zulu");
+        newestZulu.Year = 2025;
+        newestZulu.Specs["cc"] = 650;
+        var newestAlpha = await AddBikeAsync(repository, "Alpha");
+        newestAlpha.Year = 2025;
+        newestAlpha.Specs["cc"] = 650;
+        var older = await AddBikeAsync(repository, "Older");
+        older.Year = 2024;
+        older.Specs["cc"] = 650;
+        var outsideRange = await AddBikeAsync(repository, "Outside");
+        outsideRange.Year = 2025;
+        outsideRange.Specs["cc"] = 300;
+
+        var export = await service.GetExportAsync(
+            null,
+            null,
+            null,
+            null,
+            sort: "year:desc,variant:asc",
+            minYear: 2024,
+            maxYear: 2025,
+            minDisplacement: 600);
+
+        Assert.Equal(
+            new[] { newestAlpha.Id, newestZulu.Id, older.Id },
+            export.Rows.Select(row => row.Id));
+    }
 }

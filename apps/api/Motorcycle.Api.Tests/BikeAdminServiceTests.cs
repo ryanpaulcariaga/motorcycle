@@ -158,6 +158,64 @@ public class BikeAdminServiceTests
         Assert.Equal(new[] { lower.Id, higher.Id, missing.Id }, ascending.Select(row => row.Id));
         Assert.Equal(new[] { higher.Id, lower.Id, missing.Id }, descending.Select(row => row.Id));
     }
+
+    [Fact]
+    public async Task GetSpecGridAsync_AppliesOrderedMultipleSortCriteria()
+    {
+        var (service, repository) = CreateService();
+        var first2023 = NewBike("Zed");
+        first2023.Year = 2023;
+        var first2024 = NewBike("Zulu");
+        first2024.Year = 2024;
+        var second2024 = NewBike("Alpha");
+        second2024.Year = 2024;
+        await repository.AddAsync(first2023);
+        await repository.AddAsync(first2024);
+        await repository.AddAsync(second2024);
+
+        var rows = await service.GetSpecGridAsync(
+            null,
+            null,
+            null,
+            null,
+            sort: "year:desc,spec:engine_displacement_cc:asc,variant:asc");
+
+        Assert.Equal(new[] { second2024.Id, first2024.Id, first2023.Id }, rows.Select(row => row.Id));
+    }
+
+    [Fact]
+    public async Task GetSpecGridAsync_FiltersYearAndDisplacementRanges()
+    {
+        var (service, repository) = CreateService();
+        var match = NewBike("Match");
+        match.Specs["cc"] = 650;
+        match.Year = 2025;
+        var wrongYear = NewBike("Wrong year");
+        wrongYear.Specs["cc"] = 650;
+        wrongYear.Year = 2023;
+        var wrongDisplacement = NewBike("Wrong displacement");
+        wrongDisplacement.Specs["cc"] = 300;
+        wrongDisplacement.Year = 2025;
+        var missingDisplacement = NewBike("Missing displacement");
+        missingDisplacement.Year = 2025;
+        await repository.AddAsync(match);
+        await repository.AddAsync(wrongYear);
+        await repository.AddAsync(wrongDisplacement);
+        await repository.AddAsync(missingDisplacement);
+
+        var rows = await service.GetSpecGridAsync(
+            null,
+            null,
+            null,
+            null,
+            minYear: 2024,
+            maxYear: 2025,
+            minDisplacement: 600,
+            maxDisplacement: 700);
+
+        Assert.Equal(match.Id, Assert.Single(rows).Id);
+    }
+
     [Fact]
     public async Task CreateAsync_WithValidData_PersistsUnpublishedBike()
     {

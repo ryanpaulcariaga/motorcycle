@@ -27,6 +27,8 @@ export type SpecGroup = {
     dataType: string;
     unit: string | null;
     sortOrder: number;
+    isFilterable: boolean;
+    filterType: string | null;
   }[];
 };
 type SpecDefinition = SpecGroup['definitions'][number];

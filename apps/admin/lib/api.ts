@@ -86,7 +86,7 @@ async function publicApiFetch<T>(path: string): Promise<T> {
 
 export function getBrands(): Promise<LookupOption[]> { return publicApiFetch("/brands"); }
 export function getCategories(): Promise<LookupOption[]> { return publicApiFetch("/categories"); }
-export function getSpecGroups(): Promise<{ code: string; name: string; sortOrder: number; definitions: { id: number; code: string; label: string; dataType: string; unit: string | null; sortOrder: number }[] }[]> {
+export function getSpecGroups(): Promise<{ code: string; name: string; sortOrder: number; definitions: { id: number; code: string; label: string; dataType: string; unit: string | null; sortOrder: number; isFilterable: boolean; filterType: string | null }[] }[]> {
   return publicApiFetch("/spec-groups");
 }
 
@@ -112,10 +112,16 @@ export function getAdminBikeSpecValues(filters: SpecValueFilters): Promise<BikeS
 export function updateAdminBikeSpecValues(request: UpdateSingleSpecRequest): Promise<{ updatedCount: number }> {
   return apiFetch("/api/admin/bikes/spec-values", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
 }
-type BikeGridSort = { sortBy: string; sortDirection: "asc" | "desc" };
-type BikeGridFilters = Omit<SpecValueFilters, "specCode"> & { reviewStatus?: import("./types").ReviewStatus };
+type BikeGridSort = { field: string; descending: boolean };
+type BikeGridFilters = Omit<SpecValueFilters, "specCode"> & {
+  yearMin?: number;
+  yearMax?: number;
+  ccMin?: number;
+  ccMax?: number;
+  reviewStatus?: import("./types").ReviewStatus;
+};
 
-export function getAdminBikeSpecGrid(filters: BikeGridFilters, sort?: BikeGridSort): Promise<BikeSpecGridRow[]> {
+function bikeGridParams(filters: BikeGridFilters, sorts: BikeGridSort[]) {
   const params = new URLSearchParams();
   if (filters.brandId !== undefined) {
     params.set("brandId", String(filters.brandId));
@@ -129,36 +135,36 @@ export function getAdminBikeSpecGrid(filters: BikeGridFilters, sort?: BikeGridSo
   if (filters.maxPrice !== undefined) {
     params.set("maxPrice", String(filters.maxPrice));
   }
+  if (filters.yearMin !== undefined) {
+    params.set("yearMin", String(filters.yearMin));
+  }
+  if (filters.yearMax !== undefined) {
+    params.set("yearMax", String(filters.yearMax));
+  }
+  if (filters.ccMin !== undefined) {
+    params.set("ccMin", String(filters.ccMin));
+  }
+  if (filters.ccMax !== undefined) {
+    params.set("ccMax", String(filters.ccMax));
+  }
   if (filters.reviewStatus) {
     params.set("reviewStatus", filters.reviewStatus);
   }
-  if (sort?.sortBy) {
-    params.set("sortBy", sort.sortBy);
-    params.set("sortDirection", sort.sortDirection);
+  if (sorts.length > 0) {
+    params.set(
+      "sort",
+      sorts.map(({ field, descending }) => `${field}:${descending ? "desc" : "asc"}`).join(",")
+    );
   }
+  return params;
+}
+
+export function getAdminBikeSpecGrid(filters: BikeGridFilters, sorts: BikeGridSort[] = []): Promise<BikeSpecGridRow[]> {
+  const params = bikeGridParams(filters, sorts);
   return apiFetch(`/api/admin/bikes/spec-grid?${params}`);
 }
-export async function exportAdminBikes(filters: BikeGridFilters, sort?: BikeGridSort): Promise<Blob> {
-  const params = new URLSearchParams();
-  if (filters.brandId !== undefined) {
-    params.set("brandId", String(filters.brandId));
-  }
-  if (filters.categoryId) {
-    params.set("categoryId", String(filters.categoryId));
-  }
-  if (filters.minPrice !== undefined) {
-    params.set("minPrice", String(filters.minPrice));
-  }
-  if (filters.maxPrice !== undefined) {
-    params.set("maxPrice", String(filters.maxPrice));
-  }
-  if (filters.reviewStatus) {
-    params.set("reviewStatus", filters.reviewStatus);
-  }
-  if (sort?.sortBy) {
-    params.set("sortBy", sort.sortBy);
-    params.set("sortDirection", sort.sortDirection);
-  }
+export async function exportAdminBikes(filters: BikeGridFilters, sorts: BikeGridSort[] = []): Promise<Blob> {
+  const params = bikeGridParams(filters, sorts);
   const response = await fetch(`${API_BASE_URL}/api/admin/bikes/export?${params}`, { credentials: "include" });
   if (!response.ok) {
     let details: ApiError = { message: response.statusText || "Export failed" };

@@ -16,11 +16,20 @@ public sealed class FakeBikeAdminRepository : IBikeAdminRepository
     public Task<List<Bike>> GetAllAsync(int? modelId, CancellationToken ct = default) =>
         Task.FromResult(_bikes.Where(b => !modelId.HasValue || b.ModelId == modelId.Value).ToList());
 
-    public Task<List<Bike>> GetForSpecEditAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default) =>
+    public Task<List<Bike>> GetForSpecEditAsync(
+        int? brandId,
+        int? categoryId,
+        decimal? minPrice,
+        decimal? maxPrice,
+        CancellationToken ct = default,
+        int? minYear = null,
+        int? maxYear = null) =>
         Task.FromResult(_bikes.Where(b => (!brandId.HasValue || b.Model?.BrandId == brandId.Value)
             && (!categoryId.HasValue || b.Model.CategoryId == categoryId.Value)
             && (!minPrice.HasValue || b.MsrpPrice >= minPrice.Value)
-            && (!maxPrice.HasValue || b.MsrpPrice <= maxPrice.Value)).ToList());
+            && (!maxPrice.HasValue || b.MsrpPrice <= maxPrice.Value)
+            && (!minYear.HasValue || b.Year >= minYear.Value)
+            && (!maxYear.HasValue || b.Year <= maxYear.Value)).ToList());
 
     public Task<List<Bike>> GetByIdsAsync(IReadOnlyCollection<int> ids, CancellationToken ct = default) =>
         Task.FromResult(_bikes.Where(b => ids.Contains(b.Id)).ToList());

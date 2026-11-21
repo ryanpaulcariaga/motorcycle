@@ -100,12 +100,25 @@ public sealed class BikeAdminService : IBikeAdminService
         CancellationToken ct = default,
         string? sortBy = null,
         string sortDirection = "asc",
-        string? reviewStatus = null)
+        string? reviewStatus = null,
+        string? sort = null,
+        int? minYear = null,
+        int? maxYear = null,
+        decimal? minDisplacement = null,
+        decimal? maxDisplacement = null)
     {
         if (reviewStatus is not null) {
             BikeReviewStatus.Validate(reviewStatus);
         }
-        var bikes = await _repository.GetForSpecEditAsync(brandId, categoryId, minPrice, maxPrice, ct);
+        var bikes = await _repository.GetForSpecEditAsync(
+            brandId,
+            categoryId,
+            minPrice,
+            maxPrice,
+            ct,
+            minYear,
+            maxYear);
+        bikes = BikeSpecGridFilter.Displacement(bikes, minDisplacement, maxDisplacement).ToList();
         var rows = bikes.Where(b => reviewStatus is null || BikeReviewStatus.Get(b) == reviewStatus).Select(b => new BikeSpecGridRowDto(
             b.Id,
             b.Model?.Name ?? string.Empty,
@@ -118,12 +131,13 @@ public sealed class BikeAdminService : IBikeAdminService
             b.Specs.ToDictionary(s => s.Key, s => (object?)s.Value),
             SpecVerificationHelper.ToDto(b),
             BikeReviewStatus.Get(b))).ToList();
-        if (string.IsNullOrWhiteSpace(sortBy)) {
+        var criteria = BikeSpecGridSorter.ParseCriteria(sort, sortBy, sortDirection);
+        if (criteria.Count == 0) {
             return rows;
         }
 
         var definitions = await GetDefinitionsByCodeAsync(ct);
-        return BikeSpecGridSorter.Sort(rows, sortBy, sortDirection, definitions);
+        return BikeSpecGridSorter.Sort(rows, criteria, definitions);
     }
 
     public async Task<int> UpdateSpecGridAsync(UpdateSpecGridRequest request, CancellationToken ct = default)

@@ -30,6 +30,11 @@ public sealed class AdminBikesController : ControllerBase
         [FromQuery] int? categoryId,
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
+        [FromQuery] int? yearMin,
+        [FromQuery] int? yearMax,
+        [FromQuery] decimal? ccMin,
+        [FromQuery] decimal? ccMax,
+        [FromQuery] string? sort,
         [FromQuery] string? sortBy,
         [FromQuery] string? sortDirection,
         [FromQuery] string? reviewStatus,
@@ -40,7 +45,20 @@ public sealed class AdminBikesController : ControllerBase
         }
 
         try {
-            var export = await _importService.GetExportAsync(brandId, categoryId, minPrice, maxPrice, ct, sortBy, sortDirection ?? "asc", reviewStatus);
+            var export = await _importService.GetExportAsync(
+                brandId,
+                categoryId,
+                minPrice,
+                maxPrice,
+                ct,
+                sortBy,
+                sortDirection ?? "asc",
+                reviewStatus,
+                sort,
+                yearMin,
+                yearMax,
+                ccMin,
+                ccMax);
             return File(BikeWorkbook.Build(export), BikeWorkbook.ContentType, $"bikes-{DateTime.UtcNow:yyyyMMdd-HHmmss}.xlsx");
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
@@ -108,6 +126,11 @@ public sealed class AdminBikesController : ControllerBase
         [FromQuery] int? categoryId,
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
+        [FromQuery] int? yearMin,
+        [FromQuery] int? yearMax,
+        [FromQuery] decimal? ccMin,
+        [FromQuery] decimal? ccMax,
+        [FromQuery] string? sort,
         [FromQuery] string? sortBy,
         [FromQuery] string? sortDirection,
         [FromQuery] string? reviewStatus,
@@ -118,7 +141,20 @@ public sealed class AdminBikesController : ControllerBase
         }
 
         try {
-            return Ok(await _service.GetSpecGridAsync(brandId, categoryId, minPrice, maxPrice, ct, sortBy, sortDirection ?? "asc", reviewStatus));
+            return Ok(await _service.GetSpecGridAsync(
+                brandId,
+                categoryId,
+                minPrice,
+                maxPrice,
+                ct,
+                sortBy,
+                sortDirection ?? "asc",
+                reviewStatus,
+                sort,
+                yearMin,
+                yearMax,
+                ccMin,
+                ccMax));
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
         }

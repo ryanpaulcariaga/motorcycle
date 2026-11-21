@@ -45,7 +45,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-07 | ✅ Admin: Bike variant CRUD, publish control, shared three-state review status and filter, move to another model, image-presence filter; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management and drag-and-drop ordering |
-| F-10 | ✅ Admin: Bulk Spec Edit, separate collapsible filter and sort panels, review status filtering and batch marking, editable motorcycle/year/MSRP grid fields, shared sorting, Excel export/import |
+| F-10 | ✅ Admin: Bulk Spec Edit, separate collapsible filter and sort panels, brand/category/review/MSRP/year/displacement filtering, editable motorcycle/year/MSRP grid fields, draggable ordered multi-field sorting, Excel export/import |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin; bike variant headers match cell padding; admin modal action icons match grid icon colors |
@@ -251,13 +251,15 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-09 | ✅ Image upload limits and signature checks with tests | `BikeImageAdminServiceTests.cs` |
 | T-10 | ✅ Admin authorization with tests | `AdminBikesControllerAuthorizationTests.cs` |
 | T-90 | ✅ Public header bike search and submitted browse results | API-backed suggestions; web lint and production build pass |
-| T-91 | ✅ Add shared sorting to Bulk Spec Edit | Main-page sort selection applies to both the grid and Excel export |
+| T-91 | ✅ Add shared sorting to Bulk Spec Edit | Draggable ordered multi-field sorting applies to both the grid and Excel export |
 | T-97 | ✅ Remove redundant brand prefixes from bike and model display labels | Admin and web lint/build pass; separate brand data and Product JSON-LD brand remain intact |
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Expanded Bulk Spec Edit to match public browsing controls: Variant ascending is the default, with draggable ordered additional main-bike-field sort levels and direction toggles, plus inclusive year and engine-displacement filters alongside brand, category, MSRP, and review status. Grid and Excel export share the same filters/sorts; 38 focused API tests, the admin production build, and admin lint passed (lint retains six unrelated warnings). Browser acceptance remains under T-23 and T-24.
 
 **2026-11-21** — Added shared per-bike review status and bulk review tracking while preserving per-spec verification; consolidated status storage into one column. Focused API tests, admin build and migration snapshot check passed; authenticated browser verification remains under T-55.
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { moveItem, SortableItem, SortableList } from '@motorcycle/reorder';
 import {
   AdminApiError,
   exportAdminBikes,
@@ -15,6 +16,16 @@ import { reviewStatusOptions } from '@/lib/reviewStatus';
 import SpecGridModal, { type SpecGroup } from './SpecGridModal';
 
 const inputClass = 'mt-1 w-full border border-black/20 px-3 py-2';
+const baseSortOptions: [string, string][] = [
+  ['bike', 'Motorcycle'],
+  ['brand', 'Brand'],
+  ['model', 'Model'],
+  ['variant', 'Variant'],
+  ['year', 'Year'],
+  ['category', 'Category'],
+  ['msrp', 'MSRP'],
+];
+type GridSort = { field: string; descending: boolean };
 
 export default function BulkSpecEditor() {
   const [brands, setBrands] = useState<LookupOption[]>([]);
@@ -24,9 +35,14 @@ export default function BulkSpecEditor() {
   const [categoryId, setCategoryId] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [yearMin, setYearMin] = useState('');
+  const [yearMax, setYearMax] = useState('');
+  const [ccMin, setCcMin] = useState('');
+  const [ccMax, setCcMax] = useState('');
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus | ''>('');
-  const [sortBy, setSortBy] = useState('');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sorts, setSorts] = useState<GridSort[]>([
+    { field: 'variant', descending: false },
+  ]);
   const [bikes, setBikes] = useState<BikeSpecGridRow[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -38,19 +54,25 @@ export default function BulkSpecEditor() {
   const [fileKey, setFileKey] = useState(0);
   const [importErrors, setImportErrors] = useState<BikeImportError[]>([]);
   const [importMessage, setImportMessage] = useState<string | null>(null);
-  const activeFilters = [brandId, categoryId, minPrice, maxPrice, reviewStatus].filter(Boolean).length;
-  const sortLabels: Record<string, string> = {
-    bike: 'Motorcycle',
-    brand: 'Brand',
-    model: 'Model',
-    variant: 'Variant',
-    year: 'Year',
-    category: 'Category',
-    msrp: 'MSRP',
-  };
-  const sortLabel = sortBy.startsWith('spec:')
-    ? specGroups.flatMap((group) => group.definitions).find((definition) => `spec:${definition.code}` === sortBy)?.label
-    : sortLabels[sortBy];
+  const activeFilters = [
+    brandId,
+    categoryId,
+    minPrice || maxPrice,
+    yearMin || yearMax,
+    ccMin || ccMax,
+    reviewStatus,
+  ].filter(Boolean).length;
+  const sortOptions = baseSortOptions;
+  const unusedSortOptions = sortOptions.filter(([field]) => !sorts.some((sort) => sort.field === field));
+  const displacementAvailable = specGroups.some((group) =>
+    group.definitions.some((definition) =>
+      definition.code === 'cc' && definition.isFilterable && definition.filterType === 'range'
+    )
+  );
+  const sortSummary = sorts.slice(0, 2).map(({ field, descending }) => {
+    const label = sortOptions.find(([optionField]) => optionField === field)?.[1] ?? field;
+    return `${label} ${descending ? 'descending' : 'ascending'}`;
+  }).join(', then ');
 
   useEffect(() => {
     Promise.all([getBrands(), getCategories(), getSpecGroups()])
@@ -68,19 +90,29 @@ export default function BulkSpecEditor() {
       categoryId: categoryId ? Number(categoryId) : undefined,
       minPrice: minPrice === '' ? undefined : Number(minPrice),
       maxPrice: maxPrice === '' ? undefined : Number(maxPrice),
+      yearMin: yearMin === '' ? undefined : Number(yearMin),
+      yearMax: yearMax === '' ? undefined : Number(yearMax),
+      ccMin: ccMin === '' ? undefined : Number(ccMin),
+      ccMax: ccMax === '' ? undefined : Number(ccMax),
       reviewStatus: reviewStatus || undefined,
     };
   }
 
-  function currentSort() {
-    return sortBy ? { sortBy, sortDirection } : undefined;
+  function updateSort(index: number, update: Partial<GridSort>) {
+    setSorts((current) => current.map((sort, sortIndex) =>
+      sortIndex === index ? { ...sort, ...update } : sort
+    ));
+  }
+
+  function moveSort(from: number, to: number) {
+    setSorts((current) => moveItem(current, from, to));
   }
 
   async function exportExcel() {
     setExporting(true);
     setError(null);
     try {
-      const blob = await exportAdminBikes(currentFilters(), currentSort());
+      const blob = await exportAdminBikes(currentFilters(), sorts);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -140,7 +172,7 @@ export default function BulkSpecEditor() {
     setLoading(true);
     setError(null);
     try {
-      const result = await getAdminBikeSpecGrid(currentFilters(), currentSort());
+      const result = await getAdminBikeSpecGrid(currentFilters(), sorts);
       setBikes(result);
       setLoaded(true);
       setModalOpen(result.length > 0);
@@ -220,8 +252,38 @@ export default function BulkSpecEditor() {
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:col-span-2">
               <div>
+                <label className="block text-sm font-semibold" htmlFor="bulk-year-min">
+                  Year from
+                </label>
+                <input
+                  className={inputClass}
+                  id="bulk-year-min"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={yearMin}
+                  onChange={(event) => setYearMin(event.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold" htmlFor="bulk-year-max">
+                  Year to
+                </label>
+                <input
+                  className={inputClass}
+                  id="bulk-year-max"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={yearMax}
+                  onChange={(event) => setYearMax(event.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:col-span-2">
+              <div>
                 <label className="block text-sm font-semibold" htmlFor="bulk-min">
-                  Min price
+                  Minimum price ($)
                 </label>
                 <input
                   className={inputClass}
@@ -235,7 +297,7 @@ export default function BulkSpecEditor() {
               </div>
               <div>
                 <label className="block text-sm font-semibold" htmlFor="bulk-max">
-                  Max price
+                  Maximum price ($)
                 </label>
                 <input
                   className={inputClass}
@@ -248,6 +310,38 @@ export default function BulkSpecEditor() {
                 />
               </div>
             </div>
+            {(displacementAvailable || ccMin || ccMax) && (
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:col-span-2">
+                <div>
+                  <label className="block text-sm font-semibold" htmlFor="bulk-cc-min">
+                    Minimum displacement (cc)
+                  </label>
+                  <input
+                    className={inputClass}
+                    id="bulk-cc-min"
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={ccMin}
+                    onChange={(event) => setCcMin(event.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold" htmlFor="bulk-cc-max">
+                    Maximum displacement (cc)
+                  </label>
+                  <input
+                    className={inputClass}
+                    id="bulk-cc-max"
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={ccMax}
+                    onChange={(event) => setCcMax(event.target.value)}
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-semibold" htmlFor="bulk-review-status">Review status</label>
               <select className={inputClass} id="bulk-review-status" value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value as ReviewStatus | '')}>
@@ -258,63 +352,83 @@ export default function BulkSpecEditor() {
               </select>
             </div>
           </div>
+          <p className="mt-3 text-xs text-brand-grey">Range filters exclude motorcycles with missing values.</p>
+          {!displacementAvailable && (
+            <p className="mt-2 text-xs text-brand-grey">The displacement filter is currently unavailable.</p>
+          )}
         </details>
         <details className="mb-4 border border-zinc-200 bg-zinc-50 p-4 text-sm">
           <summary className="cursor-pointer font-semibold text-brand-button hover:underline">
-            Sort: {sortLabel ?? 'Original order'}{sortBy ? ` (${sortDirection === 'asc' ? 'ascending' : 'descending'})` : ''}
+            Sort: {sortSummary || 'Original order'}{sorts.length > 2 ? `, then ${sorts.length - 2} more` : ''}
           </summary>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <label className="block text-sm font-semibold" htmlFor="bulk-sort">
-                Sort by
-              </label>
-              <select
-                className={inputClass}
-                id="bulk-sort"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+          <div className="mt-3">
+            <SortableList ids={sorts.map((sort) => sort.field)} onMove={moveSort}>
+              <div className="flex flex-col gap-2">
+                {sorts.map((sort, index) => (
+                  <SortableItem
+                    as="div"
+                    id={sort.field}
+                    label={`${sortOptions.find(([field]) => field === sort.field)?.[1] ?? sort.field} sort`}
+                    key={sort.field}
+                    className="flex flex-wrap items-center gap-2"
+                  >
+                    {(handle) => <>
+                      {handle}
+                      <label className="sr-only" htmlFor={`bulk-sort-${index}`}>
+                        Sort field {index + 1}
+                      </label>
+                      <select
+                        className="min-w-0 border border-zinc-300 bg-white px-2 py-2"
+                        id={`bulk-sort-${index}`}
+                        value={sort.field}
+                        onChange={(event) => updateSort(index, { field: event.target.value })}
+                      >
+                        {sortOptions.map(([field, label]) => (
+                          <option
+                            key={field}
+                            value={field}
+                            disabled={sort.field !== field && sorts.some((selected) => selected.field === field)}
+                          >
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        aria-label={`${sortOptions.find(([field]) => field === sort.field)?.[1] ?? sort.field} ${sort.descending ? 'descending' : 'ascending'}, click to reverse`}
+                        title={sort.descending ? 'Descending' : 'Ascending'}
+                        className="border border-zinc-300 bg-white px-2 py-2 font-semibold hover:bg-zinc-100"
+                        onClick={() => updateSort(index, { descending: !sort.descending })}
+                      >
+                        {sort.descending ? 'Z→A' : 'A→Z'}
+                      </button>
+                      <button
+                        type="button"
+                        className="px-1 font-semibold text-brand-button hover:underline"
+                        onClick={() => setSorts((current) => current.filter((_, sortIndex) => sortIndex !== index))}
+                        aria-label={`Remove sort ${index + 1}`}
+                      >
+                        Remove
+                      </button>
+                    </>}
+                  </SortableItem>
+                ))}
+              </div>
+            </SortableList>
+            {sorts.length < sortOptions.length && (
+              <button
+                type="button"
+                className="mt-3 font-semibold text-brand-button hover:underline"
+                onClick={() => {
+                  const firstUnused = unusedSortOptions[0];
+                  if (firstUnused) {
+                    setSorts((current) => [...current, { field: firstUnused[0], descending: false }]);
+                  }
+                }}
               >
-                <option value="">Original order</option>
-                <option value="bike">Motorcycle</option>
-                <option value="brand">Brand</option>
-                <option value="model">Model</option>
-                <option value="variant">Variant</option>
-                <option value="year">Year</option>
-                <option value="category">Category</option>
-                <option value="msrp">MSRP</option>
-                {specGroups.map((group) =>
-                  group.definitions.map((definition) => (
-                    <option
-                      key={definition.code}
-                      value={`spec:${definition.code}`}
-                    >
-                      {group.name} · {definition.label}
-                      {definition.unit ? ` (${definition.unit})` : ''}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
-            <div>
-              <label
-                className="block text-sm font-semibold"
-                htmlFor="bulk-sort-direction"
-              >
-                Direction
-              </label>
-              <select
-                className={inputClass}
-                disabled={!sortBy}
-                id="bulk-sort-direction"
-                value={sortDirection}
-                onChange={(e) =>
-                  setSortDirection(e.target.value === 'desc' ? 'desc' : 'asc')
-                }
-              >
-                <option value="asc">Ascending</option>
-                <option value="desc">Descending</option>
-              </select>
-            </div>
+                + Add sort level
+              </button>
+            )}
           </div>
         </details>
         <div className="flex flex-wrap gap-3">

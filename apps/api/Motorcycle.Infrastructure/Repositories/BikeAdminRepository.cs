@@ -20,7 +20,14 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
         return await query.OrderBy(x => x.Model.Name).ThenBy(x => x.Year).ThenBy(x => x.VariantName).ToListAsync(ct);
     }
 
-    public async Task<List<Bike>> GetForSpecEditAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default)
+    public async Task<List<Bike>> GetForSpecEditAsync(
+        int? brandId,
+        int? categoryId,
+        decimal? minPrice,
+        decimal? maxPrice,
+        CancellationToken ct = default,
+        int? minYear = null,
+        int? maxYear = null)
     {
         IQueryable<Bike> query = _context.Bikes.AsNoTracking()
             .Include(x => x.Model).ThenInclude(m => m.Brand)
@@ -40,6 +47,14 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
 
         if (maxPrice.HasValue) {
             query = query.Where(x => x.MsrpPrice <= maxPrice.Value);
+        }
+
+        if (minYear.HasValue) {
+            query = query.Where(x => x.Year >= minYear.Value);
+        }
+
+        if (maxYear.HasValue) {
+            query = query.Where(x => x.Year <= maxYear.Value);
         }
 
         return await query.OrderBy(x => x.Model.Name).ThenBy(x => x.Year).ThenBy(x => x.VariantName).ToListAsync(ct);

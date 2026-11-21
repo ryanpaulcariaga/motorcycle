@@ -13,39 +13,91 @@ public static class BikeSpecGridSorter
         string? sortBy,
         string sortDirection,
         IReadOnlyDictionary<string, SpecDefinition> definitions)
+        => Sort(rows, ParseCriteria(null, sortBy, sortDirection), definitions);
+
+    public static IReadOnlyList<BikeSpecGridRowDto> Sort(
+        IReadOnlyList<BikeSpecGridRowDto> rows,
+        string? sort,
+        string? sortBy,
+        string sortDirection,
+        IReadOnlyDictionary<string, SpecDefinition> definitions)
+        => Sort(rows, ParseCriteria(sort, sortBy, sortDirection), definitions);
+
+    public static IReadOnlyList<BikeSortCriterion> ParseCriteria(
+        string? sort,
+        string? sortBy,
+        string sortDirection)
     {
+        if (!string.IsNullOrWhiteSpace(sort)) {
+            var criteria = new List<BikeSortCriterion>();
+            foreach (var rule in sort.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
+                var separator = rule.LastIndexOf(':');
+                var field = separator > 0 ? rule[..separator] : string.Empty;
+                var direction = separator > 0 ? rule[(separator + 1)..] : string.Empty;
+                if (string.IsNullOrWhiteSpace(field) || direction is not ("asc" or "desc")) {
+                    throw new ArgumentException("Sort criteria must use 'field:asc' or 'field:desc'.", nameof(sort));
+                }
+
+                if (criteria.Any(criterion => criterion.Field == field)) {
+                    throw new ArgumentException("Sort fields cannot be repeated.", nameof(sort));
+                }
+
+                criteria.Add(new BikeSortCriterion(field, direction == "desc"));
+            }
+            return criteria;
+        }
+
         if (string.IsNullOrWhiteSpace(sortBy)) {
-            return rows;
-        }
-
-        var definition = sortBy.StartsWith("spec:", StringComparison.Ordinal)
-            ? definitions.GetValueOrDefault(sortBy["spec:".Length..])
-            : null;
-        if (sortBy.StartsWith("spec:", StringComparison.Ordinal) && definition is null) {
-            throw new ArgumentException($"Unrecognized specification sort field '{sortBy}'.", nameof(sortBy));
-        }
-
-        if (sortBy is not ("bike" or "model" or "brand" or "variant" or "year" or "category" or "msrp")
-            && definition is null) {
-            throw new ArgumentException($"Unrecognized sort field '{sortBy}'.", nameof(sortBy));
+            return [];
         }
 
         if (sortDirection is not ("asc" or "desc")) {
             throw new ArgumentException("Sort direction must be 'asc' or 'desc'.", nameof(sortDirection));
         }
 
-        var descending = sortDirection == "desc";
-        return rows.OrderBy(row => GetValue(row, sortBy, definition), Comparer<object?>.Create((left, right) =>
-        {
-            var leftEmpty = left is null || left is string { Length: 0 };
-            var rightEmpty = right is null || right is string { Length: 0 };
-            if (leftEmpty || rightEmpty) {
-                return leftEmpty == rightEmpty ? 0 : leftEmpty ? 1 : -1;
+        return [new BikeSortCriterion(sortBy, sortDirection == "desc")];
+    }
+
+    public static IReadOnlyList<BikeSpecGridRowDto> Sort(
+        IReadOnlyList<BikeSpecGridRowDto> rows,
+        IReadOnlyList<BikeSortCriterion> criteria,
+        IReadOnlyDictionary<string, SpecDefinition> definitions)
+    {
+        if (criteria.Count == 0) {
+            return rows;
+        }
+
+        IOrderedEnumerable<BikeSpecGridRowDto>? ordered = null;
+        foreach (var criterion in criteria) {
+            var definition = criterion.Field.StartsWith("spec:", StringComparison.Ordinal)
+                ? definitions.GetValueOrDefault(criterion.Field["spec:".Length..])
+                : null;
+            if (criterion.Field.StartsWith("spec:", StringComparison.Ordinal) && definition is null) {
+                throw new ArgumentException($"Unrecognized specification sort field '{criterion.Field}'.", nameof(criteria));
             }
 
-            var comparison = CompareValues(left!, right!);
-            return descending ? -comparison : comparison;
-        })).ThenBy(row => row.Id).ToList();
+            if (criterion.Field is not ("bike" or "model" or "brand" or "variant" or "year" or "category" or "msrp")
+                && definition is null) {
+                throw new ArgumentException($"Unrecognized sort field '{criterion.Field}'.", nameof(criteria));
+            }
+
+            var comparer = Comparer<object?>.Create((left, right) =>
+            {
+                var leftEmpty = left is null || left is string { Length: 0 };
+                var rightEmpty = right is null || right is string { Length: 0 };
+                if (leftEmpty || rightEmpty) {
+                    return leftEmpty == rightEmpty ? 0 : leftEmpty ? 1 : -1;
+                }
+
+                var comparison = CompareValues(left!, right!);
+                return criterion.Descending ? -comparison : comparison;
+            });
+            ordered = ordered is null
+                ? rows.OrderBy(row => GetValue(row, criterion.Field, definition), comparer)
+                : ordered.ThenBy(row => GetValue(row, criterion.Field, definition), comparer);
+        }
+
+        return ordered!.ThenBy(row => row.Id).ToList();
     }
 
     private static object? GetValue(

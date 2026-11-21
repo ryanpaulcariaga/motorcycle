@@ -42,7 +42,12 @@ public sealed class BikeImportService : IBikeImportService
         CancellationToken ct = default,
         string? sortBy = null,
         string sortDirection = "asc",
-        string? reviewStatus = null)
+        string? reviewStatus = null,
+        string? sort = null,
+        int? minYear = null,
+        int? maxYear = null,
+        decimal? minDisplacement = null,
+        decimal? maxDisplacement = null)
     {
         if (reviewStatus is not null) {
             BikeReviewStatus.Validate(reviewStatus);
@@ -55,7 +60,15 @@ public sealed class BikeImportService : IBikeImportService
             .OrderBy(g => g.SortOrder)
             .SelectMany(g => g.Definitions.OrderBy(d => d.SortOrder).Select(d => new BikeExportColumnDto(d.Code, d.Label, d.DataType, d.Unit, g.Name)))
             .ToList();
-        var bikes = await _repository.GetForSpecEditAsync(brandId, categoryId, minPrice, maxPrice, ct);
+        var bikes = await _repository.GetForSpecEditAsync(
+            brandId,
+            categoryId,
+            minPrice,
+            maxPrice,
+            ct,
+            minYear,
+            maxYear);
+        bikes = BikeSpecGridFilter.Displacement(bikes, minDisplacement, maxDisplacement).ToList();
         var rows = bikes.Where(b => reviewStatus is null || BikeReviewStatus.Get(b) == reviewStatus).Select(b => new BikeSpecGridRowDto(
             b.Id,
             b.Model?.Name ?? string.Empty,
@@ -66,7 +79,8 @@ public sealed class BikeImportService : IBikeImportService
             b.MsrpPrice,
             b.IsPublished,
             b.Specs.ToDictionary(s => s.Key, s => (object?)s.Value))).ToList();
-        rows = BikeSpecGridSorter.Sort(rows, sortBy, sortDirection, definitions).ToList();
+        var criteria = BikeSpecGridSorter.ParseCriteria(sort, sortBy, sortDirection);
+        rows = BikeSpecGridSorter.Sort(rows, criteria, definitions).ToList();
         return new BikeExportDto(columns, rows);
     }
 
