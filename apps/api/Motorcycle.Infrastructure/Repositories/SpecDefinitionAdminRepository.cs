@@ -43,9 +43,9 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
 
     public async Task ResetReviewedAsync(CancellationToken ct = default)
     {
-        var bikes = await _context.Bikes.Where(b => b.IsReviewed).ToListAsync(ct);
+        var bikes = await _context.Bikes.Where(b => b.ReviewStatus == BikeReviewStatus.Reviewed).ToListAsync(ct);
         foreach (var bike in bikes) {
-            bike.IsReviewed = false;
+            bike.ReviewStatus = BikeReviewStatus.NotReviewed;
         }
     }
 
@@ -77,9 +77,9 @@ public sealed class SpecDefinitionAdminRepository : ISpecDefinitionAdminReposito
         if (invalidateVerifications) {
             var verifications = await _context.BikeSpecVerifications.Where(v => v.SpecDefinitionId == definition.Id).ToListAsync(ct);
             var bikeIds = verifications.Select(v => v.BikeId).Distinct().ToList();
-            var bikes = await _context.Bikes.Where(b => bikeIds.Contains(b.Id) && b.IsReviewed).ToListAsync(ct);
+            var bikes = await _context.Bikes.Where(b => bikeIds.Contains(b.Id) && b.ReviewStatus == BikeReviewStatus.Reviewed).ToListAsync(ct);
             foreach (var bike in bikes) {
-                bike.IsReviewed = false;
+                bike.ReviewStatus = BikeReviewStatus.NotReviewed;
             }
             _context.BikeSpecVerifications.RemoveRange(verifications);
         }

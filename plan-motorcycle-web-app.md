@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 47 of 109 tasks done · 6 in progress · 56 not started.**
+**Progress: 48 of 110 tasks done · 6 in progress · 56 not started.**
 
 **Next up:** Verify interest-profile controls and tracking in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -42,10 +42,10 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-04 | ✅ Public sign-in with Facebook |
 | F-05 | ✅ Admin sign-in (Facebook PKCE) and admin roles |
 | F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts |
-| F-07 | ✅ Admin: Bike variant CRUD, checkbox controls for publish and reviewed status, move to another model, image-presence filter; model labels show assigned bike counts |
+| F-07 | ✅ Admin: Bike variant CRUD, publish control, shared three-state review status and filter, move to another model, image-presence filter; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management and drag-and-drop ordering |
-| F-10 | ✅ Admin: Bulk Spec Edit, editable motorcycle/year/MSRP grid fields, draggable shared sorting, Excel export/import |
+| F-10 | ✅ Admin: Bulk Spec Edit, separate collapsible filter and sort panels, review status filtering and batch marking, editable motorcycle/year/MSRP grid fields, shared sorting, Excel export/import |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin; bike variant headers match cell padding; admin modal action icons match grid icon colors |
@@ -54,7 +54,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; mobile sidebar sections expand independently and pages scroll to content |
-| F-21 | ✅ Admin per-bike, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override and combined review resets |
+| F-21 | ✅ Admin shared per-bike Not reviewed/In review/Reviewed status, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override and combined review resets |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
@@ -173,7 +173,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 | T-61 | ⬜ | Azure cost alerts | | G-12 |
 | T-62 | ⬜ | Define success metrics (traffic, compare usage, catalog completeness) | Include catalog coverage, verified-data rate, search-to-detail visits, and compare usage; define how each is measured before adding engagement features | |
 | T-63 | ⬜ | Define catalog data sourcing and verification | Revisit admin source URL entry; define trusted sources and public attribution policy | |
-| T-64 | ⬜ | Define the `is_reviewed` publishing workflow | Include how admins verify source data and handle user-submitted correction reports | |
+| T-64 | ⬜ | Define the review-status publishing workflow | Include how admins verify source data and handle user-submitted correction reports | |
 | T-65 | ✅ | SEO: OpenGraph images | Generated site-wide OpenGraph/Twitter images; bike previews use the primary catalog image | |
 | T-66 | ✅ | SEO: canonical URLs | Canonicals set for home, browse, compare, and bike detail; browse filters do not create duplicate canonicals | |
 | T-67 | ✅ | SEO: JSON-LD structured data | Bike detail pages emit Product data with brand, category, images, and available scalar specs | |
@@ -230,6 +230,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-110 | ✅ Track shared admin review progress | Three-state status in one database column, per-spec verification, list/grid/export filtering and bulk marking; focused API tests and admin build pass. Authenticated browser acceptance remains under T-55 |
 | T-109 | ✅ Replace browse sort direction dropdowns with toggles | Each sort level uses the admin-style A→Z/Z→A toggle; existing form serialization remains. Focused web lint and production build pass; browser acceptance remains under T-16 |
 | T-108 | ✅ Add unsupported-browser fallback to both frontends | Capability tests, web lint/build and admin build pass; public nonce and admin production CSP/asset responses checked. Live browser verification unavailable; G-05 remains open |
 | T-107 | ✅ Replace secondary sort control with ordered multi-field sorting | Sort is in a collapsed-by-default bordered box matching Advanced filters; add/remove/reorder supported fields for one or more criteria. API applies all criteria before paging. Focused API test covers three levels and paging; web ESLint/build pass |
@@ -257,6 +258,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-21** — Added shared per-bike review status and bulk review tracking while preserving per-spec verification; consolidated status storage into one column. Focused API tests, admin build and migration snapshot check passed; authenticated browser verification remains under T-55.
 
 **2026-11-15** — Replaced browse sort direction dropdowns with admin-style A→Z/Z→A toggles for each sort level. Focused web lint and build passed; browser connection timed out, so T-16 acceptance remains.
 

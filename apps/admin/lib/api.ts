@@ -113,8 +113,9 @@ export function updateAdminBikeSpecValues(request: UpdateSingleSpecRequest): Pro
   return apiFetch("/api/admin/bikes/spec-values", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
 }
 type BikeGridSort = { sortBy: string; sortDirection: "asc" | "desc" };
+type BikeGridFilters = Omit<SpecValueFilters, "specCode"> & { reviewStatus?: import("./types").ReviewStatus };
 
-export function getAdminBikeSpecGrid(filters: Omit<SpecValueFilters, "specCode">, sort?: BikeGridSort): Promise<BikeSpecGridRow[]> {
+export function getAdminBikeSpecGrid(filters: BikeGridFilters, sort?: BikeGridSort): Promise<BikeSpecGridRow[]> {
   const params = new URLSearchParams();
   if (filters.brandId !== undefined) {
     params.set("brandId", String(filters.brandId));
@@ -127,6 +128,9 @@ export function getAdminBikeSpecGrid(filters: Omit<SpecValueFilters, "specCode">
   }
   if (filters.maxPrice !== undefined) {
     params.set("maxPrice", String(filters.maxPrice));
+  }
+  if (filters.reviewStatus) {
+    params.set("reviewStatus", filters.reviewStatus);
   }
   if (sort?.sortBy) {
     params.set("sortBy", sort.sortBy);
@@ -134,7 +138,7 @@ export function getAdminBikeSpecGrid(filters: Omit<SpecValueFilters, "specCode">
   }
   return apiFetch(`/api/admin/bikes/spec-grid?${params}`);
 }
-export async function exportAdminBikes(filters: Omit<SpecValueFilters, "specCode">, sort?: BikeGridSort): Promise<Blob> {
+export async function exportAdminBikes(filters: BikeGridFilters, sort?: BikeGridSort): Promise<Blob> {
   const params = new URLSearchParams();
   if (filters.brandId !== undefined) {
     params.set("brandId", String(filters.brandId));
@@ -147,6 +151,9 @@ export async function exportAdminBikes(filters: Omit<SpecValueFilters, "specCode
   }
   if (filters.maxPrice !== undefined) {
     params.set("maxPrice", String(filters.maxPrice));
+  }
+  if (filters.reviewStatus) {
+    params.set("reviewStatus", filters.reviewStatus);
   }
   if (sort?.sortBy) {
     params.set("sortBy", sort.sortBy);

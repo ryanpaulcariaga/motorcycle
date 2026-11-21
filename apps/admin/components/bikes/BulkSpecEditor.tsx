@@ -10,7 +10,8 @@ import {
   getSpecGroups,
   importAdminBikes,
 } from '@/lib/api';
-import type { BikeImportError, BikeSpecGridRow, LookupOption } from '@/lib/types';
+import type { BikeImportError, BikeSpecGridRow, LookupOption, ReviewStatus } from '@/lib/types';
+import { reviewStatusOptions } from '@/lib/reviewStatus';
 import SpecGridModal, { type SpecGroup } from './SpecGridModal';
 
 const inputClass = 'mt-1 w-full border border-black/20 px-3 py-2';
@@ -23,6 +24,7 @@ export default function BulkSpecEditor() {
   const [categoryId, setCategoryId] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus | ''>('');
   const [sortBy, setSortBy] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [bikes, setBikes] = useState<BikeSpecGridRow[]>([]);
@@ -36,6 +38,19 @@ export default function BulkSpecEditor() {
   const [fileKey, setFileKey] = useState(0);
   const [importErrors, setImportErrors] = useState<BikeImportError[]>([]);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const activeFilters = [brandId, categoryId, minPrice, maxPrice, reviewStatus].filter(Boolean).length;
+  const sortLabels: Record<string, string> = {
+    bike: 'Motorcycle',
+    brand: 'Brand',
+    model: 'Model',
+    variant: 'Variant',
+    year: 'Year',
+    category: 'Category',
+    msrp: 'MSRP',
+  };
+  const sortLabel = sortBy.startsWith('spec:')
+    ? specGroups.flatMap((group) => group.definitions).find((definition) => `spec:${definition.code}` === sortBy)?.label
+    : sortLabels[sortBy];
 
   useEffect(() => {
     Promise.all([getBrands(), getCategories(), getSpecGroups()])
@@ -53,6 +68,7 @@ export default function BulkSpecEditor() {
       categoryId: categoryId ? Number(categoryId) : undefined,
       minPrice: minPrice === '' ? undefined : Number(minPrice),
       maxPrice: maxPrice === '' ? undefined : Number(maxPrice),
+      reviewStatus: reviewStatus || undefined,
     };
   }
 
@@ -155,130 +171,153 @@ export default function BulkSpecEditor() {
         or export them to Excel. The selected sort order applies to both.
       </p>
       <form
-        className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        className="mt-6"
         onSubmit={load}
       >
-        <div>
-          <label className="block text-sm font-semibold" htmlFor="bulk-brand">
-            Brand
-          </label>
-          <select
-            className={inputClass}
-            id="bulk-brand"
-            value={brandId}
-            onChange={(e) => setBrandId(e.target.value)}
-          >
-            <option value="">All brands</option>
-            {brands.map((brand) => (
-              <option key={brand.id} value={brand.id}>
-                {brand.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label
-            className="block text-sm font-semibold"
-            htmlFor="bulk-category"
-          >
-            Category
-          </label>
-          <select
-            className={inputClass}
-            id="bulk-category"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
-            <option value="">All categories</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:col-span-2">
-          <div>
-            <label className="block text-sm font-semibold" htmlFor="bulk-min">
-              Min price
-            </label>
-            <input
-              className={inputClass}
-              id="bulk-min"
-              type="number"
-              min="0"
-              step="0.01"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-            />
+        <details className="mb-4 border border-zinc-200 bg-zinc-50 p-4 text-sm">
+          <summary className="cursor-pointer font-semibold text-brand-button hover:underline">
+            Filters{activeFilters > 0 ? ` (${activeFilters} active)` : ''}
+          </summary>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <label className="block text-sm font-semibold" htmlFor="bulk-brand">
+                Brand
+              </label>
+              <select
+                className={inputClass}
+                id="bulk-brand"
+                value={brandId}
+                onChange={(e) => setBrandId(e.target.value)}
+              >
+                <option value="">All brands</option>
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label
+                className="block text-sm font-semibold"
+                htmlFor="bulk-category"
+              >
+                Category
+              </label>
+              <select
+                className={inputClass}
+                id="bulk-category"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">All categories</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:col-span-2">
+              <div>
+                <label className="block text-sm font-semibold" htmlFor="bulk-min">
+                  Min price
+                </label>
+                <input
+                  className={inputClass}
+                  id="bulk-min"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold" htmlFor="bulk-max">
+                  Max price
+                </label>
+                <input
+                  className={inputClass}
+                  id="bulk-max"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold" htmlFor="bulk-review-status">Review status</label>
+              <select className={inputClass} id="bulk-review-status" value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value as ReviewStatus | '')}>
+                <option value="">All review statuses</option>
+                {reviewStatusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-semibold" htmlFor="bulk-max">
-              Max price
-            </label>
-            <input
-              className={inputClass}
-              id="bulk-max"
-              type="number"
-              min="0"
-              step="0.01"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-            />
+        </details>
+        <details className="mb-4 border border-zinc-200 bg-zinc-50 p-4 text-sm">
+          <summary className="cursor-pointer font-semibold text-brand-button hover:underline">
+            Sort: {sortLabel ?? 'Original order'}{sortBy ? ` (${sortDirection === 'asc' ? 'ascending' : 'descending'})` : ''}
+          </summary>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <label className="block text-sm font-semibold" htmlFor="bulk-sort">
+                Sort by
+              </label>
+              <select
+                className={inputClass}
+                id="bulk-sort"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="">Original order</option>
+                <option value="bike">Motorcycle</option>
+                <option value="brand">Brand</option>
+                <option value="model">Model</option>
+                <option value="variant">Variant</option>
+                <option value="year">Year</option>
+                <option value="category">Category</option>
+                <option value="msrp">MSRP</option>
+                {specGroups.map((group) =>
+                  group.definitions.map((definition) => (
+                    <option
+                      key={definition.code}
+                      value={`spec:${definition.code}`}
+                    >
+                      {group.name} · {definition.label}
+                      {definition.unit ? ` (${definition.unit})` : ''}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+            <div>
+              <label
+                className="block text-sm font-semibold"
+                htmlFor="bulk-sort-direction"
+              >
+                Direction
+              </label>
+              <select
+                className={inputClass}
+                disabled={!sortBy}
+                id="bulk-sort-direction"
+                value={sortDirection}
+                onChange={(e) =>
+                  setSortDirection(e.target.value === 'desc' ? 'desc' : 'asc')
+                }
+              >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div>
-          <label className="block text-sm font-semibold" htmlFor="bulk-sort">
-            Sort by
-          </label>
-          <select
-            className={inputClass}
-            id="bulk-sort"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="">Original order</option>
-            <option value="bike">Motorcycle</option>
-            <option value="brand">Brand</option>
-            <option value="model">Model</option>
-            <option value="variant">Variant</option>
-            <option value="year">Year</option>
-            <option value="category">Category</option>
-            <option value="msrp">MSRP</option>
-            {specGroups.map((group) =>
-              group.definitions.map((definition) => (
-                <option
-                  key={definition.code}
-                  value={`spec:${definition.code}`}
-                >
-                  {group.name} · {definition.label}
-                  {definition.unit ? ` (${definition.unit})` : ''}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
-        <div>
-          <label
-            className="block text-sm font-semibold"
-            htmlFor="bulk-sort-direction"
-          >
-            Direction
-          </label>
-          <select
-            className={inputClass}
-            disabled={!sortBy}
-            id="bulk-sort-direction"
-            value={sortDirection}
-            onChange={(e) =>
-              setSortDirection(e.target.value === 'desc' ? 'desc' : 'asc')
-            }
-          >
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
-        </div>
-        <div className="flex flex-wrap gap-3 sm:col-span-2 lg:col-span-4">
+        </details>
+        <div className="flex flex-wrap gap-3">
           <button
             className="bg-brand-button px-5 py-2 font-semibold text-white disabled:opacity-50"
             disabled={loading}

@@ -11,9 +11,10 @@ import {
   type RenderEditCellProps,
 } from 'react-data-grid';
 import 'react-data-grid/lib/styles.css';
-import { AdminApiError, updateAdminBikeSpecGrid } from '@/lib/api';
+import { AdminApiError, getAdminBikes, updateAdminBikeSpecGrid } from '@/lib/api';
 import Modal, { ModalFooter } from '@/components/Modal';
-import type { BikeSpecGridRow } from '@/lib/types';
+import type { BikeSpecGridRow, ReviewStatus } from '@/lib/types';
+import { reviewStatusOptions } from '@/lib/reviewStatus';
 
 export type SpecGroup = {
   code: string;
@@ -37,6 +38,7 @@ type GridRow = Omit<BikeSpecGridRow, 'specs'> & {
   verifications: Record<string, string>;
   savedVerifications: Record<string, string>;
   resetVerifications: boolean;
+  savedReviewStatus: ReviewStatus;
   coreCells: { variantName: string; year: string; msrpPrice: string };
   savedCoreCells: { variantName: string; year: string; msrpPrice: string };
 };
@@ -73,7 +75,7 @@ function toGridRow(bike: BikeSpecGridRow): GridRow {
   const verifications = Object.fromEntries(
     Object.entries(bike.specVerifications).map(([code, value]) => [code, value.sourceUrl ?? ''])
   );
-  return { ...rest, cells, saved: cells, verifications, savedVerifications: { ...verifications }, resetVerifications: false, coreCells, savedCoreCells: coreCells };
+  return { ...rest, cells, saved: cells, verifications, savedVerifications: { ...verifications }, resetVerifications: false, savedReviewStatus: bike.reviewStatus, coreCells, savedCoreCells: coreCells };
 }
 
 function normalize(raw: string, def: SpecDefinition | undefined): string {
@@ -251,6 +253,7 @@ export default function SpecGridModal({
         (total, row) =>
           total +
           Number(row.resetVerifications) +
+          Number(row.reviewStatus !== row.savedReviewStatus) +
           (Object.keys(row.coreCells) as CoreField[]).filter((field) =>
             isCoreDirty(row, field)
           ).length +
@@ -369,10 +372,25 @@ export default function SpecGridModal({
       {
         key: 'meta:reset',
         name: 'Review',
-        width: 150,
+        width: 240,
         cellClass: 'spec-grid-readonly-cell',
         renderCell: ({ row }) => (
           <span className="flex items-center gap-2">
+            <select
+              aria-label={`Review status for ${row.coreCells.variantName} ${row.coreCells.year}`}
+              className="min-w-0 border border-black/20 text-xs"
+              disabled={saving}
+              value={row.reviewStatus}
+              onClick={(event) => event.stopPropagation()}
+              onChange={(event) => {
+                const reviewStatus = event.target.value as ReviewStatus;
+                setRows((current) => current.map((item) => item.id === row.id ? { ...item, reviewStatus } : item));
+              }}
+            >
+              {reviewStatusOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
             <span title="Verified populated specs">
               {Object.keys(row.verifications).length}/{Object.values(row.cells).filter((value) => value.trim()).length}
             </span>
@@ -570,6 +588,7 @@ export default function SpecGridModal({
         coreCells: { ...row.savedCoreCells },
         verifications: { ...row.savedVerifications },
         resetVerifications: false,
+        reviewStatus: row.savedReviewStatus,
       }))
     );
     setNotice(null);
@@ -586,8 +605,12 @@ export default function SpecGridModal({
     }[] = [];
     const verificationChanges: { bikeId: number; specCode: string; isVerified: boolean; sourceUrl: string | null }[] = [];
     const resetVerificationBikeIds: number[] = [];
+    const reviewStatusChanges: { bikeId: number; reviewStatus: ReviewStatus }[] = [];
     let coreChangeCount = 0;
     for (const row of rows) {
+      if (row.reviewStatus !== row.savedReviewStatus) {
+        reviewStatusChanges.push({ bikeId: row.id, reviewStatus: row.reviewStatus });
+      }
       if (row.resetVerifications) {
         resetVerificationBikeIds.push(row.id);
       }
@@ -650,7 +673,7 @@ export default function SpecGridModal({
         }
       }
     }
-    const changeCount = changes.length + coreChangeCount + verificationChanges.length + resetVerificationBikeIds.length;
+    const changeCount = changes.length + coreChangeCount + verificationChanges.length + resetVerificationBikeIds.length + reviewStatusChanges.length;
     if (changeCount === 0) {
       return;
     }
@@ -664,6 +687,7 @@ export default function SpecGridModal({
         bikeChanges,
         verificationChanges,
         resetVerificationBikeIds,
+        reviewStatusChanges,
       });
       setRows((current) =>
         current.map((row) => {
@@ -685,6 +709,7 @@ export default function SpecGridModal({
             saved: { ...row.cells },
             savedVerifications: { ...row.verifications },
             resetVerifications: false,
+            savedReviewStatus: row.reviewStatus,
             coreCells,
             savedCoreCells: coreCells,
           };
@@ -693,6 +718,16 @@ export default function SpecGridModal({
       setNotice(
         `Saved ${changeCount} change${changeCount === 1 ? '' : 's'} across ${updatedCount} motorcycle${updatedCount === 1 ? '' : 's'}.`
       );
+      try {
+        const latest = await getAdminBikes();
+        const statuses = new Map(latest.map((bike) => [bike.id, bike.reviewStatus]));
+        setRows((current) => current.map((row) => {
+          const reviewStatus = statuses.get(row.id);
+          return reviewStatus ? { ...row, reviewStatus, savedReviewStatus: reviewStatus } : row;
+        }));
+      } catch {
+        setError('Changes were saved, but review statuses could not be refreshed. Close and reopen the grid to see current statuses.');
+      }
     } catch (cause) {
       setError(
         cause instanceof AdminApiError
@@ -723,6 +758,7 @@ export default function SpecGridModal({
         Check a specification to verify it against the official brand source.
         Changing a value or bike identity clears its verification until it is
         checked again. Reviewed is set automatically when all populated specs are verified.
+        Review status changes are saved with the grid; manually selecting Reviewed overrides verification.
       </p>
       {notice && (
         <p
@@ -756,6 +792,18 @@ export default function SpecGridModal({
         <span className="text-sm text-brand-grey">
           {visibleRows.length} of {rows.length} motorcycles
         </span>
+        <button
+          type="button"
+          className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
+          disabled={saving || !visibleRows.some((row) => row.reviewStatus === 'notReviewed')}
+          onClick={() => {
+            const ids = new Set(visibleRows.filter((row) => row.reviewStatus === 'notReviewed').map((row) => row.id));
+            setRows((current) => current.map((row) => ids.has(row.id) ? { ...row, reviewStatus: 'inReview' } : row));
+            setNotice('Displayed unreviewed motorcycles marked In review. Save changes to apply.');
+          }}
+        >
+          Mark displayed unreviewed In review
+        </button>
         <button
           type="button"
           className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"

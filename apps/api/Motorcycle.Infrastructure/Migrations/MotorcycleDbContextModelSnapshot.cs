@@ -183,10 +183,6 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_published");
 
-                    b.Property<bool>("IsReviewed")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_reviewed");
-
                     b.Property<int>("ModelId")
                         .HasColumnType("integer")
                         .HasColumnName("model_id");
@@ -195,6 +191,14 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("msrp_price");
+
+                    b.Property<string>("ReviewStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasDefaultValue("notReviewed")
+                        .HasColumnName("review_status");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -243,7 +247,10 @@ namespace Motorcycle.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_bikes_model_id_year_variant_name");
 
-                    b.ToTable("bikes");
+                    b.ToTable("bikes", t =>
+                        {
+                            t.HasCheckConstraint("ck_bikes_review_status", "review_status IN ('notReviewed', 'inReview', 'reviewed')");
+                        });
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.BikeComment", b =>

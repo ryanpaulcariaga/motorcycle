@@ -60,7 +60,7 @@ Why the system is built the way it is, plus the quality targets reviewed against
 - Privacy policy and terms; cookie consent before analytics or advertising cookies; public user data export/deletion; Facebook app review and data-use requirements; image licensing/attribution policy.
 
 **Content and data**
-- Define sourcing and verification workflow, what `is_reviewed` means, and who may publish. Decide units (metric/imperial), MSRP currency, and localization for Southeast Asia.
+- Define sourcing and verification workflow, what `review_status` means, and who may publish. Decide units (metric/imperial), MSRP currency, and localization for Southeast Asia.
 
 ## Engineering practices
 

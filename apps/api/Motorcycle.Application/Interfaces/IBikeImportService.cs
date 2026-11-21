@@ -8,5 +8,5 @@ public interface IBikeImportService
     Task<BikeImportResultDto> ImportAsync(BikeImportRequest request, CancellationToken ct = default);
 
     /// <summary>Returns the filtered bikes and specification columns in group/definition order, with optional row sorting.</summary>
-    Task<BikeExportDto> GetExportAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default, string? sortBy = null, string sortDirection = "asc");
+    Task<BikeExportDto> GetExportAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, CancellationToken ct = default, string? sortBy = null, string sortDirection = "asc", string? reviewStatus = null);
 }

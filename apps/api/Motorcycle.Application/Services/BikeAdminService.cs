@@ -99,10 +99,14 @@ public sealed class BikeAdminService : IBikeAdminService
         decimal? maxPrice,
         CancellationToken ct = default,
         string? sortBy = null,
-        string sortDirection = "asc")
+        string sortDirection = "asc",
+        string? reviewStatus = null)
     {
+        if (reviewStatus is not null) {
+            BikeReviewStatus.Validate(reviewStatus);
+        }
         var bikes = await _repository.GetForSpecEditAsync(brandId, categoryId, minPrice, maxPrice, ct);
-        var rows = bikes.Select(b => new BikeSpecGridRowDto(
+        var rows = bikes.Where(b => reviewStatus is null || BikeReviewStatus.Get(b) == reviewStatus).Select(b => new BikeSpecGridRowDto(
             b.Id,
             b.Model?.Name ?? string.Empty,
             b.Model?.Brand?.Name ?? string.Empty,
@@ -112,7 +116,8 @@ public sealed class BikeAdminService : IBikeAdminService
             b.MsrpPrice,
             b.IsPublished,
             b.Specs.ToDictionary(s => s.Key, s => (object?)s.Value),
-            SpecVerificationHelper.ToDto(b))).ToList();
+            SpecVerificationHelper.ToDto(b),
+            BikeReviewStatus.Get(b))).ToList();
         if (string.IsNullOrWhiteSpace(sortBy)) {
             return rows;
         }
@@ -127,8 +132,16 @@ public sealed class BikeAdminService : IBikeAdminService
         var bikeChanges = request.BikeChanges ?? [];
         var verificationChanges = request.VerificationChanges ?? [];
         var resetBikeIds = request.ResetVerificationBikeIds ?? [];
-        if (specChanges.Count == 0 && bikeChanges.Count == 0 && verificationChanges.Count == 0 && resetBikeIds.Count == 0) {
+        var statusChanges = request.ReviewStatusChanges ?? [];
+        if (specChanges.Count == 0 && bikeChanges.Count == 0 && verificationChanges.Count == 0 && resetBikeIds.Count == 0 && statusChanges.Count == 0) {
             return 0;
+        }
+
+        if (statusChanges.Any(change => change.BikeId <= 0) || statusChanges.Select(change => change.BikeId).Distinct().Count() != statusChanges.Count) {
+            throw new ArgumentException("Review status bike IDs must be positive and unique.", nameof(request));
+        }
+        foreach (var change in statusChanges) {
+            BikeReviewStatus.Validate(change.ReviewStatus);
         }
 
         if (resetBikeIds.Any(id => id <= 0) || resetBikeIds.Distinct().Count() != resetBikeIds.Count) {
@@ -163,7 +176,8 @@ public sealed class BikeAdminService : IBikeAdminService
         }).ToList();
 
         var bikeIds = specChanges.Select(c => c.BikeId).Concat(bikeChanges.Select(c => c.BikeId))
-            .Concat(verificationChanges.Select(c => c.BikeId)).Concat(resetBikeIds).Distinct().ToList();
+            .Concat(verificationChanges.Select(c => c.BikeId)).Concat(resetBikeIds)
+            .Concat(statusChanges.Select(c => c.BikeId)).Distinct().ToList();
         var bikes = (await _repository.GetByIdsAsync(bikeIds, ct)).ToDictionary(b => b.Id);
         var missing = bikeIds.Where(id => !bikes.ContainsKey(id)).ToList();
         if (missing.Count > 0) {
@@ -193,6 +207,7 @@ public sealed class BikeAdminService : IBikeAdminService
         var specsByBike = specChanges.ToLookup(c => c.BikeId);
         var verificationsByBike = verificationChanges.ToLookup(c => c.BikeId);
         var coreByBike = normalizedBikeChanges.ToDictionary(c => c.BikeId);
+        var statusByBike = statusChanges.ToDictionary(c => c.BikeId);
         foreach (var bikeId in bikeIds) {
             var bike = bikes[bikeId];
             var finalSpecs = new Dictionary<string, object>(bike.Specs);
@@ -231,13 +246,20 @@ public sealed class BikeAdminService : IBikeAdminService
                 || SpecVerificationHelper.ChangesVerification(bike, updates);
             if (resetIds.Contains(bikeId)) {
                 SpecVerificationHelper.Reset(bike, updates);
+                bike.ReviewStatus = BikeReviewStatus.NotReviewed;
             }
             SpecVerificationHelper.Invalidate(bike, specs, identityChanged,
                 updates.Where(c => c.IsVerified).Select(c => c.SpecCode).ToHashSet());
             SpecVerificationHelper.Apply(bike, updates, definitions);
             bike.Specs = specs;
+            if (statusByBike.TryGetValue(bikeId, out var statusChange) && statusChange.ReviewStatus == BikeReviewStatus.InReview) {
+                BikeReviewStatus.Set(bike, statusChange.ReviewStatus);
+            }
             if (reviewChanged) {
                 SpecVerificationHelper.UpdateReviewed(bike);
+            }
+            if (statusChange is not null && statusChange.ReviewStatus != BikeReviewStatus.InReview) {
+                BikeReviewStatus.Set(bike, statusChange.ReviewStatus);
             }
             bike.UpdatedAt = now;
         }
@@ -312,6 +334,7 @@ public sealed class BikeAdminService : IBikeAdminService
             || SpecVerificationHelper.ChangesVerification(bike, verificationChanges);
         if (request.ResetVerifications) {
             SpecVerificationHelper.Reset(bike, verificationChanges);
+            bike.ReviewStatus = BikeReviewStatus.NotReviewed;
         }
         SpecVerificationHelper.Invalidate(bike, newSpecs, identityChanged,
             verificationChanges.Where(c => c.IsVerified).Select(c => c.SpecCode).ToHashSet());
@@ -354,7 +377,9 @@ public sealed class BikeAdminService : IBikeAdminService
         }
 
         SpecVerificationHelper.Invalidate(bike, bike.Specs, true);
-        bike.IsReviewed = false;
+        if (bike.ReviewStatus == BikeReviewStatus.Reviewed) {
+            bike.ReviewStatus = BikeReviewStatus.NotReviewed;
+        }
         bike.ModelId = targetModel.Id;
         bike.Model = targetModel;
         bike.UpdatedAt = DateTime.UtcNow;
@@ -386,7 +411,7 @@ public sealed class BikeAdminService : IBikeAdminService
     public async Task<BikeAdminDetailDto> SetReviewedAsync(int id, bool isReviewed, CancellationToken ct = default)
     {
         var bike = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Bike was not found.");
-        bike.IsReviewed = isReviewed;
+        bike.ReviewStatus = isReviewed ? BikeReviewStatus.Reviewed : BikeReviewStatus.NotReviewed;
         bike.UpdatedAt = DateTime.UtcNow;
         await _repository.SaveChangesAsync(ct);
         return ToDetailDto(bike);
@@ -441,10 +466,11 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.Year,
         bike.MsrpPrice,
         bike.IsPublished,
-        bike.IsReviewed,
+        bike.ReviewStatus == BikeReviewStatus.Reviewed,
         bike.CreatedAt,
         bike.UpdatedAt,
-        bike.Images.Count);
+        bike.Images.Count,
+        BikeReviewStatus.Get(bike));
 
     private static BikeAdminDetailDto ToDetailDto(Bike bike, IReadOnlyDictionary<string, SpecDefinition>? definitions = null) => new(
         bike.Id,
@@ -456,11 +482,12 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.MsrpPrice,
         bike.Slug,
         bike.IsPublished,
-        bike.IsReviewed,
+        bike.ReviewStatus == BikeReviewStatus.Reviewed,
         bike.Specs.ToDictionary(kv => kv.Key, kv => (object?)kv.Value),
         bike.CreatedAt,
         bike.UpdatedAt,
-        SpecVerificationHelper.ToDto(bike, definitions));
+        SpecVerificationHelper.ToDto(bike, definitions),
+        BikeReviewStatus.Get(bike));
 }
 
 public sealed class BikeReferencedException : Exception

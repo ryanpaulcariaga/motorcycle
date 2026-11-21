@@ -12,7 +12,8 @@ public sealed record BikeAdminListItemDto(
     bool IsReviewed,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    int ImageCount = 0);
+    int ImageCount = 0,
+    string ReviewStatus = "notReviewed");
 
 public sealed record BikeAdminDetailDto(
     int Id,
@@ -28,7 +29,8 @@ public sealed record BikeAdminDetailDto(
     Dictionary<string, object?> Specs,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    Dictionary<string, SpecVerificationDto> SpecVerifications);
+    Dictionary<string, SpecVerificationDto> SpecVerifications,
+    string ReviewStatus = "notReviewed");
 
 public sealed record SpecVerificationDto(string? SourceUrl, DateTime VerifiedAt);
 
@@ -59,7 +61,8 @@ public sealed record BikeSpecGridRowDto(
     decimal? MsrpPrice,
     bool IsPublished,
     Dictionary<string, object?> Specs,
-    Dictionary<string, SpecVerificationDto>? SpecVerifications = null);
+    Dictionary<string, SpecVerificationDto>? SpecVerifications = null,
+    string ReviewStatus = "notReviewed");
 
 public sealed record BikeSpecGridCellUpdate(int BikeId, string SpecCode, object? Value);
 
@@ -67,11 +70,15 @@ public sealed record BikeSpecGridBikeUpdate(int BikeId, string VariantName, int 
 
 public sealed record BikeSpecGridVerificationUpdate(int BikeId, string SpecCode, bool IsVerified, string? SourceUrl);
 
+/// <summary>Changes the shared review status of one motorcycle.</summary>
+public sealed record BikeReviewStatusUpdate(int BikeId, string ReviewStatus);
+
 public sealed record UpdateSpecGridRequest(
     List<BikeSpecGridCellUpdate>? Changes,
     List<BikeSpecGridBikeUpdate>? BikeChanges = null,
     List<BikeSpecGridVerificationUpdate>? VerificationChanges = null,
-    List<int>? ResetVerificationBikeIds = null);
+    List<int>? ResetVerificationBikeIds = null,
+    List<BikeReviewStatusUpdate>? ReviewStatusChanges = null);
 
 public sealed record CreateBikeRequest(
     int ModelId,

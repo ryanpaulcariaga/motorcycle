@@ -41,8 +41,12 @@ public sealed class BikeImportService : IBikeImportService
         decimal? maxPrice,
         CancellationToken ct = default,
         string? sortBy = null,
-        string sortDirection = "asc")
+        string sortDirection = "asc",
+        string? reviewStatus = null)
     {
+        if (reviewStatus is not null) {
+            BikeReviewStatus.Validate(reviewStatus);
+        }
         var specGroups = await _specGroupRepository.GetAllWithDefinitionsAsync(ct);
         var definitions = specGroups
             .SelectMany(g => g.Definitions)
@@ -52,7 +56,7 @@ public sealed class BikeImportService : IBikeImportService
             .SelectMany(g => g.Definitions.OrderBy(d => d.SortOrder).Select(d => new BikeExportColumnDto(d.Code, d.Label, d.DataType, d.Unit, g.Name)))
             .ToList();
         var bikes = await _repository.GetForSpecEditAsync(brandId, categoryId, minPrice, maxPrice, ct);
-        var rows = bikes.Select(b => new BikeSpecGridRowDto(
+        var rows = bikes.Where(b => reviewStatus is null || BikeReviewStatus.Get(b) == reviewStatus).Select(b => new BikeSpecGridRowDto(
             b.Id,
             b.Model?.Name ?? string.Empty,
             b.Model?.Brand?.Name ?? string.Empty,

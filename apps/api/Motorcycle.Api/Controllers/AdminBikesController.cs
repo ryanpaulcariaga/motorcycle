@@ -32,6 +32,7 @@ public sealed class AdminBikesController : ControllerBase
         [FromQuery] decimal? maxPrice,
         [FromQuery] string? sortBy,
         [FromQuery] string? sortDirection,
+        [FromQuery] string? reviewStatus,
         CancellationToken ct)
     {
         if (brandId.HasValue && brandId <= 0) {
@@ -39,7 +40,7 @@ public sealed class AdminBikesController : ControllerBase
         }
 
         try {
-            var export = await _importService.GetExportAsync(brandId, categoryId, minPrice, maxPrice, ct, sortBy, sortDirection ?? "asc");
+            var export = await _importService.GetExportAsync(brandId, categoryId, minPrice, maxPrice, ct, sortBy, sortDirection ?? "asc", reviewStatus);
             return File(BikeWorkbook.Build(export), BikeWorkbook.ContentType, $"bikes-{DateTime.UtcNow:yyyyMMdd-HHmmss}.xlsx");
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
@@ -109,6 +110,7 @@ public sealed class AdminBikesController : ControllerBase
         [FromQuery] decimal? maxPrice,
         [FromQuery] string? sortBy,
         [FromQuery] string? sortDirection,
+        [FromQuery] string? reviewStatus,
         CancellationToken ct)
     {
         if (brandId.HasValue && brandId <= 0) {
@@ -116,7 +118,7 @@ public sealed class AdminBikesController : ControllerBase
         }
 
         try {
-            return Ok(await _service.GetSpecGridAsync(brandId, categoryId, minPrice, maxPrice, ct, sortBy, sortDirection ?? "asc"));
+            return Ok(await _service.GetSpecGridAsync(brandId, categoryId, minPrice, maxPrice, ct, sortBy, sortDirection ?? "asc", reviewStatus));
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
         }

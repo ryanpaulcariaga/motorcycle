@@ -26,7 +26,12 @@ public static class SpecVerificationHelper
     {
         var populatedCodes = bike.Specs.Where(pair => HasValue(pair.Value)).Select(pair => pair.Key).ToList();
         var verifiedCodes = bike.SpecVerifications.Select(v => v.SpecDefinition.Code).ToHashSet();
-        bike.IsReviewed = populatedCodes.Count > 0 && populatedCodes.All(verifiedCodes.Contains);
+        if (populatedCodes.Count > 0 && populatedCodes.All(verifiedCodes.Contains)) {
+            bike.ReviewStatus = BikeReviewStatus.Reviewed;
+        }
+        else if (bike.ReviewStatus == BikeReviewStatus.Reviewed) {
+            bike.ReviewStatus = BikeReviewStatus.NotReviewed;
+        }
     }
 
     private static bool HasValue(object? value) =>

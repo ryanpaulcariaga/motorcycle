@@ -83,6 +83,8 @@ export type BikeModel = {
 export type LookupOption = { id: number; name: string };
 export type BikeModelRequest = { brandId: number; categoryId: number; name: string };
 
+export type ReviewStatus = 'notReviewed' | 'inReview' | 'reviewed';
+
 export type BikeAdminListItem = {
   id: number;
   modelId: number;
@@ -93,6 +95,7 @@ export type BikeAdminListItem = {
   msrpPrice: number | null;
   isPublished: boolean;
   isReviewed: boolean;
+  reviewStatus: ReviewStatus;
   createdAt: string;
   updatedAt: string;
   imageCount: number;
@@ -161,6 +164,7 @@ export type BikeSpecGridRow = {
   year: number;
   msrpPrice: number | null;
   isPublished: boolean;
+  reviewStatus: ReviewStatus;
   specs: Record<string, unknown>;
   specVerifications: Record<string, SpecVerification>;
 };
@@ -175,6 +179,7 @@ export type UpdateSpecGridRequest = {
   }[];
   verificationChanges?: (SpecVerificationUpdate & { bikeId: number })[];
   resetVerificationBikeIds?: number[];
+  reviewStatusChanges?: { bikeId: number; reviewStatus: ReviewStatus }[];
 };
 
 export type BikeImage = {

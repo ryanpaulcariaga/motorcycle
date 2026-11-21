@@ -37,9 +37,9 @@ public sealed class BrandAdminRepository : IBrandAdminRepository
     {
         var verifications = await _context.BikeSpecVerifications.Where(v => v.Bike.Model.BrandId == brandId).ToListAsync(ct);
         _context.BikeSpecVerifications.RemoveRange(verifications);
-        var bikes = await _context.Bikes.Where(b => b.Model.BrandId == brandId && b.IsReviewed).ToListAsync(ct);
+        var bikes = await _context.Bikes.Where(b => b.Model.BrandId == brandId && b.ReviewStatus == BikeReviewStatus.Reviewed).ToListAsync(ct);
         foreach (var bike in bikes) {
-            bike.IsReviewed = false;
+            bike.ReviewStatus = BikeReviewStatus.NotReviewed;
         }
     }
 

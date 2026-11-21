@@ -31,7 +31,8 @@ CREATE TABLE bikes (
   slug VARCHAR(512) NOT NULL UNIQUE,
   specs JSONB NOT NULL DEFAULT '{}',  -- { "cc": "399", "horsepower": "45", ... }
   is_published BOOLEAN DEFAULT false,
-  is_reviewed BOOLEAN NOT NULL DEFAULT false,
+  review_status VARCHAR(16) NOT NULL DEFAULT 'notReviewed'
+    CHECK (review_status IN ('notReviewed', 'inReview', 'reviewed')),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -79,7 +80,9 @@ CREATE TABLE bike_spec_verifications (
 CREATE INDEX ix_bike_spec_verifications_spec_definition_id ON bike_spec_verifications(spec_definition_id);
 ```
 
-Presence indicates that this bike's current spec value was confirmed; absence means unconfirmed. Spec values remain in `bikes.specs`. Existing bike-level `is_reviewed` flags are not migrated to spec confirmations. The optional source URL is retained for future use and cannot currently be edited in the admin UI; the API validates its format, not whether it belongs to the brand.
+Presence indicates that this bike's current spec value was confirmed; absence means unconfirmed. Spec values remain in `bikes.specs`. Bike-level review status does not create spec confirmations. The optional source URL is retained for future use and cannot currently be edited in the admin UI; the API validates its format, not whether it belongs to the brand.
+
+The shared bike review status is stored only in `bikes.review_status`. The migration converts the former `is_reviewed` and `is_in_review` flags to the corresponding status before dropping both columns; Reviewed takes precedence if both were set.
 
 ### spec_groups
 ```sql

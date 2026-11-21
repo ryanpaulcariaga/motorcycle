@@ -17,12 +17,12 @@ import {
   getSpecGroups,
   publishAdminBike,
   reassignAdminBikeModel,
-  setAdminBikeReviewed,
   unpublishAdminBike,
   updateAdminBike,
   updateAdminBikeSpecGrid,
 } from '@/lib/api';
-import type { BikeAdminListItem, BikeModel, LookupOption } from '@/lib/types';
+import type { BikeAdminListItem, BikeModel, LookupOption, ReviewStatus } from '@/lib/types';
+import { reviewStatusOptions } from '@/lib/reviewStatus';
 import { bikeModelLabel } from '@/lib/bikeModelLabel';
 import { getBikeModelListSearch } from '@/lib/bikeModelListState';
 import {
@@ -58,7 +58,7 @@ const sortFieldOptions: { key: SortField; label: string }[] = [
   { key: 'model', label: 'Bike Model' },
   { key: 'msrp', label: 'MSRP' },
   { key: 'status', label: 'Status' },
-  { key: 'reviewed', label: 'Reviewed' },
+  { key: 'reviewed', label: 'Review status' },
 ];
 
 export default function BikeManagement({
@@ -104,6 +104,7 @@ export default function BikeManagement({
       ''
   );
   const [statusFilter, setStatusFilter] = useState('');
+  const [reviewFilter, setReviewFilter] = useState('');
   const [imageFilter, setImageFilter] = useState('');
   const [search, setSearch] = useState('');
   const [sortRules, setSortRules] = useState<SortRule<SortField>[]>(
@@ -126,6 +127,7 @@ export default function BikeManagement({
         (!modelFilter || String(bike.modelId) === modelFilter) &&
         (!statusFilter ||
           (statusFilter === 'published') === bike.isPublished) &&
+        (!reviewFilter || bike.reviewStatus === reviewFilter) &&
         (!imageFilter ||
           (imageFilter === 'has-images'
             ? bike.imageCount > 0
@@ -143,7 +145,7 @@ export default function BikeManagement({
       year: (a, b) => a.year - b.year,
       msrp: (a, b) => (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1),
       status: (a, b) => Number(a.isPublished) - Number(b.isPublished),
-      reviewed: (a, b) => Number(a.isReviewed) - Number(b.isReviewed),
+      reviewed: (a, b) => reviewStatusOptions.findIndex((option) => option.value === a.reviewStatus) - reviewStatusOptions.findIndex((option) => option.value === b.reviewStatus),
     }
   );
   const primarySort = sortRules[0];
@@ -353,11 +355,11 @@ export default function BikeManagement({
     }
   }
 
-  async function toggleReviewed(bike: BikeAdminListItem) {
+  async function setReviewStatus(bike: BikeAdminListItem, reviewStatus: ReviewStatus) {
     setError(null);
     setLastTouchedId(bike.id);
     try {
-      await setAdminBikeReviewed(bike.id, !bike.isReviewed);
+      await updateAdminBikeSpecGrid({ reviewStatusChanges: [{ bikeId: bike.id, reviewStatus }] });
       await load();
     } catch {
       setError('Unable to update reviewed state.');
@@ -562,6 +564,7 @@ export default function BikeManagement({
                   !brandFilter &&
                   !modelFilter &&
                   !statusFilter &&
+                  !reviewFilter &&
                   !imageFilter
                 }
                 onClick={() => {
@@ -569,6 +572,7 @@ export default function BikeManagement({
                   setBrandFilter('');
                   setModelFilter('');
                   setStatusFilter('');
+                  setReviewFilter('');
                   setImageFilter('');
                 }}
               />
@@ -623,6 +627,12 @@ export default function BikeManagement({
               <option value="published">Published</option>
               <option value="unpublished">Unpublished</option>
             </SidebarSelect>
+            <SidebarSelect label="Review status" value={reviewFilter} onChange={setReviewFilter}>
+              <option value="">All review statuses</option>
+              {reviewStatusOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </SidebarSelect>
             <SidebarSelect
               label="Images"
               value={imageFilter}
@@ -661,7 +671,7 @@ export default function BikeManagement({
                   {sortHeader('model', 'Bike Model')}
                   {sortHeader('msrp', 'MSRP')}
                   {sortHeader('status', 'Status')}
-                  {sortHeader('reviewed', 'Reviewed')}
+                  {sortHeader('reviewed', 'Review status')}
                   <th className="relative p-2">
                     <span className="sr-only">Actions</span>
                   </th>
@@ -728,14 +738,16 @@ export default function BikeManagement({
                       />
                     </td>
                     <td className="p-2">
-                      <input
-                        type="checkbox"
-                        checked={bike.isReviewed}
-                        aria-label={`Specs reviewed for ${bike.variantName} (${bike.year})`}
-                        title={bike.isReviewed ? 'Reviewed - click to unmark' : 'Not reviewed - click to mark reviewed'}
-                        className="h-4 w-4 accent-brand-gold"
-                        onChange={() => void toggleReviewed(bike)}
-                      />
+                      <select
+                        className="border border-black/20 px-2 py-1"
+                        value={bike.reviewStatus}
+                        aria-label={`Review status for ${bike.variantName} (${bike.year})`}
+                        onChange={(event) => void setReviewStatus(bike, event.target.value as ReviewStatus)}
+                      >
+                        {reviewStatusOptions.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
                     </td>
                     <td className="p-2">
                       <div className="flex items-center justify-end gap-1">
