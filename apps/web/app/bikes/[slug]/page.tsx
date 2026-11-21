@@ -5,7 +5,8 @@ import CatalogPageShell from '@/components/CatalogPageShell';
 import Button from '@/components/Button';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import BikeImageGallery from '@/components/BikeImageGallery';
-import { getBikeBySlug, getComparedWith } from '@/lib/api';
+import BikeReviews from '@/components/BikeReviews';
+import { getBikeBySlug, getBikeReviews, getComparedWith } from '@/lib/api';
 import { buildBikeDetailHref, buildBrowseHref, getBrowseParams } from '@/lib/catalogFilters';
 import { SITE_URL } from '@/lib/site';
 import type { Metadata } from 'next';
@@ -73,7 +74,10 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
     notFound();
   }
 
-  const comparedWith = await getComparedWith(slug).catch(() => []);
+  const [comparedWith, bikeReviews] = await Promise.all([
+    getComparedWith(slug).catch(() => []),
+    getBikeReviews(bike.id),
+  ]);
 
   const groupsWithSpecs = bike.specGroups.filter(
     (group) => group.specs.length > 0
@@ -252,12 +256,7 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
             ))}
           </div>
 
-          <div className="mt-8">
-            <h2 className="text-xl font-bold mb-2">Reviews</h2>
-            <p className="text-sm text-brand-grey italic">
-              Coming soon — user reviews and opinions.
-            </p>
-          </div>
+          <BikeReviews bikeId={bike.id} initialReviews={bikeReviews} />
     </CatalogPageShell>
   );
 }

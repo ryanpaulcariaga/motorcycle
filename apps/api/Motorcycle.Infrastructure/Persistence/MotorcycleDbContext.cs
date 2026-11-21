@@ -254,8 +254,15 @@ public class MotorcycleDbContext : DbContext
         modelBuilder.Entity<BikeComment>(bc =>
         {
             bc.HasKey(x => x.Id);
-            bc.Property(x => x.AuthorName).HasMaxLength(255);
-            bc.Property(x => x.Body).IsRequired();
+            bc.Property(x => x.Rating).IsRequired();
+            bc.Property(x => x.Body).HasMaxLength(1000);
+            bc.Property(x => x.CreatedAt).IsRequired();
+            bc.Property(x => x.UpdatedAt).IsRequired();
+            bc.HasIndex(x => new { x.BikeId, x.UserId }).IsUnique();
+            bc.HasIndex(x => x.BikeId);
+            bc.HasOne(x => x.Bike).WithMany().HasForeignKey(x => x.BikeId).OnDelete(DeleteBehavior.Cascade);
+            bc.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            bc.ToTable(t => t.HasCheckConstraint("ck_bike_comments_rating", "rating BETWEEN 1 AND 5"));
         });
 
         modelBuilder.Entity<SurveyResponse>(sr =>

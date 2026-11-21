@@ -262,32 +262,48 @@ namespace Motorcycle.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AuthorName")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("author_name");
-
                     b.Property<int>("BikeId")
                         .HasColumnType("integer")
                         .HasColumnName("bike_id");
 
                     b.Property<string>("Body")
-                        .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("body");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<bool>("IsApproved")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_approved");
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer")
+                        .HasColumnName("rating");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
                     b.HasKey("Id")
                         .HasName("pk_bike_comments");
 
-                    b.ToTable("bike_comments");
+                    b.HasIndex("BikeId")
+                        .HasDatabaseName("ix_bike_comments_bike_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_bike_comments_user_id");
+
+                    b.HasIndex("BikeId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_bike_comments_bike_id_user_id");
+
+                    b.ToTable("bike_comments", t =>
+                        {
+                            t.HasCheckConstraint("ck_bike_comments_rating", "rating BETWEEN 1 AND 5");
+                        });
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.BikeComparison", b =>
@@ -898,6 +914,27 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasConstraintName("fk_bikes_bike_models_model_id");
 
                     b.Navigation("Model");
+                });
+
+            modelBuilder.Entity("Motorcycle.Domain.BikeComment", b =>
+                {
+                    b.HasOne("Motorcycle.Domain.Bike", "Bike")
+                        .WithMany()
+                        .HasForeignKey("BikeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bike_comments_bikes_bike_id");
+
+                    b.HasOne("Motorcycle.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bike_comments_users_user_id");
+
+                    b.Navigation("Bike");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.BikeComparison", b =>

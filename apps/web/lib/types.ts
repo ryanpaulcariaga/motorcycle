@@ -23,6 +23,21 @@ export interface UserSessionDto {
   displayName: string | null;
 }
 
+export interface BikeReviewDto {
+  id: number;
+  authorName: string;
+  rating: number;
+  body: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BikeReviewsDto {
+  averageRating: number | null;
+  ratingCount: number;
+  reviews: BikeReviewDto[];
+}
+
 
 export interface CategoryDto {
   id: number;

@@ -8,6 +8,7 @@ public static class RateLimitPolicies
     public const string Auth = "auth";
     public const string Upload = "upload";
     public const string Analytics = "analytics";
+    public const string Reviews = "reviews";
 
     /// <summary>Per-client-IP fixed-window limits: a general limit for every request, plus stricter
     /// named policies for sign-in and upload/import endpoints. Limits are configurable under
@@ -23,6 +24,7 @@ public static class RateLimitPolicies
         var authLimit = section.GetValue<int?>("AuthPerMinute") ?? 20;
         var uploadLimit = section.GetValue<int?>("UploadPerMinute") ?? 30;
         var analyticsLimit = section.GetValue<int?>("AnalyticsPerMinute") ?? 60;
+        var reviewLimit = section.GetValue<int?>("ReviewsPerMinute") ?? 20;
 
         services.AddRateLimiter(options =>
         {
@@ -47,6 +49,8 @@ public static class RateLimitPolicies
                 RateLimitPartition.GetFixedWindowLimiter(ClientKey(context), _ => FixedWindow(uploadLimit)));
             options.AddPolicy(Analytics, context =>
                 RateLimitPartition.GetFixedWindowLimiter(ClientKey(context), _ => FixedWindow(analyticsLimit)));
+            options.AddPolicy(Reviews, context =>
+                RateLimitPartition.GetFixedWindowLimiter(ClientKey(context), _ => FixedWindow(reviewLimit)));
         });
 
         return services;

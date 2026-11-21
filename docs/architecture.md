@@ -2,7 +2,7 @@
 
 ## Overview
 
-Full-stack application with a public motorcycle catalog and a private administration site. The public site supports browsing, searching, filtering, and comparison; the admin site maintains catalog data through the shared API.
+Full-stack application with a public motorcycle catalog and a private administration site. The public site supports browsing, searching, filtering, comparison, and signed-in bike ratings and comments; the admin site maintains catalog data through the shared API.
 
 The public home, browse, bike detail, comparison, and settings pages share the same API-backed catalog sidebar, including brand, category, year, price, and displacement filters. Applying filters opens browse results; when already browsing, filter changes retain the current search and sort. Sorting controls remain above the browse results. Comparisons show up to two bikes in columns; three or more use one row per bike in a horizontally scrollable table.
 
@@ -11,6 +11,8 @@ Optional interest analytics run in the public browser only after opt-in. The bro
 Separate optional interest profiling is for signed-in, active public users only and requires a distinct account-level opt-in. Structured bike views, selections from search results, brand/category selections and compared bikes are stored as per-user UTC daily counters through the shared API; no raw search terms are stored. Turning the preference off serializes with event ingestion and deletes all that user's counters in the same transaction. The retention job removes counters older than 12 calendar months. The profile does not enable marketing emails or sharing personal profiles, and no profile dashboard or recommendation system is provided. Anonymous aggregates remain independent.
 
 The public site's `/settings` page manages both preferences. Signed-in users can reach it by selecting their name; signed-out visitors can use the header's Settings link to change anonymous analytics. The initial analytics prompt disappears after a choice and preferences remain editable in settings.
+
+Bike detail pages read aggregate ratings and comments anonymously. An active public-user session is required to create, update, or delete a review. Each user has at most one review per bike, enforced by the database unique index; a review always has a 1–5 rating and may also contain a 1,000-character comment. PostgreSQL upserts prevent concurrent duplicate submissions, and the client sends a custom request header as the same-origin CSRF control on credentialed mutations.
 
 These are activity counts, not unique visitors: page refreshes and comparison selection changes can count again. Searches count on header submission after the browse results load, not on suggestions, pagination, or sorting. Brand/category filters count when applied in browse, chosen from the sidebar, or selected in the comparison picker; compare-picker year and price filters are not tracked. Comparisons with 2–25 published bikes are counted once per view and once for each unordered pair; larger comparisons remain usable but are excluded from analytics. The pre-existing request-based comparison counters remain separate, continue to power recommendations even when analytics is declined, and are disclosed in the preference prompt.
 
@@ -60,7 +62,8 @@ Next.js public app             Vite React SPA
   └────────── HTTP API calls ──────────┘
                  ↓
         ASP.NET Core API (apps/api/)
-        ├─ public read-only endpoints
+        ├─ public catalog/review read endpoints
+        ├─ protected public-user review writes
         └─ protected admin write endpoints
   ↓ (EF Core + Npgsql)
 PostgreSQL Database

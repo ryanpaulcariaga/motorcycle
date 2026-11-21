@@ -2,6 +2,8 @@ import type {
   AnalyticsEvent,
   BikeDetailDto,
   BikeListItemDto,
+  BikeReviewDto,
+  BikeReviewsDto,
   BikesQuery,
   BrandDto,
   CategoryDto,
@@ -75,6 +77,10 @@ export function getComparedWith(slug: string, limit = 4): Promise<ComparedBikeDt
   return apiFetch(`/api/bikes/${encodeURIComponent(slug)}/compared-with${buildQueryString({ limit })}`);
 }
 
+export function getBikeReviews(bikeId: number): Promise<BikeReviewsDto> {
+  return apiFetch(`/api/bikes/${bikeId}/reviews`);
+}
+
 export function getPopularComparisons(limit = 10): Promise<PopularComparisonDto[]> {
   return apiFetch(`/api/bikes/popular-comparisons${buildQueryString({ limit })}`);
 }
@@ -118,6 +124,37 @@ export function getUserSession(): Promise<UserSessionDto | null> {
 
 export function getUserInterestPreference(): Promise<UserInterestPreference | null> {
   return authFetch<UserInterestPreference>("/api/user/interests/preference");
+}
+
+export function getMyBikeReview(bikeId: number): Promise<BikeReviewDto | null> {
+  return authFetch<BikeReviewDto>(`/api/bikes/${bikeId}/reviews/mine`);
+}
+
+export async function saveBikeReview(
+  bikeId: number,
+  review: { rating: number; body: string },
+): Promise<BikeReviewDto> {
+  const result = await authFetch<BikeReviewDto>(`/api/bikes/${bikeId}/reviews`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-Review-Request": "1" },
+    body: JSON.stringify(review),
+  });
+  if (!result) {
+    throw new Error("Please sign in again to save your review.");
+  }
+  return result;
+}
+
+export async function deleteBikeReview(bikeId: number): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/bikes/${bikeId}/reviews`, {
+    method: "DELETE",
+    credentials: "include",
+    cache: "no-store",
+    headers: { "X-Review-Request": "1" },
+  });
+  if (!res.ok) {
+    throw new Error(`Delete review request failed: ${res.status}`);
+  }
 }
 
 export async function setUserInterestPreference(enabled: boolean): Promise<UserInterestPreference> {

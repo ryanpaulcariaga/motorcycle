@@ -237,6 +237,23 @@ Only opt-in browser activity is collected. UTC daily counters store a metric and
 
 An ingestion or preference-change transaction locks the user row. Withdrawal disables profiling and deletes all user counters atomically, preventing concurrent events from recreating deleted data. A hosted job deletes dates before the current UTC date minus 12 calendar months.
 
+### bike_comments
+
+`bike_comments` stores one authenticated rider review per bike. `bike_id` and `user_id` have cascading foreign keys, `(bike_id, user_id)` is unique, and the rating check permits only integers from 1 through 5. `body` is optional and limited to 1,000 characters. `created_at` remains stable while `updated_at` changes on edits. The migration removed the earlier unauthenticated schema-stub rows before adding required user ownership.
+
+```sql
+CREATE TABLE bike_comments (
+  id SERIAL PRIMARY KEY,
+  bike_id INT NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  body VARCHAR(1000),
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL,
+  UNIQUE (bike_id, user_id)
+);
+```
+
 ### Future Tables (Schema Stubs)
 ```sql
 -- Unused analytics stubs; the aggregate analytics feature uses analytics_daily_counts instead.
@@ -261,15 +278,6 @@ CREATE TABLE bike_votes (
   session_or_user_id VARCHAR(255),
   vote_type VARCHAR(50),  -- 'upvote', 'downvote'
   created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE bike_comments (
-  id SERIAL PRIMARY KEY,
-  bike_id INT NOT NULL REFERENCES bikes(id),
-  author_name VARCHAR(255),
-  body TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW(),
-  is_approved BOOLEAN DEFAULT false
 );
 
 -- Surveys

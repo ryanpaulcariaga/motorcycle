@@ -31,10 +31,14 @@ public class BikeComment
 {
     public int Id { get; set; }
     public int BikeId { get; set; }
-    public string? AuthorName { get; set; }
-    public string Body { get; set; } = string.Empty;
+    public int UserId { get; set; }
+    public int Rating { get; set; }
+    public string? Body { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public bool IsApproved { get; set; } = false;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public Bike Bike { get; set; } = null!;
+    public User User { get; set; } = null!;
 }
 
 public class SurveyResponse

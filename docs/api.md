@@ -100,6 +100,15 @@ Get detailed motorcycle info + all images.
 }
 ```
 
+#### Bike ratings and comments
+
+- `GET /api/bikes/{bikeId}/reviews` is anonymous and returns `{ averageRating, ratingCount, reviews }` for a published bike. `averageRating` is `null` until the bike has a rating. Each review contains `id`, display-only `authorName`, `rating`, nullable `body`, `createdAt`, and `updatedAt`; emails and user IDs are not exposed.
+- `GET /api/bikes/{bikeId}/reviews/mine` requires `AuthenticatedUser` and returns the current user's review, or `204` when none exists.
+- `PUT /api/bikes/{bikeId}/reviews` creates or replaces the current user's one review for the bike with `{ "rating": 1..5, "body": "optional" }`. The comment is trimmed and may be at most 1,000 characters.
+- `DELETE /api/bikes/{bikeId}/reviews` removes the current user's review.
+
+Credentialed review mutations require `X-Review-Request: 1`; this custom header is the CSRF request signal because the user session is in a secure HttpOnly cookie. Mutations are rate limited and return `400` for invalid content or an unavailable bike, `401` for a missing session, and `404` when deleting a missing review.
+
 #### GET /api/bikes/compare?ids=id1,id2,id3
 
 Compare multiple motorcycles side-by-side.
@@ -256,7 +265,7 @@ List all categories.
 
 **Multi-provider account linking**: each external sign-in is stored as a `user_external_logins` row keyed by `(provider, providerUserId)` and linked to one internal `User`. On sign-in the API looks up that exact provider identity first. If it is new, and the provider supplies a **verified** email (Facebook only returns an email for verified accounts; a future Google integration would check its `email_verified` claim), the API links the new provider identity to an existing `User` with that email instead of creating a duplicate account. An unverified or absent email always creates a new `User`. This lets one person sign in with Facebook today and Google (or another provider) later and reach the same account, without ever trusting an unverified email to merge accounts. Adding a provider only requires a new `IExternalAuthProvider` implementation (a Strategy per provider, mirroring `ISpecFilterStrategy`) registered alongside `FacebookExternalAuthProvider`; the controller, session model, and account-linking rule are unchanged.
 
-The public user session (`UserAuth` cookie scheme, `AuthenticatedUser` policy) is entirely separate from the administrator session (`AdminAuth` scheme, `ActiveAdministrator` policy): different cookie names, different claims (`sub` is the internal `User.Id`, not a provider ID), and different expiry. A future feature that requires a signed-in public user (e.g. reviews, voting) authorizes with `[Authorize(Policy = "AuthenticatedUser")]`.
+The public user session (`UserAuth` cookie scheme, `AuthenticatedUser` policy) is entirely separate from the administrator session (`AdminAuth` scheme, `ActiveAdministrator` policy): different cookie names, different claims (`sub` is the internal `User.Id`, not a provider ID), and different expiry. Features requiring a signed-in public user, including bike reviews, authorize with `[Authorize(Policy = "AuthenticatedUser")]`.
 
 ### Administration API
 

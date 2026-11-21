@@ -13,9 +13,9 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 49 of 111 tasks done · 6 in progress · 56 not started.**
+**Progress: 49 of 111 tasks done · 7 in progress · 55 not started.**
 
-**Next up:** Verify interest-profile controls and tracking in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
+**Next up:** Verify ratings/comments and interest-profile controls in an authenticated public browser session, and verify the analytics dashboard with an authenticated admin session. Review privacy before public promotion. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
 ## Idea intake and triage
 
@@ -67,6 +67,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-14 | Catalog data transparency and user-submitted correction reports |
 | F-15 | Shareable comparisons and saved bikes/comparisons |
 | F-25 | 🔄 Signed-in, separately opted-in interest profiles with deletion and 12-month retention; authenticated browser verification remains |
+| F-27 | 🔄 Signed-in bike ratings and optional comments; authenticated browser verification remains |
 
 ## Release gates
 
@@ -214,7 +215,7 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-70 | ⬜ | Replace placeholder "Top 10" sidebar sections with real data | Needs T-68 |
 | T-71 | ⬜ | Dealer links: records, moderation, API, UI | |
 | T-72 | ⬜ | Advertising: placements, delivery, labeling, admin | |
-| T-73 | ⬜ | Votes and comments | Needs public user identity |
+| T-73 | 🔄 | Ratings and comments | API, migration, public bike-detail UI, ownership/edit/delete flow, 4 focused review tests and 112 passing API tests, web lint and production build pass; authenticated browser acceptance remains |
 | T-74 | ⬜ | Annual survey | |
 | T-75 | ⬜ | AI pros/cons for compared bikes | |
 | T-76 | ⬜ | CDN or Front Door for images | |
@@ -259,6 +260,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Added signed-in bike ratings and optional comments: one 1–5 review per user and bike, edit/delete ownership, public aggregate/list display, rate limiting, CSRF request-header protection, and concurrency-safe PostgreSQL upserts. Added the migration, 4 focused API tests, docs, and public web UI; API tests, web lint, and the production build pass. Authenticated browser acceptance remains.
 
 **2026-11-22** — Moved Bike Models brand/category filters and ordered sorting from the admin sidebar into collapsed controls above the models grid, matching the Bikes screen. Unified single and bulk bike administration on the Bikes screen. Current filters and sorting now drive spreadsheet editing and Excel export for only the displayed variants, with Excel import available in the same UI; the old bulk URL renders the unified screen. Shared toolbar components now give Bikes, Bike Models, Specifications, Brands, Categories, Administrators, and Audit the same readable Refresh/Add treatment: full-width stacked actions on mobile and natural-width wrapping buttons on larger screens. Added exact bike-ID filtering to the API, with 40 focused API tests, admin production build and lint passing (six unrelated lint warnings remain). Authenticated browser acceptance remains under T-23 and T-24.
 
