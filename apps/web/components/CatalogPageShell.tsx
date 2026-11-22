@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import PageShell from '@/components/PageShell';
 import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
-import { getBikes, getBrands, getPopularComparisons } from '@/lib/api';
+import { getBikes, getBrands, getPopularComparisons, getTopBikesByFans } from '@/lib/api';
 import { buildBikeDetailHref, buildBrowseHref } from '@/lib/catalogFilters';
 import type { BrandDto } from '@/lib/types';
 
@@ -16,9 +16,10 @@ export default async function CatalogPageShell({
   browseParams,
   catalogBrands,
 }: CatalogPageShellProps) {
-  const [{ items: latestBikes }, brands, popularComparisons] = await Promise.all([
+  const [{ items: latestBikes }, brands, topByFans, popularComparisons] = await Promise.all([
     getBikes({ pageSize: 12, sortBy: 'year', sortDescending: true }),
     catalogBrands ? Promise.resolve(catalogBrands) : getBrands(),
+    getTopBikesByFans(10),
     getPopularComparisons(10),
   ]);
 
@@ -60,7 +61,27 @@ export default async function CatalogPageShell({
             <p className="text-xs text-white/50 italic">Coming soon — tracked once bike view analytics ship.</p>
           </SidebarSection>
           <SidebarSection title="Top 10 by Fans">
-            <p className="text-xs text-white/50 italic">Coming soon — tracked once bike voting ships.</p>
+            {topByFans.length === 0 ? (
+              <p className="text-xs text-white/50 italic">No ratings yet — review a bike to join its fans.</p>
+            ) : (
+              <ol className="flex flex-col">
+                {topByFans.map(({ bike, fanCount, averageRating }, index) => (
+                  <li key={bike.id}>
+                    <SidebarLink href={buildBikeDetailHref(bike.slug, browseParams ?? {})}>
+                      <span className="flex items-start gap-2">
+                        <span className="w-4 shrink-0 text-white/50">{index + 1}.</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block">{bike.variantName}</span>
+                          <span className="block text-xs text-white/60">
+                            {fanCount} {fanCount === 1 ? 'fan' : 'fans'} · ★ {averageRating.toFixed(1)}
+                          </span>
+                        </span>
+                      </span>
+                    </SidebarLink>
+                  </li>
+                ))}
+              </ol>
+            )}
           </SidebarSection>
           <SidebarSection title="Popular Comparisons">
             {popularComparisons.length === 0 ? (

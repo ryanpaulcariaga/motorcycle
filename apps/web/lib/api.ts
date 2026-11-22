@@ -11,6 +11,7 @@ import type {
   ContactInquiryRequest,
   CompareResultDto,
   ComparedBikeDto,
+  FanRankedBikeDto,
   PagedResult,
   PopularComparisonDto,
   SpecGroupDto,
@@ -105,6 +106,10 @@ export function getBikeComments(bikeId: number): Promise<BikeCommentDto[]> {
 
 export function getPopularComparisons(limit = 10): Promise<PopularComparisonDto[]> {
   return apiFetch(`/api/bikes/popular-comparisons${buildQueryString({ limit })}`);
+}
+
+export function getTopBikesByFans(limit = 10): Promise<FanRankedBikeDto[]> {
+  return apiFetch(`/api/bikes/top-by-fans${buildQueryString({ limit })}`);
 }
 
 export function getBrands(): Promise<BrandDto[]> {

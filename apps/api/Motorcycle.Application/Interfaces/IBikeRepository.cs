@@ -2,6 +2,8 @@ using Motorcycle.Domain;
 
 namespace Motorcycle.Application.Interfaces;
 
+public record FanRankedBikeMatch(Bike Bike, int FanCount, decimal AverageRating);
+
 public interface IBikeRepository
 {
     Task<List<Bike>> GetPublishedWithStaticFiltersAsync(
@@ -11,4 +13,6 @@ public interface IBikeRepository
     Task<Bike?> GetBySlugAsync(string slug, CancellationToken ct = default);
 
     Task<List<Bike>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default);
+
+    Task<List<FanRankedBikeMatch>> GetTopByFansAsync(int limit, CancellationToken ct = default);
 }

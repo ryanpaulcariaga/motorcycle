@@ -243,6 +243,13 @@ export interface ComparedBikeDto {
   bike: BikeListItemDto;
   compareCount: number;
 }
+
+export interface FanRankedBikeDto {
+  bike: BikeListItemDto;
+  fanCount: number;
+  averageRating: number;
+}
+
 export interface ContactInquiryRequest {
   name: string | null;
   email: string;

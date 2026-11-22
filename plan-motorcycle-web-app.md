@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 52 of 113 tasks done · 7 in progress · 54 not started.**
+**Progress: 52 of 113 tasks done · 8 in progress · 53 not started.**
 
 **Next up:** Configure the production legal operator/contact/jurisdiction values and complete the privacy, inquiry retention, log-retention, and backup-deletion review in T-112 before G-10 can be ticked. Verify the contact form and admin inbox with a test database and authenticated session under T-113. Verify ratings/comments, interest-profile, and account privacy controls in authenticated public browser sessions, and verify the analytics dashboard with an authenticated admin session. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -69,7 +69,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-14 | Catalog data transparency and user-submitted correction reports |
 | F-15 | Shareable comparisons and saved bikes/comparisons |
 | F-25 | 🔄 Signed-in, separately opted-in interest profiles with deletion and 12-month retention; authenticated browser verification remains |
-| F-27 | 🔄 Bike detail action-row rating summary and user-review dialog, plus independent rating-free comments directly below specs; authenticated browser verification remains |
+| F-27 | 🔄 Bike detail action-row rating summary, user-review dialog, "Top 10 by Fans" catalog ranking, and independent rating-free comments directly below specs; authenticated browser verification remains |
 
 ## Release gates
 
@@ -213,7 +213,7 @@ The API stores the uploaded original and generates smaller copies for the public
 |---|---|---|---|
 | T-68 | 🔄 | Analytics: record bike views and spec searches | Opt-in bike, brand/category filter, comparison and zero-result aggregates verified in browser and isolated PostgreSQL; public spec-filter tracking remains. G-10 privacy review still required. |
 | T-69 | 🔄 | Analytics: dashboard | Protected API and admin UI verified with unit tests and mocked browser data; authenticated end-to-end dashboard verification remains. |
-| T-70 | ⬜ | Replace placeholder "Top 10" sidebar sections with real data | Needs T-68 |
+| T-70 | 🔄 | Replace placeholder "Top 10" sidebar sections with real data | "Top 10 by Fans" now ranks published bikes by active-user rating count with average rating tie-break; daily-interest ranking remains dependent on T-68 |
 | T-71 | ⬜ | Dealer links: records, moderation, API, UI | |
 | T-72 | ⬜ | Advertising: placements, delivery, labeling, admin | |
 | T-73 | 🔄 | Ratings and comments | Rating summary and User reviews button sit beside Compare; reviews use a modal, while independent discussion comments sit directly below full specs. APIs, migrations, ownership/edit/delete flows and tests pass; authenticated browser acceptance remains |
@@ -264,6 +264,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Added the public "Top 10 by Fans" sidebar from active signed-in user ratings. The API returns published bikes ordered by fan count, then average rating and bike ID; the web sidebar shows rank, fan count, and average with a no-ratings state. Successful saves and removals refresh server-rendered catalog data so the ranking updates immediately. Three focused API tests, web lint, and the production web build pass. Daily-interest ranking remains under T-70.
 
 **2026-11-22** — Added an anonymous contact form, API/database migration, and active-administrator inbox with deletion. Eleven focused API/rate-limit tests, both frontend builds and lint passed (six existing admin lint warnings); migration snapshot matches. Mocked public browser checks covered successful and failed submissions and 360px overflow. No email notification or automatic inquiry retention; authenticated browser and PostgreSQL end-to-end checks remain under T-113, and legal/retention review remains under T-112.
 

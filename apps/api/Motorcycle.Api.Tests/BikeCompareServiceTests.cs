@@ -60,6 +60,26 @@ public class BikeCompareServiceTests
         Assert.Equal(4, result.TotalCount);
     }
 
+    [Fact]
+    public async Task GetTopBikesByFansAsync_MapsFanRanking()
+    {
+        var bike = CreateBike(7);
+        var repository = new FakeBikeRepository([bike]);
+        var service = new BikeService(
+            repository,
+            new EmptySpecGroupRepository(),
+            new UnusedSpecFilterStrategyFactory(),
+            new EmptyBikeComparisonRepository());
+
+        var result = await service.GetTopBikesByFansAsync(10);
+
+        var ranked = Assert.Single(result);
+        Assert.Equal(7, ranked.Bike.Id);
+        Assert.Equal(12, ranked.FanCount);
+        Assert.Equal(4.3m, ranked.AverageRating);
+        repository.AssertTopFansLimit(10);
+    }
+
     private static Bike CreateBike(int id, int year = 2024, decimal? price = 100) => new()
     {
         Id = id,
@@ -95,6 +115,19 @@ public class BikeCompareServiceTests
             decimal? priceMax,
             CancellationToken ct = default) =>
             Task.FromResult(bikes);
+
+        private int? TopFansLimit { get; set; }
+
+        public Task<List<FanRankedBikeMatch>> GetTopByFansAsync(
+            int limit,
+            CancellationToken ct = default)
+        {
+            TopFansLimit = limit;
+            return Task.FromResult(
+                bikes.Select(b => new FanRankedBikeMatch(b, 12, 4.26m)).ToList());
+        }
+
+        public void AssertTopFansLimit(int expected) => Assert.Equal(expected, TopFansLimit);
     }
 
     private sealed class EmptySpecGroupRepository : ISpecGroupRepository

@@ -128,6 +128,14 @@ public class BikesController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>Published bikes with the most active-user ratings, for the "Top 10 by Fans" sidebar.</summary>
+    [HttpGet("top-by-fans")]
+    public async Task<IActionResult> GetTopByFans([FromQuery] int limit = 10, CancellationToken ct = default)
+    {
+        var result = await _bikeService.GetTopBikesByFansAsync(limit is < 1 or > 20 ? 10 : limit, ct);
+        return Ok(result);
+    }
+
     /// <summary>Bikes most often compared with the given bike, to recommend as comparison options.</summary>
     [HttpGet("{slug}/compared-with")]
     public async Task<IActionResult> GetComparedWith(string slug, [FromQuery] int limit = 4, CancellationToken ct = default)

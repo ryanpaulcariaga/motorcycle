@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/Button';
 import {
   deleteBikeReview,
@@ -18,6 +19,7 @@ interface BikeReviewsProps {
 }
 
 export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [reviews, setReviews] = useState(initialReviews);
   const [mine, setMine] = useState<BikeReviewDto | null>(null);
@@ -98,6 +100,7 @@ export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps
       const saved = await saveBikeReview(bikeId, { rating, body });
       setMine(saved);
       await refreshReviews();
+      router.refresh();
       setMessage('Your review was saved.');
     } catch {
       setMessage('Your review could not be saved. Please sign in and try again.');
@@ -115,6 +118,7 @@ export default function BikeReviews({ bikeId, initialReviews }: BikeReviewsProps
       setRating(0);
       setBody('');
       await refreshReviews();
+      router.refresh();
       setMessage('Your review was removed.');
     } catch {
       setMessage('Your review could not be removed. Please try again.');

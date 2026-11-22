@@ -84,4 +84,43 @@ public class BikeRepository : IBikeRepository
             .Where(b => idList.Contains(b.Id) && b.IsPublished)
             .ToListAsync(ct);
     }
+
+    public async Task<List<FanRankedBikeMatch>> GetTopByFansAsync(
+        int limit,
+        CancellationToken ct = default)
+    {
+        var rows = await _context.BikeComments
+            .AsNoTracking()
+            .Where(review => review.Bike.IsPublished && review.User.IsActive)
+            .GroupBy(review => review.BikeId)
+            .Select(group => new
+            {
+                BikeId = group.Key,
+                FanCount = group.Count(),
+                AverageRating = group.Average(review => (decimal)review.Rating)
+            })
+            .OrderByDescending(row => row.FanCount)
+            .ThenByDescending(row => row.AverageRating)
+            .ThenBy(row => row.BikeId)
+            .Take(limit)
+            .ToListAsync(ct);
+
+        var ids = rows.Select(row => row.BikeId).ToList();
+        var bikes = await _context.Bikes
+            .AsNoTracking()
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Brand)
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Category)
+            .Include(b => b.Images)
+            .Where(b => ids.Contains(b.Id) && b.IsPublished)
+            .ToDictionaryAsync(b => b.Id, ct);
+
+        return rows
+            .Select(row => new FanRankedBikeMatch(
+                bikes[row.BikeId],
+                row.FanCount,
+                row.AverageRating))
+            .ToList();
+    }
 }

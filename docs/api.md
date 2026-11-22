@@ -158,6 +158,12 @@ Most compared pairs of published bikes (most compared first; `limit` 1–20, def
 
 **Response**: `[{ "bikeA": <BikeListItemDto>, "bikeB": <BikeListItemDto>, "compareCount": 12 }]`
 
+#### GET /api/bikes/top-by-fans?limit=10
+
+Published bikes ranked for the "Top 10 by Fans" sidebar. A fan is one active user with a rating for that bike; each user can have only one review per bike. Results are ordered by fan count, then average rating, then bike ID (`limit` 1–20, default 10).
+
+**Response**: `[{ "bike": <BikeListItemDto>, "fanCount": 12, "averageRating": 4.3 }]`
+
 #### GET /api/bikes/{slug}/compared-with?limit=4
 
 Published bikes most often compared with the given bike (most compared first; `limit` 1–12, default 4). Returns `404` for an unknown/unpublished slug.
