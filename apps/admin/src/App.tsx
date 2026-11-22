@@ -159,7 +159,7 @@ function AdminShell({ session }: { session: AdminSession }) {
             MotoCompare Admin
           </a>
           <div className="hidden h-full shrink-0 items-center text-sm md:flex">
-            <span className="max-w-40 truncate">
+            <span className="flex h-full max-w-40 items-center truncate px-3">
               {session.displayName ?? session.facebookUserId}
             </span>
             <button

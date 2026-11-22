@@ -118,10 +118,7 @@ export default function BikeComments({ bikeId, initialComments }: BikeCommentsPr
 
   return (
     <section className="mt-10 border-t border-zinc-200 pt-6" aria-labelledby="comments-heading">
-      <h2 id="comments-heading" className="text-xl font-bold">Questions &amp; comments</h2>
-      <p className="mt-1 text-sm text-brand-grey">
-        Ask a question or share information without leaving a rating.
-      </p>
+      <h2 id="comments-heading" className="text-xl font-bold">Comments</h2>
 
       {loadingSession ? null : isSignedIn ? (
         <form onSubmit={handleCreate} className="mt-4 border border-zinc-200 p-4">
@@ -135,7 +132,7 @@ export default function BikeComments({ bikeId, initialComments }: BikeCommentsPr
             maxLength={1000}
             rows={4}
             className="mt-1 w-full border border-zinc-300 bg-white p-3"
-            placeholder="Ask a question or share a useful tip."
+            placeholder="Ask a question or share information."
           />
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button

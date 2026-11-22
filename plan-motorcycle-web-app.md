@@ -48,7 +48,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, displayed-bike review updates, Excel export, and Excel import for exactly the displayed variants |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
-| F-13 | ✅ Aligned look and tighter grids across web and admin; top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; bike variant headers match cell padding; admin modal action icons match grid icon colors |
+| F-13 | ✅ Aligned look and tighter grids across web and admin; top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; account name and sign-out controls have consistent header spacing; bike variant headers match cell padding; admin modal action icons match grid icon colors |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results; MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
@@ -69,7 +69,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-14 | Catalog data transparency and user-submitted correction reports |
 | F-15 | Shareable comparisons and saved bikes/comparisons |
 | F-25 | 🔄 Signed-in, separately opted-in interest profiles with deletion and 12-month retention; authenticated browser verification remains |
-| F-27 | 🔄 Bike detail action-row rating summary, user-review dialog, "Top 10 by Fans" catalog ranking, and independent rating-free comments directly below specs; authenticated browser verification remains |
+| F-27 | 🔄 Bike detail action-row rating summary, user-review dialog, "Top 10 by Fans" catalog ranking, and independent rating-free Comments directly below specs; authenticated browser verification remains |
 
 ## Release gates
 
@@ -263,6 +263,10 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-23** — Simplified the bike discussion heading to "Comments", removed redundant explanatory copy, and updated the comment prompt to "Ask a question or share information."
+
+**2026-11-23** — Fixed the desktop admin account header so the display name has the same full-height horizontal padding as the public header. The sign-out hover background now starts after the name instead of touching it. Focused admin ESLint and the admin production build passed.
 
 **2026-11-23** — Upgraded the public and admin browser fallback from a basic notice to the same branded, accessible recovery UI. The standalone capability check now waits for React to mount before revealing either application, so blocked or failed framework bundles keep showing recovery guidance instead of a blank screen. Four focused compatibility tests, web lint/build, and admin lint/build passed (the admin retains six unrelated lint warnings); a rendered 360px fallback check confirmed visible guidance, action visibility, and no horizontal overflow.
 
