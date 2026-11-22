@@ -76,20 +76,23 @@ function AdminShell({ session }: { session: AdminSession }) {
     return () => query.removeEventListener('change', reset);
   }, []);
   const match = pathname.match(/^\/admin\/bike-models\/(\d+)\/bikes$/);
-  const isAdministratorsActive =
-    pathname === '/admin' || pathname === '/admin/roles';
+  const isAdminLanding =
+    pathname === '/' || pathname === '/admin' || pathname === '/admin/';
+  const isAdministratorsActive = pathname === '/admin/roles';
   const isAuditActive = pathname === '/admin/audit';
   const isAnalyticsActive = pathname === '/admin/analytics';
   const isContactActive = pathname === '/admin/contact';
   const isBikesActive = pathname === '/admin/bike-models' || match !== null;
   const isVariantsActive =
-    pathname === '/admin/bike-variants' || pathname === '/admin/bulk-spec';
+    isAdminLanding ||
+    pathname === '/admin/bike-variants' ||
+    pathname === '/admin/bulk-spec';
   const isSpecificationsActive = pathname === '/admin/specs';
   const isBrandsActive = pathname === '/admin/brands';
   const isCategoriesActive = pathname === '/admin/categories';
   const content = match ? (
     <BikeManagement modelId={Number(match[1])} />
-  ) : pathname === '/admin/bulk-spec' ? (
+  ) : isVariantsActive ? (
     <BikeManagement />
   ) : pathname === '/admin/brands' ? (
     <BrandManagement />

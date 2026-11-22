@@ -40,7 +40,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
-| F-05 | ✅ Admin sign-in (Facebook PKCE) and admin roles |
+| F-05 | ✅ Admin sign-in (Facebook PKCE), Bikes as the signed-in landing tab, and admin roles |
 | F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts; Bike Models filters and ordered sorting stay above the grid instead of in the sidebar |
 | F-07 | ✅ Admin: Bike variant CRUD, publish control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus publish/review/image state, and Bulk-style ordered multi-sort; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
@@ -231,6 +231,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-114 | ✅ Make Bikes the admin landing page | `/`, `/admin`, and `/admin/` render the Bikes variant screen and highlight Bikes after sign-in; explicit admin deep links remain unchanged. Admin build and lint pass |
 | T-70 | ✅ Replace placeholder "Top 10" sidebar sections with real data | Public fan rankings use active-user ratings; daily interest uses the current UTC day's anonymous opt-in bike-view aggregates, published-bike filtering, count/ID tie-breaks, an API endpoint, and sidebar counts. 15 focused API tests, web lint and production build pass. |
 | T-51 | ✅ Define and implement the user data export and deletion process | `GET /api/user/account/export`, `DELETE /api/user/account`, Settings controls, versioned JSON export, database-cascade deletion, session clearing, CSRF-origin checks, 3 passing focused tests, and an optional PostgreSQL cascade test |
 | T-50 | ✅ Terms page | `/terms`, shared footer link, configurable operator/contact/jurisdiction, web lint and production build pass |
@@ -264,6 +265,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Made Bikes the default admin landing screen after Facebook sign-in. The `/`, `/admin`, and `/admin/` routes now render and highlight Bikes while existing deep links and expired-session return navigation remain unchanged. Admin production build and lint passed.
 
 **2026-11-22** — Added the public "Top 10 by Daily Interest" sidebar from current-UTC-day anonymous opt-in `bike_view` aggregates. The API ranks only published bikes by view count, then bike ID, and the web sidebar shows each rank, today's view count and a no-activity state without exposing private per-user interest profiles. Fifteen focused API tests, web lint, and the production web build pass.
 
