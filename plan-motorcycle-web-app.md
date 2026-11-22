@@ -54,7 +54,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; mobile sidebar sections expand independently and pages scroll to content |
-| F-21 | ✅ Admin shared per-bike Not reviewed/In review/Reviewed status, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override, displayed-bike In review updates, and combined review resets |
+| F-21 | ✅ Admin shared per-bike Not reviewed/In review/Reviewed status, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override, and toolbar labels clarify that review updates and resets apply only to displayed bikes |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
@@ -265,6 +265,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Clarified the Bikes bulk review actions as "Set displayed to 'In review'" and "Reset displayed to 'Not reviewed'" so their filtered-list scope is explicit before confirmation.
 
 **2026-11-22** — Added a View all bikes link beside the Latest Bikes heading so the home preview opens the existing Browse Bikes filters, sorting, search, and pagination workflow without duplicating those controls.
 

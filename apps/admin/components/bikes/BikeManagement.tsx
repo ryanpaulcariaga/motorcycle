@@ -714,7 +714,7 @@ export default function BikeManagement({
       >
         {markingDisplayedInReview
           ? 'Marking...'
-          : "Set All to 'In review'"}
+          : "Set displayed to 'In review'"}
       </AdminToolbarButton>
       <AdminToolbarButton
         disabled={
@@ -725,7 +725,7 @@ export default function BikeManagement({
         }
         onClick={() => void resetVisibleConfirmations()}
       >
-        {resettingTags ? 'Resetting...' : "Set All to 'Not reviewed'"}
+        {resettingTags ? 'Resetting...' : "Reset displayed to 'Not reviewed'"}
       </AdminToolbarButton>
       <AdminToolbarButton disabled={loading} onClick={() => void load()}>
         {loading ? 'Refreshing...' : 'Refresh'}
