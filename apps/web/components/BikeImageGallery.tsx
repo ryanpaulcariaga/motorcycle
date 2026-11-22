@@ -195,7 +195,7 @@ export default function BikeImageGallery({
             </div>
           </div>
 
-          <div className="relative min-h-0 flex-1 overflow-auto">
+          <div className="relative min-h-0 flex-1">
             <div className="absolute inset-0 flex items-center justify-center overflow-auto">
               <div
                 className="relative h-full w-full shrink-0 transition-transform duration-200"

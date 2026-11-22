@@ -1309,7 +1309,7 @@ export default function BikeManagement({
                 Import rejected: {importErrors.length} problem
                 {importErrors.length === 1 ? '' : 's'} found. Nothing was saved.
               </p>
-              <ul className="mt-2 max-h-64 list-disc overflow-y-auto pl-5">
+              <ul className="mt-2 list-disc pl-5">
                 {importErrors.map((item, index) => (
                   <li key={index}>
                     {item.row > 0 ? `Row ${item.row}` : 'File'} · {item.column}:{' '}

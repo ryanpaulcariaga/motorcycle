@@ -62,7 +62,7 @@ export default function Modal({
             &times;
           </button>
         </div>
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 sm:px-6">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-y-contain px-4 sm:px-6">
           {error && (
             <p
               className="mt-4 whitespace-pre-line border-l-4 border-red-700 bg-red-50 p-3 text-sm text-red-800"

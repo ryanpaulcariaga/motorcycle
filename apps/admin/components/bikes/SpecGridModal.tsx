@@ -47,6 +47,10 @@ type GridRow = Omit<BikeSpecGridRow, 'specs'> & {
 
 type CoreField = keyof GridRow['coreCells'];
 
+const gridHeaderRowHeight = 48;
+const gridRowHeight = 35;
+const horizontalScrollbarAllowance = 20;
+
 function coreFieldForColumn(key: string): CoreField | undefined {
   switch (key) {
     case 'core:variantName':
@@ -751,6 +755,11 @@ export default function SpecGridModal({
     });
   }
 
+  const visibleSpecGroups = specGroups.some(
+    (group) => !hiddenGroups.has(group.code) && group.definitions.length > 0
+  );
+  const gridHeaderRowCount = visibleSpecGroups ? 2 : 1;
+
   return (
     <Modal title={title} error={error} fullWidth onClose={requestClose}>
       <p className="mt-4 text-sm text-brand-grey">
@@ -820,11 +829,19 @@ export default function SpecGridModal({
       </div>
       <DataGrid
         aria-label="Motorcycle specifications"
-        className="rdg-light spec-grid mt-4 h-[55vh] w-full min-w-0 text-sm"
+        className="rdg-light spec-grid mt-4 w-full min-w-0 text-sm"
         columns={columns}
-        headerRowHeight={48}
+        enableVirtualization={false}
+        headerRowHeight={gridHeaderRowHeight}
         rowKeyGetter={(row) => row.id}
+        rowHeight={gridRowHeight}
         rows={visibleRows}
+        style={{
+          height: gridHeaderRowCount * gridHeaderRowHeight
+            + Math.max(visibleRows.length, 1) * gridRowHeight
+            + horizontalScrollbarAllowance,
+          overflowY: 'hidden',
+        }}
         onCellCopy={onCellCopy}
         onCellPaste={onCellPaste}
         onFill={onFill}
