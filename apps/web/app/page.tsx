@@ -2,6 +2,7 @@ import Link from 'next/link';
 import CatalogPageShell from '@/components/CatalogPageShell';
 import BikeCardContent from '@/components/BikeCardContent';
 import { getBikes } from '@/lib/api';
+import { CATALOG_PAGE_SIZE } from '@/lib/catalogFilters';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -12,7 +13,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const { items: latestBikes } = await getBikes({
-    pageSize: 12, sortBy: 'year', sortDescending: true,
+    pageSize: CATALOG_PAGE_SIZE, sortBy: 'year', sortDescending: true,
   });
 
   return (

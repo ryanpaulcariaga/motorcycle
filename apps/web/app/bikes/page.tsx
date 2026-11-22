@@ -6,7 +6,7 @@ import CatalogSortControls from '@/components/CatalogSortControls';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import SearchResultLink from '@/components/SearchResultLink';
 import { getBikes, getBrands, getCategories, getSpecGroups } from '@/lib/api';
-import { buildBikeDetailHref, buildBrowseHref, getBrowseParams, getCatalogSorts, isDisplacementFilterAvailable, rangeFields, serializeCatalogSorts } from '@/lib/catalogFilters';
+import { buildBikeDetailHref, buildBrowseHref, CATALOG_PAGE_SIZE, getBrowseParams, getCatalogSorts, isDisplacementFilterAvailable, rangeFields, serializeCatalogSorts } from '@/lib/catalogFilters';
 import type { Metadata } from 'next';
 
 interface BikesPageProps {
@@ -88,7 +88,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
     ? { items: [], totalPages: 0, totalCount: 0 }
     : await getBikes({
       page,
-      pageSize: 24,
+      pageSize: CATALOG_PAGE_SIZE,
       search: params.search,
       brandId: params.brandId,
       categoryId: params.categoryId,

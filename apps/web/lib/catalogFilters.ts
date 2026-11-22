@@ -1,5 +1,7 @@
 import type { SpecGroupDto } from '@/lib/types';
 
+export const CATALOG_PAGE_SIZE = 24;
+
 export const catalogSortFields = [
   ['brand', 'Brand'],
   ['category', 'Category'],
