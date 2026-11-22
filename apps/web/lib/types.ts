@@ -81,6 +81,7 @@ export interface BikeReviewsDto {
 
 export interface BikeCommentDto {
   id: number;
+  parentCommentId: number | null;
   authorName: string;
   body: string;
   createdAt: string;

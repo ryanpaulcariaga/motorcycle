@@ -22,6 +22,8 @@ export default function BikeComments({ bikeId, initialComments }: BikeCommentsPr
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [loadingSession, setLoadingSession] = useState(true);
   const [body, setBody] = useState('');
+  const [replyToId, setReplyToId] = useState<number | null>(null);
+  const [replyBody, setReplyBody] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingBody, setEditingBody] = useState('');
   const [saving, setSaving] = useState(false);
@@ -97,6 +99,29 @@ export default function BikeComments({ bikeId, initialComments }: BikeCommentsPr
     }
   }
 
+  async function handleReply(event: React.FormEvent<HTMLFormElement>, parentCommentId: number) {
+    event.preventDefault();
+    if (!replyBody.trim()) {
+      setMessage('Enter a reply before posting.');
+      return;
+    }
+
+    setSaving(true);
+    setMessage('');
+    try {
+      const created = await createBikeComment(bikeId, replyBody, parentCommentId);
+      setReplyBody('');
+      setReplyToId(null);
+      setComments((current) => [created, ...current]);
+      setMineIds((current) => new Set(current).add(created.id));
+      setMessage('Your reply was posted.');
+    } catch {
+      setMessage('Your reply could not be posted. Please sign in and try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleDelete(commentId: number) {
     setDeletingId(commentId);
     setMessage('');
@@ -114,6 +139,140 @@ export default function BikeComments({ bikeId, initialComments }: BikeCommentsPr
     } finally {
       setDeletingId(null);
     }
+  }
+
+  const visibleCommentIds = new Set(comments.map((comment) => comment.id));
+  const topLevelComments = comments.filter(
+    (comment) => comment.parentCommentId === null ||
+      !visibleCommentIds.has(comment.parentCommentId),
+  );
+
+  function renderComment(comment: BikeCommentDto, isReply = false) {
+    const isMine = mineIds.has(comment.id);
+    const isEditing = editingId === comment.id;
+
+    return (
+      <article className={isReply ? "border-l-2 border-brand-gold bg-zinc-50 p-4" : "border border-zinc-200 p-4"}>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="font-semibold">{comment.authorName}</h3>
+          <p className="text-xs text-brand-grey">
+            {new Date(comment.updatedAt).toLocaleDateString()}
+            {isMine ? ' · Yours' : ''}
+          </p>
+        </div>
+        {isEditing ? (
+          <div className="mt-3">
+            <textarea
+              value={editingBody}
+              onChange={(event) => setEditingBody(event.target.value)}
+              maxLength={1000}
+              rows={4}
+              aria-label="Edit comment"
+              className="w-full border border-zinc-300 bg-white p-3"
+            />
+            <div className="mt-2 flex gap-3">
+              <button
+                type="button"
+                disabled={saving || !editingBody.trim()}
+                onClick={() => void handleUpdate(comment.id)}
+                className="bg-brand-button px-4 py-2 font-semibold text-white transition-colors hover:bg-brand-sidebar disabled:opacity-50"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingId(null);
+                  setEditingBody('');
+                }}
+                className="border border-zinc-400 px-4 py-2 font-semibold transition-colors hover:bg-brand-button hover:text-white"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-2 whitespace-pre-wrap break-words">{comment.body}</p>
+        )}
+        {!isEditing && (isSignedIn || isMine) && (
+          <div className="mt-3 flex gap-4 text-sm font-semibold">
+            {!isReply && isSignedIn && (
+              <button
+                type="button"
+                onClick={() => {
+                  setReplyToId(comment.id);
+                  setReplyBody('');
+                }}
+                className="text-brand-button underline"
+              >
+                Reply
+              </button>
+            )}
+            {isMine && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingId(comment.id);
+                    setEditingBody(comment.body);
+                  }}
+                  className="text-brand-button underline"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  disabled={deletingId === comment.id}
+                  onClick={() => void handleDelete(comment.id)}
+                  className="underline disabled:opacity-50"
+                >
+                  {deletingId === comment.id ? 'Removing…' : 'Remove'}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+        {!isReply && replyToId === comment.id && (
+          <form
+            onSubmit={(event) => void handleReply(event, comment.id)}
+            className="mt-4 border-t border-zinc-200 pt-4"
+          >
+            <label className="block text-sm font-semibold" htmlFor={`bike-comment-reply-${comment.id}`}>
+              Reply to {comment.authorName}
+            </label>
+            <textarea
+              id={`bike-comment-reply-${comment.id}`}
+              value={replyBody}
+              onChange={(event) => setReplyBody(event.target.value)}
+              maxLength={1000}
+              rows={3}
+              autoFocus
+              className="mt-1 w-full border border-zinc-300 bg-white p-3"
+              placeholder="Write a reply."
+            />
+            <div className="mt-2 flex gap-3">
+              <button
+                type="submit"
+                disabled={saving || !replyBody.trim()}
+                className="bg-brand-button px-4 py-2 font-semibold text-white transition-colors hover:bg-brand-sidebar disabled:opacity-50"
+              >
+                {saving ? 'Posting…' : 'Post reply'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setReplyToId(null);
+                  setReplyBody('');
+                }}
+                className="border border-zinc-400 px-4 py-2 font-semibold transition-colors hover:bg-brand-button hover:text-white"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </article>
+    );
   }
 
   return (
@@ -154,75 +313,19 @@ export default function BikeComments({ bikeId, initialComments }: BikeCommentsPr
       )}
 
       <div className="mt-4 space-y-3">
-        {comments.map((comment) => {
-          const isMine = mineIds.has(comment.id);
-          const isEditing = editingId === comment.id;
+        {topLevelComments.map((comment) => {
+          const replies = comments.filter((candidate) => candidate.parentCommentId === comment.id);
           return (
-            <article key={comment.id} className="border border-zinc-200 p-4">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="font-semibold">{comment.authorName}</h3>
-                <p className="text-xs text-brand-grey">
-                  {new Date(comment.updatedAt).toLocaleDateString()}
-                  {isMine ? ' · Yours' : ''}
-                </p>
-              </div>
-              {isEditing ? (
-                <div className="mt-3">
-                  <textarea
-                    value={editingBody}
-                    onChange={(event) => setEditingBody(event.target.value)}
-                    maxLength={1000}
-                    rows={4}
-                    aria-label="Edit comment"
-                    className="w-full border border-zinc-300 bg-white p-3"
-                  />
-                  <div className="mt-2 flex gap-3">
-                    <button
-                      type="button"
-                      disabled={saving || !editingBody.trim()}
-                      onClick={() => void handleUpdate(comment.id)}
-                      className="bg-brand-button px-4 py-2 font-semibold text-white transition-colors hover:bg-brand-sidebar disabled:opacity-50"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingId(null);
-                        setEditingBody('');
-                      }}
-                      className="border border-zinc-400 px-4 py-2 font-semibold transition-colors hover:bg-brand-button hover:text-white"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-2 whitespace-pre-wrap break-words">{comment.body}</p>
-              )}
-              {isMine && !isEditing && (
-                <div className="mt-3 flex gap-4 text-sm font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingId(comment.id);
-                      setEditingBody(comment.body);
-                    }}
-                    className="text-brand-button underline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    disabled={deletingId === comment.id}
-                    onClick={() => void handleDelete(comment.id)}
-                    className="underline disabled:opacity-50"
-                  >
-                    {deletingId === comment.id ? 'Removing…' : 'Remove'}
-                  </button>
+            <div key={comment.id} className="space-y-2">
+              {renderComment(comment)}
+              {replies.length > 0 && (
+                <div className="ml-4 space-y-2">
+                  {replies.map((reply) => (
+                    <div key={reply.id}>{renderComment(reply, true)}</div>
+                  ))}
                 </div>
               )}
-            </article>
+            </div>
           );
         })}
         {comments.length === 0 && (

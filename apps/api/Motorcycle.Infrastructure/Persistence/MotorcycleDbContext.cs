@@ -294,8 +294,13 @@ public class MotorcycleDbContext : DbContext
             comment.Property(x => x.UpdatedAt).IsRequired();
             comment.HasIndex(x => new { x.BikeId, x.CreatedAt });
             comment.HasIndex(x => x.UserId);
+            comment.HasIndex(x => x.ParentCommentId);
             comment.HasOne(x => x.Bike).WithMany().HasForeignKey(x => x.BikeId).OnDelete(DeleteBehavior.Cascade);
             comment.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            comment.HasOne(x => x.ParentComment)
+                .WithMany(x => x.Replies)
+                .HasForeignKey(x => x.ParentCommentId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         ApplySnakeCaseNames(modelBuilder);

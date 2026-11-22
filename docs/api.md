@@ -115,13 +115,13 @@ Get detailed motorcycle info + all images.
 
 #### Bike discussion comments
 
-- `GET /api/bikes/{bikeId}/comments` is anonymous and returns the latest 200 discussion comments. Comments are newest-first and contain only `id`, display-only `authorName`, `body`, `createdAt`, and `updatedAt`.
+- `GET /api/bikes/{bikeId}/comments` is anonymous and returns the latest 200 discussion comments. Comments are newest-first and contain only `id`, nullable `parentCommentId`, display-only `authorName`, `body`, `createdAt`, and `updatedAt`.
 - `GET /api/bikes/{bikeId}/comments/mine` requires `AuthenticatedUser` and returns the current user's comments for the bike so the UI can expose owner controls.
-- `POST /api/bikes/{bikeId}/comments` creates a rating-free comment with `{ "body": "..." }`.
+- `POST /api/bikes/{bikeId}/comments` creates a rating-free comment with `{ "body": "..." }`. Set `parentCommentId` to a top-level comment on the same bike to create a reply; replies cannot target another reply.
 - `PUT /api/bikes/{bikeId}/comments/{commentId}` updates an owned comment.
 - `DELETE /api/bikes/{bikeId}/comments/{commentId}` deletes an owned comment.
 
-Discussion comments are independent from ratings and do not change the average. A user may create multiple comments; each body is trimmed and must contain 1–1,000 characters. Mutations refuse edits/deletes of another user's comments with `404`.
+Discussion comments are independent from ratings and do not change the average. A user may create multiple comments; each body is trimmed and must contain 1–1,000 characters. Replies are grouped under their parent by clients. If the parent is deleted, database `SET NULL` behavior retains the replies as top-level comments. Mutations refuse edits/deletes of another user's comments with `404`.
 
 Credentialed review and comment mutations require `X-Review-Request: 1`; this custom header is the CSRF request signal because the user session is in a secure HttpOnly cookie. Mutations are rate limited and return `400` for invalid content or an unavailable bike, `401` for a missing session, and `404` for an owned record that is missing.
 

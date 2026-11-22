@@ -25,6 +25,7 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
             .Take(limit)
             .Select(c => new BikeCommentDto(
                 c.Id,
+                c.ParentCommentId,
                 c.User.DisplayName ?? "MotoCompare rider",
                 c.Body,
                 c.CreatedAt,
@@ -48,6 +49,7 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
             .ThenByDescending(c => c.Id)
             .Select(c => new BikeCommentDto(
                 c.Id,
+                c.ParentCommentId,
                 c.User.DisplayName ?? "MotoCompare rider",
                 c.Body,
                 c.CreatedAt,
@@ -58,6 +60,7 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
     public async Task<BikeCommentDto?> CreateAsync(
         int bikeId,
         int userId,
+        int? parentCommentId,
         string body,
         CancellationToken ct)
     {
@@ -67,11 +70,22 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
             return null;
         }
 
+        if (parentCommentId.HasValue &&
+            !await db.BikeDiscussionComments.AnyAsync(c =>
+                c.Id == parentCommentId &&
+                c.BikeId == bikeId &&
+                c.ParentCommentId == null &&
+                c.User.IsActive, ct))
+        {
+            return null;
+        }
+
         var now = clock.GetUtcNow().UtcDateTime;
         var comment = new BikeDiscussionComment
         {
             BikeId = bikeId,
             UserId = userId,
+            ParentCommentId = parentCommentId,
             Body = body,
             CreatedAt = now,
             UpdatedAt = now,
@@ -82,7 +96,13 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
             .Where(u => u.Id == userId)
             .Select(u => u.DisplayName ?? "MotoCompare rider")
             .SingleAsync(ct);
-        return new BikeCommentDto(comment.Id, authorName, comment.Body, comment.CreatedAt, comment.UpdatedAt);
+        return new BikeCommentDto(
+            comment.Id,
+            comment.ParentCommentId,
+            authorName,
+            comment.Body,
+            comment.CreatedAt,
+            comment.UpdatedAt);
     }
 
     public async Task<BikeCommentDto?> UpdateAsync(
@@ -110,6 +130,7 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
         await db.SaveChangesAsync(ct);
         return new BikeCommentDto(
             comment.Id,
+            comment.ParentCommentId,
             comment.User.DisplayName ?? "MotoCompare rider",
             comment.Body,
             comment.CreatedAt,

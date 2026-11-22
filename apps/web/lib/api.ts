@@ -215,11 +215,15 @@ export async function deleteBikeReview(bikeId: number): Promise<void> {
   }
 }
 
-export async function createBikeComment(bikeId: number, body: string): Promise<BikeCommentDto> {
+export async function createBikeComment(
+  bikeId: number,
+  body: string,
+  parentCommentId?: number,
+): Promise<BikeCommentDto> {
   const result = await authFetch<BikeCommentDto>(`/api/bikes/${bikeId}/comments`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Review-Request": "1" },
-    body: JSON.stringify({ body }),
+    body: JSON.stringify({ body, parentCommentId: parentCommentId ?? null }),
   });
   if (!result) {
     throw new Error("Please sign in again to post your comment.");

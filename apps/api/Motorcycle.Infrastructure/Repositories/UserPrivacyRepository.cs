@@ -71,6 +71,7 @@ public sealed class UserPrivacyRepository(MotorcycleDbContext context) : IUserPr
             .Select(x => new UserDiscussionCommentExportDto(
                 x.Id,
                 x.BikeId,
+                x.ParentCommentId,
                 x.Body,
                 x.CreatedAt,
                 x.UpdatedAt))

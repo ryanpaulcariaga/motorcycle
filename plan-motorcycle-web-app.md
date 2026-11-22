@@ -69,7 +69,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-14 | Catalog data transparency and user-submitted correction reports |
 | F-15 | Shareable comparisons and saved bikes/comparisons |
 | F-25 | 🔄 Signed-in, separately opted-in interest profiles with deletion and 12-month retention; authenticated browser verification remains |
-| F-27 | 🔄 Bike detail action-row rating summary, user-review dialog, "Top 10 by Fans" catalog ranking, and independent rating-free Comments directly below specs; authenticated browser verification remains |
+| F-27 | 🔄 Bike detail action-row rating summary, user-review dialog, "Top 10 by Fans" catalog ranking, and independent rating-free Comments with replies directly below specs; authenticated browser verification remains |
 
 ## Release gates
 
@@ -215,7 +215,7 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-69 | 🔄 | Analytics: dashboard | Protected API and admin UI verified with unit tests and mocked browser data; authenticated end-to-end dashboard verification remains. |
 | T-71 | ⬜ | Dealer links: records, moderation, API, UI | |
 | T-72 | ⬜ | Advertising: placements, delivery, labeling, admin | |
-| T-73 | 🔄 | Ratings and comments | Rating summary and User reviews button sit beside Compare; reviews use a modal, while independent discussion comments sit directly below full specs. APIs, migrations, ownership/edit/delete flows and tests pass; authenticated browser acceptance remains |
+| T-73 | 🔄 | Ratings and comments | Rating summary and User reviews button sit beside Compare; reviews use a modal, while independent discussion comments and single-level replies sit directly below full specs. APIs, migrations, ownership/edit/delete flows and tests pass; authenticated browser acceptance remains |
 | T-74 | ⬜ | Annual survey | |
 | T-75 | ⬜ | AI pros/cons for compared bikes | |
 | T-76 | ⬜ | CDN or Front Door for images | |
@@ -264,7 +264,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 ## Session log
 
-**2026-11-23** — Simplified the bike discussion heading to "Comments", removed redundant explanatory copy, and updated the comment prompt to "Ask a question or share information."
+**2026-11-23** — Added single-level replies to public bike comments. Signed-in riders can open an inline reply form on a specific comment, and replies remain grouped beneath it with the same owner edit/delete controls. Simplified the discussion heading to "Comments", removed redundant explanatory copy, and updated the comment prompt to "Ask a question or share information." Four focused API comment tests, web lint, and the web production build pass; authenticated browser acceptance remains.
 
 **2026-11-23** — Fixed the desktop admin account header so the display name has the same full-height horizontal padding as the public header. The sign-out hover background now starts after the name instead of touching it. Focused admin ESLint and the admin production build passed.
 

@@ -29,7 +29,7 @@ public sealed class BikeCommentService(IBikeCommentRepository repository) : IBik
         var body = request.Body.Trim();
         return body.Length is < 1 or > 1000
             ? Task.FromResult<BikeCommentDto?>(null)
-            : repository.CreateAsync(bikeId, userId, body, ct);
+            : repository.CreateAsync(bikeId, userId, request.ParentCommentId, body, ct);
     }
 
     public Task<BikeCommentDto?> UpdateAsync(

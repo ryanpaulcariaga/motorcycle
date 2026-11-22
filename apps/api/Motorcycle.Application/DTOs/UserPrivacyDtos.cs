@@ -41,6 +41,7 @@ public sealed record UserReviewExportDto(
 public sealed record UserDiscussionCommentExportDto(
     int Id,
     int BikeId,
+    int? ParentCommentId,
     string Body,
     DateTime CreatedAtUtc,
     DateTime UpdatedAtUtc);

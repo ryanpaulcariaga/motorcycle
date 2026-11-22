@@ -374,6 +374,10 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<int?>("ParentCommentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("parent_comment_id");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
@@ -384,6 +388,9 @@ namespace Motorcycle.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_bike_discussion_comments");
+
+                    b.HasIndex("ParentCommentId")
+                        .HasDatabaseName("ix_bike_discussion_comments_parent_comment_id");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_bike_discussion_comments_user_id");
@@ -1049,6 +1056,12 @@ namespace Motorcycle.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_bike_discussion_comments_bikes_bike_id");
 
+                    b.HasOne("Motorcycle.Domain.BikeDiscussionComment", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_bike_discussion_comments_bike_discussion_comments_parent_co~");
+
                     b.HasOne("Motorcycle.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1057,6 +1070,8 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasConstraintName("fk_bike_discussion_comments_users_user_id");
 
                     b.Navigation("Bike");
+
+                    b.Navigation("ParentComment");
 
                     b.Navigation("User");
                 });
@@ -1154,6 +1169,11 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("SpecVerifications");
+                });
+
+            modelBuilder.Entity("Motorcycle.Domain.BikeDiscussionComment", b =>
+                {
+                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("Motorcycle.Domain.BikeModel", b =>

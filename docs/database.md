@@ -273,20 +273,21 @@ CREATE TABLE bike_comments (
 
 ### bike_discussion_comments
 
-`bike_discussion_comments` stores rating-free public discussion, separate from `bike_comments` review records. Each row belongs to one published bike and active user through cascading foreign keys. A user may create multiple comments; the API limits the displayed anonymous feed to the latest 200 and supports only owner-scoped edit/delete operations. Comment text is required and limited to 1,000 characters.
+`bike_discussion_comments` stores rating-free public discussion, separate from `bike_comments` review records. Each row belongs to one published bike and active user through cascading foreign keys. A nullable self-referencing `parent_comment_id` links a reply to a top-level comment on the same bike. A user may create multiple comments or replies; the API rejects replies to replies and limits the displayed anonymous feed to the latest 200. It supports only owner-scoped edit/delete operations. Comment text is required and limited to 1,000 characters. Deleting a parent sets its replies' `parent_comment_id` to `NULL`, preserving their content as top-level comments.
 
 ```sql
 CREATE TABLE bike_discussion_comments (
   id SERIAL PRIMARY KEY,
   bike_id INT NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
   user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  parent_comment_id INT REFERENCES bike_discussion_comments(id) ON DELETE SET NULL,
   body VARCHAR(1000) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL
 );
 ```
 
-The `(bike_id, created_at)` index supports newest-first detail-page reads, and `user_id` supports ownership queries.
+The `(bike_id, created_at)` index supports newest-first detail-page reads; `user_id` supports ownership queries; and `parent_comment_id` supports grouping replies.
 
 ### Future Tables (Schema Stubs)
 ```sql

@@ -19,12 +19,20 @@ public class BikeCommentTests
         var service = new BikeCommentService(repository);
 
         var result = await service.CreateAsync(
-            7, 11, new CreateBikeCommentRequest { Body = "  How is the pillion comfort?  " }, default);
+            7,
+            11,
+            new CreateBikeCommentRequest
+            {
+                Body = "  How is the pillion comfort?  ",
+                ParentCommentId = 3,
+            },
+            default);
 
         Assert.NotNull(result);
         Assert.Equal("How is the pillion comfort?", repository.Body);
         Assert.Equal(7, repository.BikeId);
         Assert.Equal(11, repository.UserId);
+        Assert.Equal(3, repository.ParentCommentId);
     }
 
     [Fact]
@@ -96,6 +104,7 @@ public class BikeCommentTests
         public int BikeId { get; private set; }
         public int CommentId { get; private set; }
         public int UserId { get; private set; }
+        public int? ParentCommentId { get; private set; }
         public string? Body { get; private set; }
 
         public Task<IReadOnlyList<BikeCommentDto>?> GetByBikeAsync(
@@ -107,11 +116,12 @@ public class BikeCommentTests
             Task.FromResult<IReadOnlyList<BikeCommentDto>?>([]);
 
         public Task<BikeCommentDto?> CreateAsync(
-            int bikeId, int userId, string body, CancellationToken ct)
+            int bikeId, int userId, int? parentCommentId, string body, CancellationToken ct)
         {
             CreateCalled = true;
             BikeId = bikeId;
             UserId = userId;
+            ParentCommentId = parentCommentId;
             Body = body;
             return Task.FromResult<BikeCommentDto?>(Dto(body));
         }
@@ -138,6 +148,6 @@ public class BikeCommentTests
         }
 
         private static BikeCommentDto Dto(string body) =>
-            new(1, "Rider", body, DateTime.UtcNow, DateTime.UtcNow);
+            new(1, null, "Rider", body, DateTime.UtcNow, DateTime.UtcNow);
     }
 }
