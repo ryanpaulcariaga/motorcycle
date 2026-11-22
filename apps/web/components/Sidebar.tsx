@@ -63,7 +63,7 @@ export function SidebarLink({
   );
 }
 
-/** Separate brown card per section, spaced like the admin sidebar groups. */
+/** Separate dark card per section, spaced like the admin sidebar groups. */
 export function SidebarSection({
   title,
   children,

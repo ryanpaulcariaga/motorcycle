@@ -48,7 +48,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, displayed-bike review updates, Excel export, and Excel import for exactly the displayed variants |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
-| F-13 | ✅ Aligned look and tighter grids across web and admin; top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; account name and sign-out controls have consistent header spacing; bike variant headers match cell padding; admin modal action icons match grid icon colors |
+| F-13 | ✅ Aligned look and tighter grids across web and admin; sidebars use a shared super-dark grey, while top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; account name and sign-out controls have consistent header spacing; bike variant headers match cell padding; admin modal action icons match grid icon colors |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results; MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
@@ -263,6 +263,8 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-23** — Changed the shared public and admin sidebar palette from dark brown to dark grey (`#282828`) while preserving the matching section layout and contrast.
 
 **2026-11-23** — Added single-level replies to public bike comments. Signed-in riders can open an inline reply form on a specific comment, and replies remain grouped beneath it with the same owner edit/delete controls. Simplified the discussion heading to "Comments", removed redundant explanatory copy, and updated the comment prompt to "Ask a question or share information." Four focused API comment tests, web lint, and the web production build pass; authenticated browser acceptance remains.
 
