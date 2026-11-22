@@ -351,13 +351,13 @@ export default function CompareClient({
                     <tr>
                       <td
                         colSpan={compareResult.bikes.length + 1}
-                        className="pt-4 pb-1 font-semibold text-brand-button md:hidden"
+                        className="px-2 pt-4 pb-1 font-semibold text-brand-button md:hidden"
                       >
                         {group.name}
                       </td>
                       <td
                         colSpan={MAX_COLUMN_BIKES + 1}
-                        className="hidden pt-4 pb-1 font-semibold text-brand-button md:table-cell"
+                        className="hidden px-2 pt-4 pb-1 font-semibold text-brand-button md:table-cell"
                       >
                         {group.name}
                       </td>
