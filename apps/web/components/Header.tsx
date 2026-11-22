@@ -138,7 +138,7 @@ export default function Header() {
           <Link
             href="/settings"
             className={`flex items-center px-3 text-right transition-colors hover:bg-brand-button hover:text-white ${
-              stacked ? 'py-2' : 'h-full'
+              stacked ? 'justify-end py-2' : 'h-full'
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -148,7 +148,7 @@ export default function Header() {
             type="button"
             onClick={() => void handleSignOut()}
             className={`flex items-center px-3 text-right transition-colors hover:bg-brand-button hover:text-white ${
-              stacked ? 'py-2' : 'h-full'
+              stacked ? 'justify-end py-2' : 'h-full'
             }`}
           >
             Sign out
@@ -165,7 +165,7 @@ export default function Header() {
         <Link
           href="/settings"
           className={`flex items-center px-3 text-right transition-colors hover:bg-brand-button hover:text-white ${
-            stacked ? 'py-2' : 'h-full'
+            stacked ? 'justify-end py-2' : 'h-full'
           }`}
           onClick={() => setIsMenuOpen(false)}
         >
@@ -174,7 +174,7 @@ export default function Header() {
         <a
           href={facebookSignInUrl()}
           className={`flex items-center px-3 text-right transition-colors hover:bg-brand-button hover:text-white ${
-            stacked ? 'py-2' : 'h-full'
+            stacked ? 'justify-end py-2' : 'h-full'
           }`}
         >
           Sign in with Facebook
