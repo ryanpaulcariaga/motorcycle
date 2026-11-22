@@ -18,7 +18,15 @@ export default async function Home() {
 
   return (
     <CatalogPageShell>
-          <h1 className="text-2xl font-bold mb-4">Latest Bikes</h1>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h1 className="text-2xl font-bold">Latest Bikes</h1>
+            <Link
+              href="/bikes"
+              className="font-semibold text-brand-button hover:underline"
+            >
+              View all bikes
+            </Link>
+          </div>
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
             {latestBikes.map((bike) => (
               <Link

@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria and admin-style direction toggles; detail page; compact home and browse bike cards with gold hover borders and no hover shadow in one column through tablet widths and responsive desktop columns, with 24 bikes on home and per browse page |
+| F-01 | ✅ Public catalog: latest-bikes home preview with a View all bikes link to browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria and admin-style direction toggles; detail page; compact home and browse bike cards with gold hover borders and no hover shadow in one column through tablet widths and responsive desktop columns, with 24 bikes on home and per browse page |
 | F-02 | ✅ Compare N bikes with grouped specs; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
@@ -265,6 +265,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Added a View all bikes link beside the Latest Bikes heading so the home preview opens the existing Browse Bikes filters, sorting, search, and pagination workflow without duplicating those controls.
 
 **2026-11-22** — Increased the Latest Bikes home listing from 12 to 24 bikes and made home and Browse Bikes share one catalog page-size constant so the displayed counts remain aligned. Focused web lint and the production build passed.
 
