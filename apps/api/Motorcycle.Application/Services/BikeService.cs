@@ -13,6 +13,9 @@ public interface IBikeService
     Task<List<ComparedBikeDto>?> GetMostComparedWithAsync(string slug, int limit, CancellationToken ct = default);
     Task<List<PopularComparisonDto>> GetPopularComparisonsAsync(int limit, CancellationToken ct = default);
     Task<List<FanRankedBikeDto>> GetTopBikesByFansAsync(int limit, CancellationToken ct = default);
+    Task<List<DailyInterestRankedBikeDto>> GetTopBikesByDailyInterestAsync(
+        int limit,
+        CancellationToken ct = default);
 }
 
 public class BikeService : IBikeService
@@ -21,17 +24,20 @@ public class BikeService : IBikeService
     private readonly ISpecGroupRepository _specGroupRepository;
     private readonly ISpecFilterStrategyFactory _strategyFactory;
     private readonly IBikeComparisonRepository _comparisonRepository;
+    private readonly TimeProvider _clock;
 
     public BikeService(
         IBikeRepository bikeRepository,
         ISpecGroupRepository specGroupRepository,
         ISpecFilterStrategyFactory strategyFactory,
-        IBikeComparisonRepository comparisonRepository)
+        IBikeComparisonRepository comparisonRepository,
+        TimeProvider clock)
     {
         _bikeRepository = bikeRepository;
         _specGroupRepository = specGroupRepository;
         _strategyFactory = strategyFactory;
         _comparisonRepository = comparisonRepository;
+        _clock = clock;
     }
 
     public async Task<PagedResult<BikeListItemDto>> GetBikesAsync(BikeQueryParameters query, CancellationToken ct = default)
@@ -181,6 +187,18 @@ public class BikeService : IBikeService
             ToListItemDto(match.Bike),
             match.FanCount,
             Math.Round(match.AverageRating, 1)))
+            .ToList();
+    }
+
+    public async Task<List<DailyInterestRankedBikeDto>> GetTopBikesByDailyInterestAsync(
+        int limit,
+        CancellationToken ct = default)
+    {
+        var day = DateOnly.FromDateTime(_clock.GetUtcNow().UtcDateTime);
+        var matches = await _bikeRepository.GetTopByDailyInterestAsync(day, limit, ct);
+        return matches.Select(match => new DailyInterestRankedBikeDto(
+            ToListItemDto(match.Bike),
+            match.ViewCount))
             .ToList();
     }
 

@@ -164,6 +164,12 @@ Published bikes ranked for the "Top 10 by Fans" sidebar. A fan is one active use
 
 **Response**: `[{ "bike": <BikeListItemDto>, "fanCount": 12, "averageRating": 4.3 }]`
 
+#### GET /api/bikes/top-by-daily-interest?limit=10
+
+Published bikes ranked by the current UTC date's opted-in anonymous `bike_view` count. Private signed-in interest profiles are excluded. Results are ordered by view count and then bike ID (`limit` 1–20, default 10), and only bikes still published are returned.
+
+**Response**: `[{ "bike": <BikeListItemDto>, "viewCount": 12 }]`
+
 #### GET /api/bikes/{slug}/compared-with?limit=4
 
 Published bikes most often compared with the given bike (most compared first; `limit` 1–12, default 4). Returns `404` for an unknown/unpublished slug.

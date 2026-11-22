@@ -1,7 +1,13 @@
 import type { ReactNode } from 'react';
 import PageShell from '@/components/PageShell';
 import Sidebar, { SidebarLink, SidebarSection } from '@/components/Sidebar';
-import { getBikes, getBrands, getPopularComparisons, getTopBikesByFans } from '@/lib/api';
+import {
+  getBikes,
+  getBrands,
+  getPopularComparisons,
+  getTopBikesByDailyInterest,
+  getTopBikesByFans,
+} from '@/lib/api';
 import { buildBikeDetailHref, buildBrowseHref } from '@/lib/catalogFilters';
 import type { BrandDto } from '@/lib/types';
 
@@ -16,9 +22,10 @@ export default async function CatalogPageShell({
   browseParams,
   catalogBrands,
 }: CatalogPageShellProps) {
-  const [{ items: latestBikes }, brands, topByFans, popularComparisons] = await Promise.all([
+  const [{ items: latestBikes }, brands, topByDailyInterest, topByFans, popularComparisons] = await Promise.all([
     getBikes({ pageSize: 12, sortBy: 'year', sortDescending: true }),
     catalogBrands ? Promise.resolve(catalogBrands) : getBrands(),
+    getTopBikesByDailyInterest(10),
     getTopBikesByFans(10),
     getPopularComparisons(10),
   ]);
@@ -58,7 +65,27 @@ export default async function CatalogPageShell({
             </div>
           </SidebarSection>
           <SidebarSection title="Top 10 by Daily Interest">
-            <p className="text-xs text-white/50 italic">Coming soon — tracked once bike view analytics ship.</p>
+            {topByDailyInterest.length === 0 ? (
+              <p className="text-xs text-white/50 italic">No opted-in views today — view a bike to start the list.</p>
+            ) : (
+              <ol className="flex flex-col">
+                {topByDailyInterest.map(({ bike, viewCount }, index) => (
+                  <li key={bike.id}>
+                    <SidebarLink href={buildBikeDetailHref(bike.slug, browseParams ?? {})}>
+                      <span className="flex items-start gap-2">
+                        <span className="w-4 shrink-0 text-white/50">{index + 1}.</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block">{bike.variantName}</span>
+                          <span className="block text-xs text-white/60">
+                            {viewCount} {viewCount === 1 ? 'view' : 'views'} today
+                          </span>
+                        </span>
+                      </span>
+                    </SidebarLink>
+                  </li>
+                ))}
+              </ol>
+            )}
           </SidebarSection>
           <SidebarSection title="Top 10 by Fans">
             {topByFans.length === 0 ? (

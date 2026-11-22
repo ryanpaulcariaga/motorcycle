@@ -123,4 +123,43 @@ public class BikeRepository : IBikeRepository
                 row.AverageRating))
             .ToList();
     }
+
+    public async Task<List<DailyInterestRankedBikeMatch>> GetTopByDailyInterestAsync(
+        DateOnly day,
+        int limit,
+        CancellationToken ct = default)
+    {
+        var rows = await (
+            from activity in _context.AnalyticsDailyCounts.AsNoTracking()
+            join bike in _context.Bikes on activity.Dimension1 equals bike.Id
+            where activity.Day == day &&
+                  activity.Metric == "bike_view" &&
+                  bike.IsPublished
+            group activity by bike.Id into grouped
+            orderby grouped.Sum(row => row.Count) descending, grouped.Key
+            select new
+            {
+                BikeId = grouped.Key,
+                ViewCount = grouped.Sum(row => row.Count)
+            })
+            .Take(limit)
+            .ToListAsync(ct);
+
+        var ids = rows.Select(row => row.BikeId).ToList();
+        var bikes = await _context.Bikes
+            .AsNoTracking()
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Brand)
+            .Include(b => b.Model)
+                .ThenInclude(m => m.Category)
+            .Include(b => b.Images)
+            .Where(b => ids.Contains(b.Id) && b.IsPublished)
+            .ToDictionaryAsync(b => b.Id, ct);
+
+        return rows
+            .Select(row => new DailyInterestRankedBikeMatch(
+                bikes[row.BikeId],
+                row.ViewCount))
+            .ToList();
+    }
 }

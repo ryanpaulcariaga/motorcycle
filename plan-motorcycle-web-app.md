@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 52 of 113 tasks done · 8 in progress · 53 not started.**
+**Progress: 53 of 113 tasks done · 7 in progress · 53 not started.**
 
 **Next up:** Configure the production legal operator/contact/jurisdiction values and complete the privacy, inquiry retention, log-retention, and backup-deletion review in T-112 before G-10 can be ticked. Verify the contact form and admin inbox with a test database and authenticated session under T-113. Verify ratings/comments, interest-profile, and account privacy controls in authenticated public browser sessions, and verify the analytics dashboard with an authenticated admin session. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -213,7 +213,6 @@ The API stores the uploaded original and generates smaller copies for the public
 |---|---|---|---|
 | T-68 | 🔄 | Analytics: record bike views and spec searches | Opt-in bike, brand/category filter, comparison and zero-result aggregates verified in browser and isolated PostgreSQL; public spec-filter tracking remains. G-10 privacy review still required. |
 | T-69 | 🔄 | Analytics: dashboard | Protected API and admin UI verified with unit tests and mocked browser data; authenticated end-to-end dashboard verification remains. |
-| T-70 | 🔄 | Replace placeholder "Top 10" sidebar sections with real data | "Top 10 by Fans" now ranks published bikes by active-user rating count with average rating tie-break; daily-interest ranking remains dependent on T-68 |
 | T-71 | ⬜ | Dealer links: records, moderation, API, UI | |
 | T-72 | ⬜ | Advertising: placements, delivery, labeling, admin | |
 | T-73 | 🔄 | Ratings and comments | Rating summary and User reviews button sit beside Compare; reviews use a modal, while independent discussion comments sit directly below full specs. APIs, migrations, ownership/edit/delete flows and tests pass; authenticated browser acceptance remains |
@@ -232,6 +231,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-70 | ✅ Replace placeholder "Top 10" sidebar sections with real data | Public fan rankings use active-user ratings; daily interest uses the current UTC day's anonymous opt-in bike-view aggregates, published-bike filtering, count/ID tie-breaks, an API endpoint, and sidebar counts. 15 focused API tests, web lint and production build pass. |
 | T-51 | ✅ Define and implement the user data export and deletion process | `GET /api/user/account/export`, `DELETE /api/user/account`, Settings controls, versioned JSON export, database-cascade deletion, session clearing, CSRF-origin checks, 3 passing focused tests, and an optional PostgreSQL cascade test |
 | T-50 | ✅ Terms page | `/terms`, shared footer link, configurable operator/contact/jurisdiction, web lint and production build pass |
 | T-49 | ✅ Privacy policy page | `/privacy`, shared footer link, configured data/consent/retention/deletion disclosures, web lint and production build pass |
@@ -264,6 +264,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Added the public "Top 10 by Daily Interest" sidebar from current-UTC-day anonymous opt-in `bike_view` aggregates. The API ranks only published bikes by view count, then bike ID, and the web sidebar shows each rank, today's view count and a no-activity state without exposing private per-user interest profiles. Fifteen focused API tests, web lint, and the production web build pass.
 
 **2026-11-22** — Added the public "Top 10 by Fans" sidebar from active signed-in user ratings. The API returns published bikes ordered by fan count, then average rating and bike ID; the web sidebar shows rank, fan count, and average with a no-ratings state. Successful saves and removals refresh server-rendered catalog data so the ranking updates immediately. Three focused API tests, web lint, and the production web build pass. Daily-interest ranking remains under T-70.
 

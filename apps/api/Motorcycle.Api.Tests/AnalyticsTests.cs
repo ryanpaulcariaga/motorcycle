@@ -136,6 +136,44 @@ public class AnalyticsTests
         Assert.False(await repository.RecordAsync(new AnalyticsEventRequest { Type = "comparison", BikeIds = [1, 2] }, default));
     }
 
+    [Fact]
+    public async Task BikeRepository_RanksTodayViewsAndExcludesUnpublishedBikes()
+    {
+        var options = new DbContextOptionsBuilder<MotorcycleDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        await using var db = new MotorcycleDbContext(options);
+        var brand = new Brand { Id = 1, Name = "Brand" };
+        var category = new Category { Id = 1, Name = "Category" };
+        var model = new BikeModel
+        {
+            Id = 1,
+            Name = "Model",
+            BrandId = brand.Id,
+            Brand = brand,
+            CategoryId = category.Id,
+            Category = category
+        };
+        db.Bikes.AddRange(
+            new Bike { Id = 1, ModelId = model.Id, Model = model, VariantName = "First", Slug = "first", IsPublished = true },
+            new Bike { Id = 2, ModelId = model.Id, Model = model, VariantName = "Second", Slug = "second", IsPublished = true },
+            new Bike { Id = 3, ModelId = model.Id, Model = model, VariantName = "Hidden", Slug = "hidden" });
+        db.AnalyticsDailyCounts.AddRange(
+            new AnalyticsDailyCount { Day = new DateOnly(2026, 11, 21), Metric = "bike_view", Dimension1 = 1, Count = 100 },
+            new AnalyticsDailyCount { Day = new DateOnly(2026, 11, 22), Metric = "bike_view", Dimension1 = 1, Count = 4 },
+            new AnalyticsDailyCount { Day = new DateOnly(2026, 11, 22), Metric = "bike_view", Dimension1 = 2, Count = 4 },
+            new AnalyticsDailyCount { Day = new DateOnly(2026, 11, 22), Metric = "bike_view", Dimension1 = 3, Count = 50 },
+            new AnalyticsDailyCount { Day = new DateOnly(2026, 11, 22), Metric = "comparison", Dimension1 = 1, Count = 50 });
+        await db.SaveChangesAsync();
+
+        var result = await new BikeRepository(db).GetTopByDailyInterestAsync(
+            new DateOnly(2026, 11, 22),
+            10,
+            default);
+
+        Assert.Equal([1, 2], result.Select(row => row.Bike.Id));
+        Assert.All(result, row => Assert.Equal(4, row.ViewCount));
+    }
+
     private sealed class FixedClock(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;

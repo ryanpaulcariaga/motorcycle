@@ -3,6 +3,7 @@ using Motorcycle.Domain;
 namespace Motorcycle.Application.Interfaces;
 
 public record FanRankedBikeMatch(Bike Bike, int FanCount, decimal AverageRating);
+public record DailyInterestRankedBikeMatch(Bike Bike, long ViewCount);
 
 public interface IBikeRepository
 {
@@ -15,4 +16,9 @@ public interface IBikeRepository
     Task<List<Bike>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default);
 
     Task<List<FanRankedBikeMatch>> GetTopByFansAsync(int limit, CancellationToken ct = default);
+
+    Task<List<DailyInterestRankedBikeMatch>> GetTopByDailyInterestAsync(
+        DateOnly day,
+        int limit,
+        CancellationToken ct = default);
 }

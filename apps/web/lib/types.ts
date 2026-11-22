@@ -250,6 +250,11 @@ export interface FanRankedBikeDto {
   averageRating: number;
 }
 
+export interface DailyInterestRankedBikeDto {
+  bike: BikeListItemDto;
+  viewCount: number;
+}
+
 export interface ContactInquiryRequest {
   name: string | null;
   email: string;

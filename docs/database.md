@@ -246,7 +246,7 @@ CREATE TABLE analytics_daily_counts (
 );
 ```
 
-Only opt-in browser activity is collected. UTC daily counters store a metric and catalog IDs, never a visitor or session ID, search text, or individual event. Metrics are `bike_view`, `brand_filter`, `category_filter`, `comparison`, `comparison_pair`, `search`, and `zero_results`. Zero dimensions indicate no catalog dimension; pair IDs are sorted. Counters are upserted atomically in one transaction per event. A hosted job deletes dates before the current UTC date minus 12 calendar months, on startup and approximately daily thereafter. Catalog deletion does not delete historical totals; the dashboard labels missing items as deleted.
+Only opt-in browser activity is collected. UTC daily counters store a metric and catalog IDs, never a visitor or session ID, search text, or individual event. Metrics are `bike_view`, `brand_filter`, `category_filter`, `comparison`, `comparison_pair`, `search`, and `zero_results`. Zero dimensions indicate no catalog dimension; pair IDs are sorted. The current UTC day's `bike_view` counts power the public daily-interest ranking, which excludes unpublished bikes but exposes only aggregate counts. Counters are upserted atomically in one transaction per event. A hosted job deletes dates before the current UTC date minus 12 calendar months, on startup and approximately daily thereafter. Catalog deletion does not delete historical totals; the dashboard labels missing items as deleted.
 
 ### user_interest_daily_counts
 

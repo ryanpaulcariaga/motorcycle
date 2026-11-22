@@ -17,7 +17,8 @@ public class BikeCompareServiceTests
             repository,
             new EmptySpecGroupRepository(),
             new UnusedSpecFilterStrategyFactory(),
-            new EmptyBikeComparisonRepository());
+            new EmptyBikeComparisonRepository(),
+            TimeProvider.System);
 
         var result = await service.CompareBikesAsync(requestedOrder.ToList());
 
@@ -42,7 +43,8 @@ public class BikeCompareServiceTests
             repository,
             new EmptySpecGroupRepository(),
             new UnusedSpecFilterStrategyFactory(),
-            new EmptyBikeComparisonRepository());
+            new EmptyBikeComparisonRepository(),
+            TimeProvider.System);
 
         var result = await service.GetBikesAsync(new BikeQueryParameters
         {
@@ -69,7 +71,8 @@ public class BikeCompareServiceTests
             repository,
             new EmptySpecGroupRepository(),
             new UnusedSpecFilterStrategyFactory(),
-            new EmptyBikeComparisonRepository());
+            new EmptyBikeComparisonRepository(),
+            TimeProvider.System);
 
         var result = await service.GetTopBikesByFansAsync(10);
 
@@ -78,6 +81,26 @@ public class BikeCompareServiceTests
         Assert.Equal(12, ranked.FanCount);
         Assert.Equal(4.3m, ranked.AverageRating);
         repository.AssertTopFansLimit(10);
+    }
+
+    [Fact]
+    public async Task GetTopBikesByDailyInterestAsync_UsesCurrentUtcDayAndMapsViews()
+    {
+        var bike = CreateBike(7);
+        var repository = new FakeBikeRepository([bike]);
+        var service = new BikeService(
+            repository,
+            new EmptySpecGroupRepository(),
+            new UnusedSpecFilterStrategyFactory(),
+            new EmptyBikeComparisonRepository(),
+            new FixedClock(new DateTimeOffset(2026, 11, 22, 23, 30, 0, TimeSpan.Zero)));
+
+        var result = await service.GetTopBikesByDailyInterestAsync(10);
+
+        var ranked = Assert.Single(result);
+        Assert.Equal(7, ranked.Bike.Id);
+        Assert.Equal(23, ranked.ViewCount);
+        repository.AssertDailyInterestQuery(new DateOnly(2026, 11, 22), 10);
     }
 
     private static Bike CreateBike(int id, int year = 2024, decimal? price = 100) => new()
@@ -117,6 +140,8 @@ public class BikeCompareServiceTests
             Task.FromResult(bikes);
 
         private int? TopFansLimit { get; set; }
+        private DateOnly? DailyInterestDay { get; set; }
+        private int? DailyInterestLimit { get; set; }
 
         public Task<List<FanRankedBikeMatch>> GetTopByFansAsync(
             int limit,
@@ -128,6 +153,28 @@ public class BikeCompareServiceTests
         }
 
         public void AssertTopFansLimit(int expected) => Assert.Equal(expected, TopFansLimit);
+
+        public Task<List<DailyInterestRankedBikeMatch>> GetTopByDailyInterestAsync(
+            DateOnly day,
+            int limit,
+            CancellationToken ct = default)
+        {
+            DailyInterestDay = day;
+            DailyInterestLimit = limit;
+            return Task.FromResult(
+                bikes.Select(b => new DailyInterestRankedBikeMatch(b, 23)).ToList());
+        }
+
+        public void AssertDailyInterestQuery(DateOnly expectedDay, int expectedLimit)
+        {
+            Assert.Equal(expectedDay, DailyInterestDay);
+            Assert.Equal(expectedLimit, DailyInterestLimit);
+        }
+    }
+
+    private sealed class FixedClock(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
     }
 
     private sealed class EmptySpecGroupRepository : ISpecGroupRepository
