@@ -1,30 +1,117 @@
 html.browser-pending body > :not(#browser-support-notice),
+html.browser-capable body > :not(#browser-support-notice),
 html.browser-supported #browser-support-notice {
   display: none !important;
 }
 
 #browser-support-notice {
+  box-sizing: border-box;
   color: #0a0a0a;
   background: #d99a2b;
   font-family: Aptos, "Segoe UI", sans-serif;
   min-height: 100vh;
 }
 
+#browser-support-notice *,
+#browser-support-notice *::before,
+#browser-support-notice *::after {
+  box-sizing: border-box;
+}
+
 #browser-support-notice header {
   background: #0a0a0a;
   color: #fff;
-  padding: 1.25rem 1.5rem;
+  min-height: 4rem;
+  padding: 1rem 1.5rem;
   font-size: 1.25rem;
-  font-weight: bold;
+  font-weight: 700;
+  line-height: 2rem;
 }
 
 #browser-support-notice main {
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  max-width: 80rem;
+}
+
+#browser-support-notice section {
   background: #fff;
-  margin: 2rem auto;
-  padding: 1.5rem;
-  max-width: 40rem;
+  border: 1px solid #7a4a2b;
+  box-shadow: 0 1rem 2rem rgba(74, 44, 28, 0.2);
+  padding: 2rem 1.5rem;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+#browser-support-notice .browser-support-label {
+  color: #7a4a2b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.75rem;
+  text-transform: uppercase;
+}
+
+#browser-support-notice h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+#browser-support-notice h2 {
+  font-size: 1rem;
+  margin: 1.75rem 0 0.75rem;
+}
+
+#browser-support-notice .browser-support-lead {
+  color: #3f3f46;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  margin: 1rem 0 0;
+}
+
+#browser-support-notice ol {
+  color: #27272a;
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+#browser-support-notice li + li {
+  margin-top: 0.5rem;
 }
 
 #browser-support-notice a {
-  color: #075985;
+  background: #7a4a2b;
+  color: #fff;
+  display: inline-block;
+  font-weight: 700;
+  margin-top: 1.75rem;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+}
+
+#browser-support-notice a:hover,
+#browser-support-notice a:focus-visible {
+  background: #0a0a0a;
+}
+
+#browser-support-notice a:focus-visible {
+  outline: 3px solid #d99a2b;
+  outline-offset: 3px;
+}
+
+@media (min-width: 48rem) {
+  #browser-support-notice main {
+    padding: 4rem 2rem;
+  }
+
+  #browser-support-notice section {
+    padding: 3rem;
+  }
+
+  #browser-support-notice h1 {
+    font-size: 2.5rem;
+  }
 }

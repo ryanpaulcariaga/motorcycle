@@ -58,7 +58,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
-| F-26 | ✅ Public and admin show a browser compatibility notice when required capabilities or JavaScript are unavailable |
+| F-26 | ✅ Public and admin show the same branded browser compatibility notice when JavaScript, required capabilities, or framework startup is unavailable |
 | F-28 | ✅ Public privacy and terms pages, global legal links, and authenticated JSON account export plus permanent cascade-backed account deletion from Settings |
 | F-29 | ✅ Public contact form stores inquiries through the shared API; protected admin inbox supports reading and deleting, with no email notifications |
 
@@ -263,6 +263,8 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-23** — Upgraded the public and admin browser fallback from a basic notice to the same branded, accessible recovery UI. The standalone capability check now waits for React to mount before revealing either application, so blocked or failed framework bundles keep showing recovery guidance instead of a blank screen. Four focused compatibility tests, web lint/build, and admin lint/build passed (the admin retains six unrelated lint warnings); a rendered 360px fallback check confirmed visible guidance, action visibility, and no horizontal overflow.
 
 **2026-11-23** — Reworked admin session continuity: the API now defaults to a configurable 12-hour sliding cookie, the visible admin tab refreshes the session every five minutes and on return from a hidden tab, and an actual expiry presents a clear re-authentication prompt instead of silently navigating away. Updated the auth architecture/API/operations documentation. The API build passed, all 130 active API tests passed (2 optional PostgreSQL tests skipped), and the admin production build and lint passed with only the six existing warnings.
 

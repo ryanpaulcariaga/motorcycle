@@ -2,8 +2,10 @@
 /* eslint-disable @next/next/no-css-tags, @next/next/no-sync-scripts */
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
+import Link from 'next/link';
 import Header from '@/components/Header';
 import AnalyticsConsent from '@/components/AnalyticsConsent';
+import BrowserSupportReady from '@/components/BrowserSupportReady';
 import Footer from '@/components/Footer';
 import { SITE_URL } from '@/lib/site';
 import './globals.css';
@@ -43,18 +45,37 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
         <script src="/browser-support.js" nonce={nonce} />
       </head>
       <body className="min-h-full flex flex-col">
-        <div id="browser-support-notice">
-          <header>MotoCompare</header>
+        <div
+          id="browser-support-notice"
+          role="alert"
+          aria-labelledby="browser-support-title"
+        >
+          <header>
+            <span>MotoCompare</span>
+          </header>
           <main>
-            <h1>Browser not supported</h1>
-            <p>Your browser may be outdated, or JavaScript may be disabled or unavailable.</p>
-            <p>Enable JavaScript and update your browser, or try a current version of Chrome, Edge, Firefox, or Safari.</p>
+            <section>
+              <p className="browser-support-label">Browser compatibility</p>
+              <h1 id="browser-support-title">Let&apos;s get your browser ready</h1>
+              <p className="browser-support-lead">
+                MotoCompare needs JavaScript and a few modern browser features
+                to load the motorcycle catalog safely.
+              </p>
+              <h2>Try these quick fixes</h2>
+              <ol>
+                <li>Enable JavaScript in your browser settings.</li>
+                <li>Update your browser to the latest version.</li>
+                <li>Reload this page, or open it in Chrome, Edge, Firefox, or Safari.</li>
+              </ol>
+              <Link href="/">Return to MotoCompare home</Link>
+            </section>
           </main>
         </div>
         <Header />
         {children}
         <Footer />
         <AnalyticsConsent />
+        <BrowserSupportReady />
       </body>
     </html>
   );

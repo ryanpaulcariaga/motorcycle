@@ -8,12 +8,26 @@
     <script src="/browser-support.js"></script>
   </head>
   <body>
-    <div id="browser-support-notice">
-      <header>MotoCompare Admin</header>
+    <div id="browser-support-notice" role="alert" aria-labelledby="browser-support-title">
+      <header>
+        <span>MotoCompare Admin</span>
+      </header>
       <main>
-        <h1>Browser not supported</h1>
-        <p>Your browser may be outdated, or JavaScript may be disabled or unavailable.</p>
-        <p>Enable JavaScript and update your browser, or try a current version of Chrome, Edge, Firefox, or Safari.</p>
+        <section>
+          <p class="browser-support-label">Browser compatibility</p>
+          <h1 id="browser-support-title">Let's get your browser ready</h1>
+          <p class="browser-support-lead">
+            MotoCompare Admin needs JavaScript and a few modern browser features
+            to load the administration tools safely.
+          </p>
+          <h2>Try these quick fixes</h2>
+          <ol>
+            <li>Enable JavaScript in your browser settings.</li>
+            <li>Update your browser to the latest version.</li>
+            <li>Reload this page, or open it in Chrome, Edge, Firefox, or Safari.</li>
+          </ol>
+          <a href="/">Return to MotoCompare Admin home</a>
+        </section>
       </main>
     </div>
     <div id="root"></div>

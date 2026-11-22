@@ -49,11 +49,25 @@ test('both entry points provide a fallback before the application starts', () =>
   }
   const css = fs.readFileSync(path.join(web, 'browser-support.css'), 'utf8');
   assert.match(css, /html\.browser-pending body > :not\(#browser-support-notice\)/);
+  assert.match(css, /html\.browser-capable body > :not\(#browser-support-notice\)/);
   assert.match(css, /html\.browser-supported #browser-support-notice/);
+
+  assert.match(entries[0], /BrowserSupportReady/);
+  assert.match(
+    fs.readFileSync(path.join(__dirname, '../apps/admin/src/main.tsx'), 'utf8'),
+    /BrowserSupportReady/,
+  );
+  assert.match(
+    fs.readFileSync(
+      path.join(__dirname, '../apps/web/components/BrowserSupportReady.tsx'),
+      'utf8',
+    ),
+    /browser-capable.*browser-supported/s,
+  );
 });
 
 test('supported browsers show the application', () => {
-  assert.equal(check(), 'h-full browser-supported');
+  assert.equal(check(), 'h-full browser-capable');
 });
 
 test('missing browser features leave the fallback visible', () => {

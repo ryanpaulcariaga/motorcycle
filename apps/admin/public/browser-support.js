@@ -16,7 +16,7 @@
   ) {
     document.documentElement.className = document.documentElement.className.replace(
       /\bbrowser-pending\b/,
-      'browser-supported'
+      'browser-capable'
     );
   }
 }());
