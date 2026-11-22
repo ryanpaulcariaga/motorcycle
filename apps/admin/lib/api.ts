@@ -1,5 +1,6 @@
 import type { AdminAuditLogPage, AdminRole, AdminSession, ApiError, BikeAdminDetail, BikeAdminListItem, BikeImage, BikeImportResult, BikeModel, BikeModelRequest, BikeSpecValueItem, BrandAdmin, BrandRequest, CategoryAdmin, CategoryRequest, CreateAdminRoleRequest, CreateBikeRequest, LookupOption, ReassignBikeModelRequest, SpecDefinitionAdmin, SpecDefinitionRequest, SpecGroupAdmin, SpecGroupRequest, SpecValueFilters, UpdateAdminRoleRequest, UpdateBikeRequest, UpdateSingleSpecRequest, BikeSpecGridRow, UpdateSpecGridRequest } from "./types";
 import type { AnalyticsDashboard } from "./types";
+import type { ContactInquiryPage } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
 
@@ -54,6 +55,15 @@ export function getAdminRoles(): Promise<AdminRole[]> {
 export function getAdminAuditLogs(page: number, pageSize: number): Promise<AdminAuditLogPage> {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   return apiFetch(`/api/admin/audit-logs?${params}`);
+}
+
+export function getContactInquiries(page: number, pageSize: number): Promise<ContactInquiryPage> {
+  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  return apiFetch(`/api/admin/contact-inquiries?${params}`);
+}
+
+export function deleteContactInquiry(id: number): Promise<void> {
+  return apiFetch(`/api/admin/contact-inquiries/${id}`, { method: "DELETE" });
 }
 
 export function getAnalytics(from: string, to: string): Promise<AnalyticsDashboard> {

@@ -7,6 +7,9 @@ export default function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p>&copy; 2026 {LEGAL_OPERATOR_NAME}</p>
         <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-2">
+          <Link href="/contact" className="underline underline-offset-4 hover:bg-brand-button">
+            Contact
+          </Link>
           <Link
             href="/privacy"
             className="underline underline-offset-4 hover:bg-brand-button"

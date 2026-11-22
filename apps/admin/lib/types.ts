@@ -258,3 +258,17 @@ export interface AnalyticsDashboard {
   categories: AnalyticsCount[];
   pairs: { bikeAId: number; bikeAName: string; bikeBId: number; bikeBName: string; count: number }[];
 }
+export interface ContactInquiry {
+  id: number;
+  name: string | null;
+  email: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface ContactInquiryPage {
+  items: ContactInquiry[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+}

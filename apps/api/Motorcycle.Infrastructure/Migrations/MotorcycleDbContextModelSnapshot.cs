@@ -651,6 +651,45 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.ToTable("categories");
                 });
 
+            modelBuilder.Entity("Motorcycle.Domain.ContactInquiry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_contact_inquiries");
+
+                    b.HasIndex("CreatedAt", "Id")
+                        .HasDatabaseName("ix_contact_inquiries_created_at_id");
+
+                    b.ToTable("contact_inquiries");
+                });
+
             modelBuilder.Entity("Motorcycle.Domain.SpecDefinition", b =>
                 {
                     b.Property<int>("Id")

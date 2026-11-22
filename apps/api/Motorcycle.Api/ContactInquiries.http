@@ -1,0 +1,18 @@
+@baseUrl = https://localhost:7240
+
+### Submit an inquiry
+POST {{baseUrl}}/api/contact
+Content-Type: application/json
+
+{
+  "name": "Rider",
+  "email": "rider@example.com",
+  "message": "I have a suggestion for the catalog."
+}
+
+### List inquiries (requires an active administrator session)
+GET {{baseUrl}}/api/admin/contact-inquiries?page=1&pageSize=20
+
+### Delete an inquiry (requires an active administrator session and allowed Origin)
+DELETE {{baseUrl}}/api/admin/contact-inquiries/1
+Origin: https://localhost:3001

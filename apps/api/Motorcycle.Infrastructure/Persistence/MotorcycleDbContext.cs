@@ -22,6 +22,7 @@ public class MotorcycleDbContext : DbContext
     public DbSet<BikeSpecVerification> BikeSpecVerifications => Set<BikeSpecVerification>();
     public DbSet<AdminRole> AdminRoles => Set<AdminRole>();
     public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
+    public DbSet<ContactInquiry> ContactInquiries => Set<ContactInquiry>();
     public DbSet<User> Users => Set<User>();
     public DbSet<UserExternalLogin> UserExternalLogins => Set<UserExternalLogin>();
     public DbSet<AnalyticsDailyCount> AnalyticsDailyCounts => Set<AnalyticsDailyCount>();
@@ -39,6 +40,15 @@ public class MotorcycleDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ContactInquiry>(inquiry =>
+        {
+            inquiry.HasKey(x => x.Id);
+            inquiry.Property(x => x.Name).HasMaxLength(100);
+            inquiry.Property(x => x.Email).HasMaxLength(254).IsRequired();
+            inquiry.Property(x => x.Message).HasMaxLength(5000).IsRequired();
+            inquiry.HasIndex(x => new { x.CreatedAt, x.Id });
+        });
 
         modelBuilder.Entity<AnalyticsDailyCount>(a =>
         {

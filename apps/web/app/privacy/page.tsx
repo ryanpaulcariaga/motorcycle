@@ -45,6 +45,10 @@ export default function PrivacyPage() {
               publish, together with creation and update times.
             </li>
             <li>
+              Contact form messages, the email address and optional name you provide,
+              and the time of submission. These messages are not published.
+            </li>
+            <li>
               Optional account interest preferences and structured daily counts
               for bike views, selections from search results, brand/category
               choices, and comparisons. Raw search text is not collected.
@@ -67,6 +71,7 @@ export default function PrivacyPage() {
           <ul className="list-disc space-y-2 pl-6">
             <li>Operate catalog browsing, search, comparison, and accounts.</li>
             <li>Authenticate users and display their public reviews and comments.</li>
+            <li>Review and respond to contact inquiries.</li>
             <li>Secure the service, prevent abuse, diagnose failures, and keep audit records.</li>
             <li>
               Measure service use only after a visitor accepts anonymous analytics.
@@ -109,6 +114,10 @@ export default function PrivacyPage() {
               Accounts and account-linked content remain until you delete the
               account or request account removal through the available privacy
               channel.
+            </li>
+            <li>
+              Contact inquiries are stored separately from accounts until an administrator
+              deletes them. Deleting your account does not automatically delete a contact inquiry.
             </li>
             <li>
               Account deletion removes the internal account, linked sign-ins,
@@ -157,8 +166,8 @@ export default function PrivacyPage() {
           ) : (
             <p>
               A dedicated public privacy email has not yet been configured.
-              Signed-in users can still use the self-service export and deletion
-              controls in Settings.
+              You can use the <Link className="underline" href="/contact">contact form</Link> for
+              privacy requests, or the self-service export and deletion controls in Settings.
             </p>
           )}
         </section>

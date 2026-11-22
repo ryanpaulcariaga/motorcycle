@@ -8,6 +8,7 @@ import type {
   BikesQuery,
   BrandDto,
   CategoryDto,
+  ContactInquiryRequest,
   CompareResultDto,
   ComparedBikeDto,
   PagedResult,
@@ -20,6 +21,21 @@ import type {
 } from "./types";
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7240";
+
+export async function sendContactInquiry(inquiry: ContactInquiryRequest): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/contact`, {
+    method: "POST",
+    credentials: "omit",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(inquiry),
+  });
+  if (response.status === 429) {
+    throw new Error("Too many messages were sent. Please wait a minute and try again.");
+  }
+  if (!response.ok) {
+    throw new Error("Your message could not be sent. Please check your details and try again.");
+  }
+}
 
 export async function sendAnalyticsEvent(event: AnalyticsEvent): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/analytics/events`, {

@@ -60,6 +60,8 @@ builder.Services.AddScoped<IUserInterestRepository, UserInterestRepository>();
 builder.Services.AddScoped<IUserPrivacyRepository, UserPrivacyRepository>();
 builder.Services.AddScoped<IBikeReviewRepository, BikeReviewRepository>();
 builder.Services.AddScoped<IBikeCommentRepository, BikeCommentRepository>();
+builder.Services.AddScoped<IContactInquiryRepository, ContactInquiryRepository>();
+builder.Services.AddScoped<IContactInquiryService, ContactInquiryService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IUserInterestService, UserInterestService>();

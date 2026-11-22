@@ -16,6 +16,8 @@ Bike detail pages read aggregate ratings, reviews, and discussion comments anony
 
 The public app exposes static `/privacy` and `/terms` pages and links them from the global footer. Legal operator, privacy contact, and jurisdiction are deployment-time web settings; the default service/operator and jurisdiction text is not a substitute for production legal review.
 
+The public `/contact` form submits anonymous inquiries to the shared API, which validates and rate-limits submissions before saving them in PostgreSQL. Active administrators can review and delete inquiries in the admin SPA; replies use their own email client and there are no notifications. Inquiries are separate from user accounts, have no automatic retention job, and are not removed by account deletion.
+
 These are activity counts, not unique visitors: page refreshes and comparison selection changes can count again. Searches count on header submission after the browse results load, not on suggestions, pagination, or sorting. Brand/category filters count when applied in browse, chosen from the sidebar, or selected in the comparison picker; compare-picker year and price filters are not tracked. Comparisons with 2–25 published bikes are counted once per view and once for each unordered pair; larger comparisons remain usable but are excluded from analytics. The pre-existing request-based comparison counters remain separate, continue to power recommendations even when analytics is declined, and are disclosed in the preference prompt.
 
 On phone-width screens, public and admin sidebar sections start collapsed and expand independently, and pages scroll to their main content. Tablet and desktop layouts keep the sidebars visible.

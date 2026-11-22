@@ -13,9 +13,9 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 52 of 112 tasks done · 7 in progress · 53 not started.**
+**Progress: 52 of 113 tasks done · 7 in progress · 54 not started.**
 
-**Next up:** Configure the production legal operator/contact/jurisdiction values and complete the privacy, terms, log-retention, and backup-deletion review in T-112 before G-10 can be ticked. Verify ratings/comments, interest-profile, and account privacy controls in authenticated public browser sessions, and verify the analytics dashboard with an authenticated admin session. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
+**Next up:** Configure the production legal operator/contact/jurisdiction values and complete the privacy, inquiry retention, log-retention, and backup-deletion review in T-112 before G-10 can be ticked. Verify the contact form and admin inbox with a test database and authenticated session under T-113. Verify ratings/comments, interest-profile, and account privacy controls in authenticated public browser sessions, and verify the analytics dashboard with an authenticated admin session. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
 ## Idea intake and triage
 
@@ -60,6 +60,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
 | F-26 | ✅ Public and admin show a browser compatibility notice when required capabilities or JavaScript are unavailable |
 | F-28 | ✅ Public privacy and terms pages, global legal links, and authenticated JSON account export plus permanent cascade-backed account deletion from Settings |
+| F-29 | ✅ Public contact form stores inquiries through the shared API; protected admin inbox supports reading and deleting, with no email notifications |
 
 ## Features (planned)
 
@@ -106,6 +107,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 | T-22 | ⬜ | Admin: spec group/definition management | | G-05 |
 | T-23 | ⬜ | Admin: Bulk Spec Edit and spec grid | | G-05 |
 | T-24 | ⬜ | Admin: Excel export and import with a real `.xlsx` file | | G-05 |
+| T-113 | ⬜ | Verify contact form and admin inbox end to end | Check submission, validation, unauthorized access, pagination, reply link and deletion using a test database and authenticated admin session | G-05, G-07, G-10 |
 
 ### Security
 
@@ -155,7 +157,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 
 | # | Status | Task | Notes | Gate |
 |---|---|---|---|---|
-| T-112 | ⬜ | Configure and approve production legal details before promotion | Set `LEGAL_OPERATOR_NAME`, `PRIVACY_CONTACT_EMAIL`, and `LEGAL_JURISDICTION`; review the final privacy/terms text, hosting-log retention, and backup/restore behavior for deletion obligations | G-10 |
+| T-112 | ⬜ | Configure and approve production legal details before promotion | Set `LEGAL_OPERATOR_NAME`, `PRIVACY_CONTACT_EMAIL`, and `LEGAL_JURISDICTION`; review privacy/terms, inquiry retention and request handling, hosting logs, and backup/restore behavior for deletion obligations | G-10 |
 
 ### Quality before promotion
 
@@ -262,6 +264,8 @@ The API stores the uploaded original and generates smaller copies for the public
 ## Session log
 
 Newest first. Added at "update the plan for our progress"; read when asked "what should we do next".
+
+**2026-11-22** — Added an anonymous contact form, API/database migration, and active-administrator inbox with deletion. Eleven focused API/rate-limit tests, both frontend builds and lint passed (six existing admin lint warnings); migration snapshot matches. Mocked public browser checks covered successful and failed submissions and 360px overflow. No email notification or automatic inquiry retention; authenticated browser and PostgreSQL end-to-end checks remain under T-113, and legal/retention review remains under T-112.
 
 **2026-11-22** — Added public Privacy and Terms pages with shared footer links and deployment-time operator, contact, and jurisdiction settings. Settings now offers signed-in JSON account export and confirmed permanent account deletion; the API exports account, linked sign-in, interest, review, and comment data and deletes user-owned relational rows through existing cascades before clearing the session. Three focused API tests, web lint, and the production web build pass; the optional PostgreSQL cascade test is present but skipped without its dedicated test database. G-10 remains open under T-112 for production legal details, hosting-log retention, and backup/deletion review.
 
