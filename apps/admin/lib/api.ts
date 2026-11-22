@@ -3,6 +3,12 @@ import type { AnalyticsDashboard } from "./types";
 import type { ContactInquiryPage } from "./types";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7240";
+export const ADMIN_SESSION_EXPIRED_EVENT = "admin-session-expired";
+
+export function beginAdminSignIn(): void {
+  sessionStorage.setItem("mc_return_to", window.location.pathname + window.location.search);
+  window.location.assign(`${API_BASE_URL}/api/admin/auth/facebook`);
+}
 
 export class AdminApiError extends Error {
   status: number;
@@ -24,10 +30,9 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (response.status === 401 && path !== "/api/admin/auth/session" && path !== "/api/admin/auth/signout") {
-    // Session expired: remember the page and silently re-authenticate (Facebook returns immediately if still signed in there).
     sessionStorage.setItem("mc_return_to", window.location.pathname + window.location.search);
-    window.location.assign(`${API_BASE_URL}/api/admin/auth/facebook`);
-    return new Promise<T>(() => {});
+    window.dispatchEvent(new Event(ADMIN_SESSION_EXPIRED_EVENT));
+    throw new AdminApiError(401, { message: "Your administrator session has expired." });
   }
 
   if (!response.ok) {

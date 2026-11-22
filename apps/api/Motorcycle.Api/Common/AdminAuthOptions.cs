@@ -7,4 +7,5 @@ public sealed class AdminAuthOptions
     public string FacebookClientSecret { get; set; } = string.Empty;
     public string FacebookRedirectUri { get; set; } = string.Empty;
     public string AdminAppUrl { get; set; } = string.Empty;
+    public int SessionLifetimeHours { get; set; } = 12;
 }

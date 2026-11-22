@@ -40,7 +40,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-02 | ✅ Compare N bikes with grouped specs; group, header, and value cells share one alignment; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
-| F-05 | ✅ Admin sign-in (Facebook PKCE), Bikes as the signed-in landing tab, and admin roles |
+| F-05 | ✅ Admin sign-in (Facebook PKCE), 12-hour sliding sessions with active-tab keepalive and explicit expiry handling, Bikes as the signed-in landing tab, and admin roles |
 | F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts; Bike Models filters and ordered sorting stay above the grid instead of in the sidebar |
 | F-07 | ✅ Admin: Bike variant CRUD, publish control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus publish/review/image state, and Bulk-style ordered multi-sort; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
@@ -263,6 +263,8 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-23** — Reworked admin session continuity: the API now defaults to a configurable 12-hour sliding cookie, the visible admin tab refreshes the session every five minutes and on return from a hidden tab, and an actual expiry presents a clear re-authentication prompt instead of silently navigating away. Updated the auth architecture/API/operations documentation. The API build passed, all 130 active API tests passed (2 optional PostgreSQL tests skipped), and the admin production build and lint passed with only the six existing warnings.
 
 **2026-11-23** — Aligned the one- and two-bike comparison group headers with the Spec header and specification values by applying the same horizontal table-cell padding on mobile and desktop. Focused web lint and production build passed.
 

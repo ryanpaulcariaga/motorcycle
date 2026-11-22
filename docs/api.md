@@ -299,7 +299,7 @@ The public user session (`UserAuth` cookie scheme, `AuthenticatedUser` policy) i
 
 ### Administration API
 
-The same ASP.NET Core API serves the private `apps/admin` Vite React SPA. Public catalog endpoints stay anonymous and read-only. The API completes Facebook Authorization Code + PKCE, verifies the active `AdminRole`, and creates a one-hour secure HttpOnly session cookie. The React client calls the API directly with credentialed CORS requests; Facebook access tokens are never exposed to the browser or accepted by protected catalog endpoints.
+The same ASP.NET Core API serves the private `apps/admin` Vite React SPA. Public catalog endpoints stay anonymous and read-only. The API completes Facebook Authorization Code + PKCE, verifies the active `AdminRole`, and creates a 12-hour sliding secure HttpOnly session cookie. The React client calls the API directly with credentialed CORS requests; Facebook access tokens are never exposed to the browser or accepted by protected catalog endpoints. `AdminAuth:SessionLifetimeHours` (or `AdminAuth__SessionLifetimeHours`) configures the idle lifetime.
 
 #### Administrator Authentication
 
@@ -308,7 +308,7 @@ The same ASP.NET Core API serves the private `apps/admin` Vite React SPA. Public
 - `GET /api/admin/auth/session` returns the signed-in identity when the session has an active administrator role.
 - `POST /api/admin/auth/signout` removes the admin session.
 
-Protected `/api/admin` requests require the API session cookie. `401 Unauthorized` means the session is missing or expired; `403 Forbidden` means the identity no longer has an active administrator role. CORS must allow the configured admin SPA origin with credentials.
+Protected `/api/admin` requests require the API session cookie. The SPA refreshes the session every five minutes while its tab is visible and on tab reactivation. A `401 Unauthorized` means the session is missing or expired and is surfaced to the administrator with an explicit re-authentication prompt; `403 Forbidden` means the identity no longer has an active administrator role. CORS must allow the configured admin SPA origin with credentials.
 
 #### Administrator Roles
 

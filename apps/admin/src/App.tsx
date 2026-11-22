@@ -11,7 +11,9 @@ import ContactInbox from '@/components/contact/ContactInbox';
 import SpecGroupManagement from '@/components/specs/SpecGroupManagement';
 import {
   API_BASE_URL,
+  ADMIN_SESSION_EXPIRED_EVENT,
   AdminApiError,
+  beginAdminSignIn,
   getAdminSession,
   signOutAdmin,
 } from '@/lib/api';
@@ -44,6 +46,33 @@ function SignIn({ error }: { error: string | null }) {
         </a>
       </section>
     </main>
+  );
+}
+
+function SessionExpiredDialog() {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="dialog"
+      aria-labelledby="session-expired-title"
+      aria-modal="true"
+    >
+      <section className="w-full max-w-lg border-l-4 border-brand-gold bg-brand-content p-6 shadow-lg">
+        <h2 className="text-xl font-bold text-brand-black" id="session-expired-title">
+          Your admin session expired
+        </h2>
+        <p className="mt-3 text-sm text-brand-grey">
+          Sign in again to continue. Any unsaved form changes will be lost when authentication resumes.
+        </p>
+        <button
+          className="mt-5 bg-brand-button px-5 py-3 font-semibold text-white hover:bg-brand-button-active"
+          type="button"
+          onClick={beginAdminSignIn}
+        >
+          Sign in again
+        </button>
+      </section>
+    </div>
   );
 }
 
@@ -281,6 +310,7 @@ function AdminShell({ session }: { session: AdminSession }) {
 export default function App() {
   const [session, setSession] = useState<AdminSession | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const error = new URLSearchParams(window.location.search).get('error');
 
   useEffect(() => {
@@ -304,6 +334,40 @@ export default function App() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    const handleSessionExpired = () => setSessionExpired(true);
+    window.addEventListener(ADMIN_SESSION_EXPIRED_EVENT, handleSessionExpired);
+    return () => window.removeEventListener(ADMIN_SESSION_EXPIRED_EVENT, handleSessionExpired);
+  }, []);
+
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+
+    const keepSessionAlive = () => {
+      if (document.visibilityState !== 'visible') {
+        return;
+      }
+      void getAdminSession()
+        .then(setSession)
+        .catch((cause: unknown) => {
+          if (cause instanceof AdminApiError && cause.status === 401) {
+            setSessionExpired(true);
+            return;
+          }
+          console.error(cause);
+        });
+    };
+    const interval = window.setInterval(keepSessionAlive, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', keepSessionAlive);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', keepSessionAlive);
+    };
+  }, [session]);
+
   if (loading) {
     return (
       <main className="min-h-screen bg-brand-page p-6 text-brand-black">
@@ -311,5 +375,12 @@ export default function App() {
       </main>
     );
   }
-  return session ? <AdminShell session={session} /> : <SignIn error={error} />;
+  return session ? (
+    <>
+      <AdminShell session={session} />
+      {sessionExpired && <SessionExpiredDialog />}
+    </>
+  ) : (
+    <SignIn error={error} />
+  );
 }

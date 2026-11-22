@@ -18,6 +18,7 @@ Azure resources, production URLs, deployment history and lessons, and local deve
 
 - Ports: API `https://localhost:7240` (single `https` launch profile), public web `https://localhost:3000` (custom HTTPS server `apps/web/server.mjs`), admin SPA `https://localhost:3001`. The API owns the admin callback `https://localhost:7240/api/admin/auth/facebook/callback`.
 - Local API secrets use `dotnet user-secrets` on `apps/api/Motorcycle.Api` (`UserSecretsId: motorcycle-api-local`).
+- Admin authentication uses a 12-hour sliding idle session. Override it with `AdminAuth__SessionLifetimeHours` if a deployment requires a different approved lifetime. The SPA refreshes the cookie while its tab is visible, but a laptop sleep or prolonged hidden tab can still legitimately require a new Facebook sign-in.
 - Local access to the Azure PostgreSQL server needs your current public IP in its firewall rules, or the API fails with "Failed to connect ... :5432".
 - Stop a running API (and Visual Studio) before `dotnet test` or `dotnet build`, or the DLLs are locked.
 

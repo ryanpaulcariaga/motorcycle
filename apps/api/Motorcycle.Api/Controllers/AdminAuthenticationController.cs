@@ -123,7 +123,7 @@ public sealed class AdminAuthenticationController : ControllerBase
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)), new AuthenticationProperties
             {
                 IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1),
+                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(_options.SessionLifetimeHours),
                 AllowRefresh = true,
             });
             return Redirect(_options.AdminAppUrl);
