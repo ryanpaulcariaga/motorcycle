@@ -68,8 +68,8 @@ export default async function Home() {
         popularComparisons,
       }}
     >
-      <div className="space-y-4">
-        <section className="bg-brand-content p-4 shadow-lg sm:p-6" aria-labelledby="latest-bikes-heading">
+      <div className="space-y-4 md:space-y-6">
+        <section className="bg-brand-content p-4 shadow-lg" aria-labelledby="latest-bikes-heading">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h1 id="latest-bikes-heading" className="text-2xl font-bold">Top 10 Latest Bikes</h1>
             <Link
@@ -89,9 +89,9 @@ export default async function Home() {
           />
         </section>
 
-        <section className="bg-brand-content p-4 shadow-lg sm:p-6" aria-labelledby="daily-interest-heading">
+        <section className="bg-brand-content p-4 shadow-lg" aria-labelledby="daily-interest-heading">
           <h2 id="daily-interest-heading" className="mb-4 text-2xl font-bold">
-            Top 10 by Daily Interest
+            Most Viewed
           </h2>
           {topByDailyInterest.length === 0 ? (
             <p className="border border-zinc-200 p-6 text-sm text-brand-grey">
@@ -107,8 +107,8 @@ export default async function Home() {
           )}
         </section>
 
-        <section className="bg-brand-content p-4 shadow-lg sm:p-6" aria-labelledby="top-fans-heading">
-          <h2 id="top-fans-heading" className="mb-4 text-2xl font-bold">Top 10 by Fans</h2>
+        <section className="bg-brand-content p-4 shadow-lg" aria-labelledby="top-fans-heading">
+          <h2 id="top-fans-heading" className="mb-4 text-2xl font-bold">Most Popular</h2>
           {topByFans.length === 0 ? (
             <p className="border border-zinc-200 p-6 text-sm text-brand-grey">
               No ratings yet. Review a bike to join its fans.
@@ -123,9 +123,9 @@ export default async function Home() {
           )}
         </section>
 
-        <section className="bg-brand-content p-4 shadow-lg sm:p-6" aria-labelledby="popular-comparisons-heading">
+        <section className="bg-brand-content p-4 shadow-lg" aria-labelledby="popular-comparisons-heading">
           <h2 id="popular-comparisons-heading" className="mb-4 text-2xl font-bold">
-            Top 10 Popular Comparisons
+            Popular Comparisons
           </h2>
           {popularComparisons.length === 0 ? (
             <p className="border border-zinc-200 p-6 text-sm text-brand-grey">

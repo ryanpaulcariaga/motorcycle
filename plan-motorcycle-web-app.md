@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: home discovery sections for the top 10 latest bikes, top 10 by daily interest, top 10 by fans, and top 10 popular comparisons, plus a View all bikes link to browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria and admin-style direction toggles; detail page; compact home and browse bike cards with gold hover borders and no hover shadow in one column through tablet widths and responsive desktop columns, with 24 bikes per browse page |
+| F-01 | ✅ Public catalog: home discovery sections for the top 10 latest bikes, Most Viewed, Most Popular, and Popular Comparisons, plus a View all bikes link to browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria and admin-style direction toggles; detail page; compact home and browse bike cards with gold hover borders and no hover shadow in one column through tablet widths and responsive desktop columns, with 24 bikes per browse page |
 | F-02 | ✅ Compare N bikes with grouped specs; group, header, and value cells share one alignment; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
@@ -53,7 +53,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results; Browse Bikes has variant-only keyword and Include discontinued filters inside collapsed Advanced filters, detail links retain publication state, and MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
-| F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; wide layouts keep 14rem sidebars and cap the body at its 1366px-desktop size while matching 1.5rem inner spacing to the sidebar/content gap, bike-detail highlights always use one column, mobile account-menu rows and browse links are consistently right-aligned, sidebar sections expand independently, pages scroll to content, and the bulk-edit modal uses one vertical scroller with fixed title and actions |
+| F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; wide layouts keep 14rem sidebars and cap the body at its 1366px-desktop size while matching 1rem/1.5rem group spacing to the responsive sidebar/content gap and keeping home body headings aligned with sidebar title insets, bike-detail highlights always use one column, mobile account-menu rows and browse links are consistently right-aligned, sidebar sections expand independently, pages scroll to content, and the bulk-edit modal uses one vertical scroller with fixed title and actions |
 | F-21 | ✅ Admin shared per-bike Draft/In Progress/Completed status with a recorded UTC completion timestamp, per-spec verifications and progress, and a dedicated one-click In Progress checkbox per bike; the Bikes-grid status picker lazily creates options only for the open record, matching the Brand picker, while populated specs drive automatic Completed status with manual override and toolbar labels clarify that updates and resets apply only to displayed bikes |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
@@ -70,7 +70,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-14 | Catalog data transparency and user-submitted correction reports |
 | F-15 | Shareable comparisons and saved bikes/comparisons |
 | F-25 | 🔄 Signed-in, separately opted-in interest profiles with deletion and 12-month retention; authenticated browser verification remains |
-| F-27 | 🔄 Bike detail action-row rating summary, user-review dialog, "Top 10 by Fans" catalog ranking, and independent rating-free Comments with replies directly below specs; authenticated browser verification remains |
+| F-27 | 🔄 Bike detail action-row rating summary, user-review dialog, "Most Popular" catalog ranking, and independent rating-free Comments with replies directly below specs; authenticated browser verification remains |
 
 ## Release gates
 
@@ -269,6 +269,10 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-24** — Renamed the public home and shared catalog sidebar headings to "Most Viewed", "Most Popular", and "Popular Comparisons", and aligned the home body headings with the sidebar title inset.
+
+**2026-11-24** — Matched the public home discovery groups and the public/admin sidebar section gaps to the responsive gap between sidebar and body: 1rem below desktop and 1.5rem from the desktop breakpoint upward. Focused web/admin lint and both production builds pass.
 
 **2026-11-24** — Changed public bike-detail highlights to a single column at every viewport width. Focused web lint and the public production build pass.
 

@@ -100,7 +100,7 @@ export default async function CatalogPageShell({
               ))}
             </div>
           </SidebarSection>
-          <SidebarSection title="Top 10 by Daily Interest">
+          <SidebarSection title="Most Viewed">
             {topByDailyInterest.length === 0 ? (
               <p className="text-xs text-white/50 italic">No opted-in views today — view a bike to start the list.</p>
             ) : (
@@ -123,7 +123,7 @@ export default async function CatalogPageShell({
               </ol>
             )}
           </SidebarSection>
-          <SidebarSection title="Top 10 by Fans">
+          <SidebarSection title="Most Popular">
             {topByFans.length === 0 ? (
               <p className="text-xs text-white/50 italic">No ratings yet — review a bike to join its fans.</p>
             ) : (
@@ -146,7 +146,7 @@ export default async function CatalogPageShell({
               </ol>
             )}
           </SidebarSection>
-          <SidebarSection title="Top 10 Popular Comparisons">
+          <SidebarSection title="Popular Comparisons">
             {popularComparisons.length === 0 ? (
               <p className="text-xs text-white/50 italic">No comparisons yet — compare some bikes to see them here.</p>
             ) : (

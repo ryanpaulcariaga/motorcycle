@@ -27,7 +27,7 @@ export default function Sidebar({ children }: SidebarProps) {
 
   return (
     <aside className="w-full shrink-0 text-white md:w-56">
-      <div key={route} className="space-y-4">
+      <div key={route} className="space-y-4 md:space-y-6">
         {children}
       </div>
     </aside>

@@ -152,7 +152,7 @@ public class BikesController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Published bikes with the most active-user ratings, for the "Top 10 by Fans" sidebar.</summary>
+    /// <summary>Published bikes with the most active-user ratings, for the "Most Popular" sidebar.</summary>
     [HttpGet("top-by-fans")]
     public async Task<IActionResult> GetTopByFans([FromQuery] int limit = 10, CancellationToken ct = default)
     {

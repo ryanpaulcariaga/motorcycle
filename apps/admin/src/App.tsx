@@ -238,7 +238,7 @@ function AdminShell({ session }: { session: AdminSession }) {
       </header>
       <div className="mx-auto grid min-w-0 w-full max-w-[1366px] gap-4 p-3 sm:p-4 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-6 md:p-6">
         <aside
-          className="min-w-0 space-y-4 self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto"
+          className="min-w-0 space-y-4 self-start md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:space-y-6 md:overflow-y-auto"
           id="admin-navigation"
         >
           <nav className="bg-brand-sidebar p-4 text-white/80">
@@ -331,7 +331,7 @@ function AdminShell({ session }: { session: AdminSession }) {
             </a>
             </div>
           </nav>
-          <div className="space-y-4" ref={setSidebarSlot} />
+          <div className="space-y-4 md:space-y-6" ref={setSidebarSlot} />
         </aside>
         <main ref={mainRef} className="min-h-screen min-w-0 md:min-h-0">
           <GridSidebarSlot.Provider value={sidebarSlot}>

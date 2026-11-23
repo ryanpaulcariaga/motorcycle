@@ -165,13 +165,13 @@ Most compared pairs of published bikes (most compared first; `limit` 1–20, def
 
 #### GET /api/bikes/top-by-fans?limit=10
 
-Published bikes ranked for the home-page and sidebar "Top 10 by Fans" groups. A fan is one active user with a rating for that bike; each user can have only one review per bike. Results are ordered by fan count, then average rating, then bike ID (`limit` 1–20, default 10).
+Published bikes ranked for the home-page and sidebar "Most Popular" groups. A fan is one active user with a rating for that bike; each user can have only one review per bike. Results are ordered by fan count, then average rating, then bike ID (`limit` 1–20, default 10).
 
 **Response**: `[{ "bike": <BikeListItemDto>, "fanCount": 12, "averageRating": 4.3 }]`
 
 #### GET /api/bikes/top-by-daily-interest?limit=10
 
-Published bikes ranked for the home-page and sidebar "Top 10 by Daily Interest" groups using the current UTC date's opted-in anonymous `bike_view` count. Private signed-in interest profiles are excluded. Results are ordered by view count and then bike ID (`limit` 1–20, default 10), and only bikes still published are returned.
+Published bikes ranked for the home-page and sidebar "Most Viewed" groups using the current UTC date's opted-in anonymous `bike_view` count. Private signed-in interest profiles are excluded. Results are ordered by view count and then bike ID (`limit` 1–20, default 10), and only bikes still published are returned.
 
 **Response**: `[{ "bike": <BikeListItemDto>, "viewCount": 12 }]`
 
