@@ -115,6 +115,7 @@ export default function BikeManagement({
   const [updatingModelId, setUpdatingModelId] = useState<number | null>(null);
   const inlineSavingRef = useRef(new Set<string>());
   const loadVersionRef = useRef(0);
+  const hasSelectedInitialBrandRef = useRef(modelId !== undefined);
   const [openingGrid, setOpeningGrid] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [gridBikes, setGridBikes] = useState<BikeSpecGridRow[]>([]);
@@ -347,6 +348,20 @@ export default function BikeManagement({
   useEffect(() => {
     queueMicrotask(() => void load());
   }, [load]);
+
+  useEffect(() => {
+    if (
+      hasSelectedInitialBrandRef.current ||
+      loading ||
+      brandFilter ||
+      brands.length === 0
+    ) {
+      return;
+    }
+
+    hasSelectedInitialBrandRef.current = true;
+    setBrandFilter(String(brands[0].id));
+  }, [brandFilter, brands, loading]);
 
   useEffect(() => {
     queueMicrotask(() => setBikeGridPage(1));

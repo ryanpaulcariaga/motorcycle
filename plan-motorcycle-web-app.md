@@ -42,7 +42,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-04 | ✅ Public sign-in with Facebook |
 | F-05 | ✅ Admin sign-in (Facebook PKCE), 12-hour sliding sessions with active-tab keepalive and explicit expiry handling, Bikes as the signed-in landing tab, and admin roles |
 | F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts; Bike Models filters and ordered sorting stay above the grid instead of in the sidebar |
-| F-07 | ✅ Admin: Bike variant CRUD, published control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus published/review/image state, and Bulk-style ordered multi-sort including review completion time; the main Bikes grid requires a brand and queries only that brand; model labels show assigned bike counts |
+| F-07 | ✅ Admin: Bike variant CRUD, published control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus published/review/image state, and Bulk-style ordered multi-sort including review completion time; the main Bikes grid selects the first available brand by default and queries only the selected brand; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management and drag-and-drop ordering |
 | F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, displayed-bike review updates, Excel export, and Excel import for exactly the displayed variants |
@@ -233,7 +233,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
-| T-119 | ✅ Require an admin Bikes brand before loading variants | The main Bikes screen opens with its required brand filter, requests only the selected brand through `/api/admin/bikes?brandId={id}`, preserves the brand while clearing optional filters, and keeps model-scoped views unchanged; focused API filtering coverage and admin/API builds pass |
+| T-119 | ✅ Require an admin Bikes brand before loading variants | The main Bikes screen opens with the first available brand selected, requests only that selected brand through `/api/admin/bikes?brandId={id}`, preserves the brand while clearing optional filters, and keeps model-scoped views unchanged; focused API filtering coverage, admin lint, and admin/API builds pass |
 | T-117 | ✅ Refine public browse keyword and publication filtering | Browse keyword matching is variant-only; Keyword and an Include discontinued checkbox live inside Advanced filters, default results remain published, checked results include both states, state persists through pagination and detail links, and unpublished details suppress published-only compare/review/comment actions. API visibility tests pass (5 focused tests); web lint and production build pass |
 | T-116 | ✅ Add a visible keyword search option to public bike browsing | Browse has a keyword field with Search bikes and Clear keyword actions, preserves advanced filters and sorting, and uses the same anonymous search analytics flow; keywords now match variant names only. Web lint and production build pass |
 | T-114 | ✅ Make Bikes the admin landing page | `/`, `/admin`, and `/admin/` render the Bikes variant screen and highlight Bikes after sign-in; explicit admin deep links remain unchanged. Admin build and lint pass |
@@ -269,6 +269,8 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-24** — The admin Bikes tab now selects the first available brand when it opens, loads that brand's variants immediately, and leaves subsequent user brand choices intact. Focused admin lint and the production build pass.
 
 **2026-11-24** — Renamed the public home and shared catalog sidebar headings to "Most Viewed", "Most Popular", and "Popular Comparisons", and aligned the home body headings with the sidebar title inset.
 
