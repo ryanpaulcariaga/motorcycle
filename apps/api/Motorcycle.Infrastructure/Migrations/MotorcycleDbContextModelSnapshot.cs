@@ -697,6 +697,10 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasColumnType("character varying(254)")
                         .HasColumnName("email");
 
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_read");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(5000)

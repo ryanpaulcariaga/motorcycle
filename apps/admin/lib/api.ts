@@ -71,6 +71,14 @@ export function deleteContactInquiry(id: number): Promise<void> {
   return apiFetch(`/api/admin/contact-inquiries/${id}`, { method: "DELETE" });
 }
 
+export function setContactInquiryRead(id: number, isRead: boolean): Promise<void> {
+  return apiFetch(`/api/admin/contact-inquiries/${id}/read`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ isRead }),
+  });
+}
+
 export function getAnalytics(from: string, to: string): Promise<AnalyticsDashboard> {
   return apiFetch(`/api/admin/analytics?${new URLSearchParams({ from, to })}`);
 }

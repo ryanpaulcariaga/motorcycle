@@ -45,6 +45,15 @@ public sealed class ContactInquiryTests
         Assert.Equal("Rider", inquiry.Name);
         Assert.Equal("rider@example.com", inquiry.Email);
         Assert.Equal("A suggestion", inquiry.Message);
+        Assert.False(inquiry.IsRead);
+        Assert.Equal(1, page.UnreadCount);
+        Assert.True(await service.SetReadAsync(inquiry.Id, true, default));
+        var readPage = await service.GetPageAsync(1, 20, default);
+        Assert.True(Assert.Single(readPage.Items).IsRead);
+        Assert.Equal(0, readPage.UnreadCount);
+        Assert.True(await service.SetReadAsync(inquiry.Id, false, default));
+        Assert.Equal(1, (await service.GetPageAsync(1, 20, default)).UnreadCount);
+        Assert.False(await service.SetReadAsync(999, true, default));
         Assert.True(await service.DeleteAsync(inquiry.Id, default));
         Assert.False(await service.DeleteAsync(inquiry.Id, default));
         Assert.Empty((await service.GetPageAsync(1, 20, default)).Items);
@@ -63,8 +72,9 @@ public sealed class ContactInquiryTests
         await db.SaveChangesAsync();
         var repository = new ContactInquiryRepository(db);
 
-        var (items, count) = await repository.GetPageAsync(2, 1, default);
+        var (items, count, unreadCount) = await repository.GetPageAsync(2, 1, default);
         Assert.Equal(2, count);
+        Assert.Equal(2, unreadCount);
         Assert.Equal("One", Assert.Single(items).Message);
     }
 
@@ -143,6 +153,8 @@ public sealed class ContactInquiryTests
         var limited = await client.PostAsJsonAsync("/api/contact", new { email = "rider@example.com", message = "Again" });
         Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/admin/contact-inquiries")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.PatchAsJsonAsync(
+            "/api/admin/contact-inquiries/1/read", new { isRead = true })).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.DeleteAsync("/api/admin/contact-inquiries/1")).StatusCode);
 
         using var scope = app.Services.CreateScope();

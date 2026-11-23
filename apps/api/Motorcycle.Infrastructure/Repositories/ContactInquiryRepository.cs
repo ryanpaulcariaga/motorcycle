@@ -13,13 +13,28 @@ public sealed class ContactInquiryRepository(MotorcycleDbContext db) : IContactI
         await db.SaveChangesAsync(ct);
     }
 
-    public async Task<(IReadOnlyList<ContactInquiry> Items, int TotalCount)> GetPageAsync(int page, int pageSize, CancellationToken ct)
+    public async Task<(IReadOnlyList<ContactInquiry> Items, int TotalCount, int UnreadCount)> GetPageAsync(
+        int page, int pageSize, CancellationToken ct)
     {
         var query = db.ContactInquiries.AsNoTracking();
         var count = await query.CountAsync(ct);
+        var unreadCount = await query.CountAsync(item => !item.IsRead, ct);
         var items = await query.OrderByDescending(item => item.CreatedAt).ThenByDescending(item => item.Id)
             .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
-        return (items, count);
+        return (items, count, unreadCount);
+    }
+
+    public async Task<bool> SetReadAsync(int id, bool isRead, CancellationToken ct)
+    {
+        var inquiry = await db.ContactInquiries.FindAsync([id], ct);
+        if (inquiry is null)
+        {
+            return false;
+        }
+
+        inquiry.IsRead = isRead;
+        await db.SaveChangesAsync(ct);
+        return true;
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken ct)

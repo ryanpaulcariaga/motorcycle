@@ -13,6 +13,14 @@ Content-Type: application/json
 ### List inquiries (requires an active administrator session)
 GET {{baseUrl}}/api/admin/contact-inquiries?page=1&pageSize=20
 
+### Mark an inquiry as read (requires an active administrator session and allowed Origin)
+PATCH {{baseUrl}}/api/admin/contact-inquiries/1/read
+Content-Type: application/json
+
+{
+  "isRead": true
+}
+
 ### Delete an inquiry (requires an active administrator session and allowed Origin)
 DELETE {{baseUrl}}/api/admin/contact-inquiries/1
 Origin: https://localhost:3001

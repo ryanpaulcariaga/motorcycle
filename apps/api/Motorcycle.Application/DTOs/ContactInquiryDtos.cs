@@ -16,7 +16,18 @@ public sealed record CreateContactInquiryRequest
 }
 
 /// <summary>A contact inquiry visible to administrators.</summary>
-public sealed record ContactInquiryDto(int Id, string? Name, string Email, string Message, DateTimeOffset CreatedAt);
+public sealed record ContactInquiryDto(int Id, string? Name, string Email, string Message, bool IsRead, DateTimeOffset CreatedAt);
 
 /// <summary>A page of contact inquiries.</summary>
-public sealed record ContactInquiryPageDto(IReadOnlyList<ContactInquiryDto> Items, int Page, int PageSize, int TotalCount);
+public sealed record ContactInquiryPageDto(
+    IReadOnlyList<ContactInquiryDto> Items,
+    int Page,
+    int PageSize,
+    int TotalCount,
+    int UnreadCount);
+
+/// <summary>The requested read state for an inquiry.</summary>
+public sealed record UpdateContactInquiryReadRequest
+{
+    public required bool IsRead { get; init; }
+}

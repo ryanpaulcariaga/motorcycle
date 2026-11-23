@@ -14,7 +14,7 @@ https://api.motorcycle-app.example.com
 
 `POST /api/contact` accepts anonymous JSON with optional `name` (maximum 100 characters), required `email` (valid email, maximum 254), and required `message` (maximum 5000). A successful durable database save returns `202 Accepted` without exposing an inquiry ID or a public read endpoint. Invalid requests return 400, an oversized request returns 413, and rate-limited requests return 429. The per-client-IP contact limit defaults to five requests per minute and can be set with `RateLimiting:ContactPerMinute`.
 
-`GET /api/admin/contact-inquiries?page=1&pageSize=20` requires an active administrator and returns `{ items, page, pageSize, totalCount }`, newest first. Each item contains `id`, `name`, `email`, `message`, and `createdAt`. Page sizes are limited to 100. `DELETE /api/admin/contact-inquiries/{id}` requires the same authorization and an allowed Origin; it returns 204 or 404. Deletions use the normal admin audit interceptor without recording message contents.
+`GET /api/admin/contact-inquiries?page=1&pageSize=20` requires an active administrator and returns `{ items, page, pageSize, totalCount, unreadCount }`, newest first. Each item contains `id`, `name`, `email`, `message`, `isRead`, and `createdAt`. Page sizes are limited to 100. `PATCH /api/admin/contact-inquiries/{id}/read` accepts `{ "isRead": true|false }` and returns 204 or 404. `DELETE /api/admin/contact-inquiries/{id}` returns 204 or 404. Both mutations require the same authorization and an allowed Origin, and use the normal admin audit interceptor without recording message contents.
 
 ### Bikes
 

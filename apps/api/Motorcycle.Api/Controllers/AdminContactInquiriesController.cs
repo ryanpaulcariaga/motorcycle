@@ -19,6 +19,11 @@ public sealed class AdminContactInquiriesController(IContactInquiryService servi
         CancellationToken ct = default) =>
         Ok(await service.GetPageAsync(page, pageSize, ct));
 
+    [HttpPatch("{id:int}/read")]
+    public async Task<IActionResult> SetRead(
+        int id, UpdateContactInquiryReadRequest request, CancellationToken ct) =>
+        await service.SetReadAsync(id, request.IsRead, ct) ? NoContent() : NotFound();
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken ct) =>
         await service.DeleteAsync(id, ct) ? NoContent() : NotFound();

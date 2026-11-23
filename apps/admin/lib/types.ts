@@ -278,6 +278,7 @@ export interface ContactInquiry {
   name: string | null;
   email: string;
   message: string;
+  isRead: boolean;
   createdAt: string;
 }
 
@@ -286,4 +287,5 @@ export interface ContactInquiryPage {
   page: number;
   pageSize: number;
   totalCount: number;
+  unreadCount: number;
 }

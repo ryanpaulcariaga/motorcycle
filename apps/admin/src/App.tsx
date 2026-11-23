@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GridSidebarSlot } from '@/components/GridSidebar';
 import BikeModelManagement from '@/components/bike-models/BikeModelManagement';
 import CategoryManagement from '@/components/categories/CategoryManagement';
@@ -15,6 +15,7 @@ import {
   AdminApiError,
   beginAdminSignIn,
   getAdminSession,
+  getContactInquiries,
   signOutAdmin,
 } from '@/lib/api';
 import type { AdminSession } from '@/lib/types';
@@ -82,7 +83,32 @@ function AdminShell({ session }: { session: AdminSession }) {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const swipeStartX = useRef(0);
   const [sidebarSlot, setSidebarSlot] = useState<HTMLElement | null>(null);
+  const [unreadInquiryCount, setUnreadInquiryCount] = useState(0);
   const mainRef = useRef<HTMLElement>(null);
+
+  const refreshUnreadInquiryCount = useCallback(async () => {
+    try {
+      const result = await getContactInquiries(1, 1);
+      setUnreadInquiryCount(result.unreadCount);
+    } catch (cause) {
+      console.error('Unable to refresh the contact inquiry count.', cause);
+    }
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(() => void refreshUnreadInquiryCount());
+    const interval = window.setInterval(() => void refreshUnreadInquiryCount(), 30000);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshUnreadInquiryCount();
+      }
+    };
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
+  }, [refreshUnreadInquiryCount]);
 
   useEffect(() => {
     if (!window.matchMedia('(max-width: 767px)').matches || window.location.hash) {
@@ -138,7 +164,7 @@ function AdminShell({ session }: { session: AdminSession }) {
   ) : isAnalyticsActive ? (
     <AnalyticsDashboard />
   ) : isContactActive ? (
-    <ContactInbox />
+    <ContactInbox onUnreadCountChange={setUnreadInquiryCount} />
   ) : (
     <RoleManagement />
   );
@@ -291,7 +317,17 @@ function AdminShell({ session }: { session: AdminSession }) {
               className={`-mx-4 block px-4 py-1.5 text-sm font-normal text-white/80 ${isContactActive ? 'bg-white/15' : 'hover:bg-white/10'}`}
               href="/admin/contact"
             >
-              Contact inquiries
+              <span className="flex items-center justify-between gap-2">
+                <span>Contact inquiries</span>
+                {unreadInquiryCount > 0 && (
+                  <span
+                    aria-label={`${unreadInquiryCount} unread contact inquiries`}
+                    className="inline-flex min-w-6 items-center justify-center bg-brand-button px-1.5 py-0.5 text-xs font-bold text-white"
+                  >
+                    {unreadInquiryCount}
+                  </span>
+                )}
+              </span>
             </a>
             </div>
           </nav>

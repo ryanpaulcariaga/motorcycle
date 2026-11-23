@@ -10,12 +10,13 @@ CREATE TABLE contact_inquiries (
   name varchar(100),
   email varchar(254) NOT NULL,
   message varchar(5000) NOT NULL,
+  is_read boolean NOT NULL DEFAULT FALSE,
   created_at timestamptz NOT NULL
 );
 CREATE INDEX ix_contact_inquiries_created_at_id ON contact_inquiries(created_at, id);
 ```
 
-Inquiries are not linked to user accounts and are not included in account export or cascade deletion. They remain until an administrator deletes them; backup retention is separate.
+New inquiries default to unread. Administrators can toggle the read state without changing the creation timestamp or message. Inquiries are not linked to user accounts and are not included in account export or cascade deletion. They remain until an administrator deletes them; backup retention is separate.
 
 ### brands
 ```sql

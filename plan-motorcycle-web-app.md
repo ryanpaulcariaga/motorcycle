@@ -60,7 +60,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
 | F-26 | ✅ Public and admin show the same branded browser compatibility notice when JavaScript, required capabilities, or framework startup is unavailable |
 | F-28 | ✅ Public privacy and terms pages, global legal links, and authenticated JSON account export plus permanent cascade-backed account deletion from Settings |
-| F-29 | ✅ Public contact form stores inquiries through the shared API; protected admin inbox supports reading and deleting, with no email notifications |
+| F-29 | ✅ Public contact form stores inquiries through the shared API; protected admin inbox supports read/unread state, an unread navigation count, reading, deleting, and in-app polling notifications, with no email notifications |
 | F-30 | ✅ Admins can tag models or variants as test data, toggle variant test data directly from the Bikes grid, and configure test-bike visibility per administrator in the private Administrators tab; mapped administrators receive published production plus tagged test bikes through the same public UI and interactions only when enabled on their administrator role, including unpublished test bikes, while anonymous/normal users and opted-out administrators receive published production only |
 
 ## Features (planned)
@@ -108,7 +108,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 | T-22 | ⬜ | Admin: spec group/definition management | | G-05 |
 | T-23 | ⬜ | Admin: Bulk Spec Edit and spec grid | | G-05 |
 | T-24 | ⬜ | Admin: Excel export and import with a real `.xlsx` file | | G-05 |
-| T-113 | ⬜ | Verify contact form and admin inbox end to end | Check submission, validation, unauthorized access, pagination, reply link and deletion using a test database and authenticated admin session | G-05, G-07, G-10 |
+| T-113 | ⬜ | Verify contact form and admin inbox end to end | Check submission, validation, unauthorized access, pagination, reply link, read/unread changes, navigation count and deletion using a test database and authenticated admin session | G-05, G-07, G-10 |
 
 ### Security
 
@@ -317,6 +317,8 @@ The API stores the uploaded original and generates smaller copies for the public
 **2026-11-23** — Aligned the one- and two-bike comparison group headers with the Spec header and specification values by applying the same horizontal table-cell padding on mobile and desktop. Focused web lint and production build passed.
 
 **2026-11-23** — Aligned the public mobile account name and sign-out rows with Browse Bikes and Compare, matching the working admin hamburger menu. The fix right-justifies stacked account-row flex content without changing the desktop header.
+
+**2026-11-24** — Added persisted read/unread state to contact inquiries, protected PATCH controls, unread totals in the inbox contract, unread message styling, and an admin navigation badge refreshed every 30 seconds and when the tab becomes visible. Generated the `AddContactInquiryReadState` migration and updated API/schema docs. Eight focused contact inquiry tests and the admin production build pass; admin lint has only the five existing unrelated warnings. Authenticated browser and PostgreSQL end-to-end checks remain under T-113.
 
 **2026-11-23** — Fixed modal scrolling across admin and web: bulk edit, Excel import errors, public user reviews, and the image viewer now avoid nested vertical scrollers; modal titles and actions stay accessible while content scrolls. Added the single-vertical-scroller pattern to the repository's always-on modal convention for all future modal creation and updates. Bulk edit passed a 390x844 mocked browser check. Admin and web builds passed, and lint passed with only the admin's existing warnings.
 

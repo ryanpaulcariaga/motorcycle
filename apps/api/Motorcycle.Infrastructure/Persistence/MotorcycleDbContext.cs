@@ -47,6 +47,7 @@ public class MotorcycleDbContext : DbContext
             inquiry.Property(x => x.Name).HasMaxLength(100);
             inquiry.Property(x => x.Email).HasMaxLength(254).IsRequired();
             inquiry.Property(x => x.Message).HasMaxLength(5000).IsRequired();
+            inquiry.Property(x => x.IsRead).IsRequired();
             inquiry.HasIndex(x => new { x.CreatedAt, x.Id });
         });
 
