@@ -46,8 +46,9 @@ CREATE TABLE bikes (
   slug VARCHAR(512) NOT NULL UNIQUE,
   specs JSONB NOT NULL DEFAULT '{}',  -- { "cc": "399", "horsepower": "45", ... }
   is_published BOOLEAN DEFAULT false,
-  review_status VARCHAR(16) NOT NULL DEFAULT 'notReviewed'
-    CHECK (review_status IN ('notReviewed', 'inReview', 'reviewed')),
+  review_status VARCHAR(16) NOT NULL DEFAULT 'draft'
+    CHECK (review_status IN ('draft', 'inProgress', 'completed')),
+  review_completed_at TIMESTAMPTZ,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -97,7 +98,7 @@ CREATE INDEX ix_bike_spec_verifications_spec_definition_id ON bike_spec_verifica
 
 Presence indicates that this bike's current spec value was confirmed; absence means unconfirmed. Spec values remain in `bikes.specs`. Bike-level review status does not create spec confirmations. The optional source URL is retained for future use and cannot currently be edited in the admin UI; the API validates its format, not whether it belongs to the brand.
 
-The shared bike review status is stored only in `bikes.review_status`. The migration converts the former `is_reviewed` and `is_in_review` flags to the corresponding status before dropping both columns; Reviewed takes precedence if both were set.
+The shared bike review status is stored only in `bikes.review_status`. The current values are `draft`, `inProgress`, and `completed`. `review_completed_at` records the UTC transition into Completed and is cleared whenever the bike returns to Draft or In Progress. The migration from the previous names maps `notReviewed`, `inReview`, and `reviewed` to the new values and backfills historical completion timestamps from `updated_at`.
 
 ### spec_groups
 ```sql

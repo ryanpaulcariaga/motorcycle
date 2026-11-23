@@ -13,7 +13,8 @@ public sealed record BikeAdminListItemDto(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     int ImageCount = 0,
-    string ReviewStatus = "notReviewed");
+    string ReviewStatus = "draft",
+    DateTime? ReviewCompletedAt = null);
 
 public sealed record BikeAdminDetailDto(
     int Id,
@@ -30,7 +31,8 @@ public sealed record BikeAdminDetailDto(
     DateTime CreatedAt,
     DateTime UpdatedAt,
     Dictionary<string, SpecVerificationDto> SpecVerifications,
-    string ReviewStatus = "notReviewed");
+    string ReviewStatus = "draft",
+    DateTime? ReviewCompletedAt = null);
 
 public sealed record SpecVerificationDto(string? SourceUrl, DateTime VerifiedAt);
 
@@ -62,7 +64,8 @@ public sealed record BikeSpecGridRowDto(
     bool IsPublished,
     Dictionary<string, object?> Specs,
     Dictionary<string, SpecVerificationDto>? SpecVerifications = null,
-    string ReviewStatus = "notReviewed");
+    string ReviewStatus = "draft",
+    DateTime? ReviewCompletedAt = null);
 
 public sealed record BikeSpecGridCellUpdate(int BikeId, string SpecCode, object? Value);
 

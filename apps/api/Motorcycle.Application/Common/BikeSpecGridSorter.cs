@@ -119,9 +119,9 @@ public static class BikeSpecGridSorter
 
     private static int ReviewRank(string reviewStatus) =>
         reviewStatus switch {
-            BikeReviewStatus.NotReviewed => 0,
-            BikeReviewStatus.InReview => 1,
-            BikeReviewStatus.Reviewed => 2,
+            BikeReviewStatus.Draft => 0,
+            BikeReviewStatus.InProgress => 1,
+            BikeReviewStatus.Completed => 2,
             _ => 3
         };
 

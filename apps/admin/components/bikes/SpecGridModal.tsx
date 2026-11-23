@@ -303,7 +303,7 @@ export default function SpecGridModal({
 
   const resetConfirmations = useCallback((bikeIds: number[], description: string) => {
     if (!window.confirm(
-      `Reset spec verifications and Reviewed for ${description}, including hidden specification groups and stored source information? Save changes to apply.`
+      `Reset spec verifications and Completed status for ${description}, including hidden specification groups and stored source information? Save changes to apply.`
     )) {
       return;
     }
@@ -311,7 +311,7 @@ export default function SpecGridModal({
     setRows((current) => current.map((row) =>
       ids.has(row.id) ? { ...row, verifications: {}, resetVerifications: true } : row
     ));
-    setNotice('Spec verifications and Reviewed reset in the grid. Save changes to apply, or discard to undo.');
+    setNotice('Spec verifications and Completed status reset in the grid. Save changes to apply, or discard to undo.');
     setError(null);
   }, []);
 
@@ -768,8 +768,8 @@ export default function SpecGridModal({
         drag the fill handle to copy a value down. Changes are saved together.
         Check a specification to verify it against the official brand source.
         Changing a value or bike identity clears its verification until it is
-        checked again. Reviewed is set automatically when all populated specs are verified.
-        Review status changes are saved with the grid; manually selecting Reviewed overrides verification.
+        checked again. Completed is set automatically when all populated specs are verified.
+        Review status changes are saved with the grid; manually selecting Completed overrides verification.
       </p>
       {notice && (
         <p
@@ -806,14 +806,14 @@ export default function SpecGridModal({
         <button
           type="button"
           className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
-          disabled={saving || !visibleRows.some((row) => row.reviewStatus === 'notReviewed')}
+          disabled={saving || !visibleRows.some((row) => row.reviewStatus === 'draft')}
           onClick={() => {
-            const ids = new Set(visibleRows.filter((row) => row.reviewStatus === 'notReviewed').map((row) => row.id));
-            setRows((current) => current.map((row) => ids.has(row.id) ? { ...row, reviewStatus: 'inReview' } : row));
-            setNotice('Displayed unreviewed motorcycles marked In review. Save changes to apply.');
+            const ids = new Set(visibleRows.filter((row) => row.reviewStatus === 'draft').map((row) => row.id));
+            setRows((current) => current.map((row) => ids.has(row.id) ? { ...row, reviewStatus: 'inProgress' } : row));
+            setNotice('Displayed draft motorcycles marked In Progress. Save changes to apply.');
           }}
         >
-          Mark displayed unreviewed In review
+          Mark displayed drafts In Progress
         </button>
         <button
           type="button"

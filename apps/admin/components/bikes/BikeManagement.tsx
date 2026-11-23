@@ -63,7 +63,7 @@ const sortFieldOptions: { key: SortField; label: string }[] = [
   { key: 'variant', label: 'Variant' },
   { key: 'model', label: 'Bike Model' },
   { key: 'msrp', label: 'MSRP' },
-  { key: 'status', label: 'Status' },
+  { key: 'status', label: 'Published' },
   { key: 'reviewed', label: 'Review status' },
 ];
 
@@ -421,7 +421,7 @@ export default function BikeManagement({
   async function resetVisibleConfirmations() {
     const ids = visibleBikes.map((bike) => bike.id);
     if (ids.length === 0 || !window.confirm(
-      `Reset spec verifications and Reviewed for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}? This also removes stored source information and cannot be undone.`
+      `Reset spec verifications and Completed status for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}? This also removes stored source information and cannot be undone.`
     )) {
       return;
     }
@@ -432,7 +432,7 @@ export default function BikeManagement({
     try {
       await updateAdminBikeSpecGrid({ resetVerificationBikeIds: ids });
       await load();
-      setNotice(`Reset spec verifications and Reviewed for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}.`);
+      setNotice(`Reset spec verifications and Completed status for ${ids.length} displayed bike${ids.length === 1 ? '' : 's'}.`);
     } catch (cause) {
       setError(cause instanceof AdminApiError ? cause.message : 'Unable to reset spec verifications.');
     } finally {
@@ -442,12 +442,12 @@ export default function BikeManagement({
 
   async function markDisplayedInReview() {
     const bikesToUpdate = visibleBikes.filter(
-      (bike) => bike.reviewStatus !== 'inReview'
+      (bike) => bike.reviewStatus !== 'inProgress'
     );
     if (
       bikesToUpdate.length === 0 ||
       !window.confirm(
-        `Mark ${bikesToUpdate.length} displayed bike${bikesToUpdate.length === 1 ? '' : 's'} In review? Existing spec verifications will be kept.`
+        `Mark ${bikesToUpdate.length} displayed bike${bikesToUpdate.length === 1 ? '' : 's'} In Progress? Existing spec verifications will be kept.`
       )
     ) {
       return;
@@ -460,18 +460,18 @@ export default function BikeManagement({
       const result = await updateAdminBikeSpecGrid({
         reviewStatusChanges: bikesToUpdate.map((bike) => ({
           bikeId: bike.id,
-          reviewStatus: 'inReview',
+          reviewStatus: 'inProgress',
         })),
       });
       await load();
       setNotice(
-        `Marked ${result.updatedCount} displayed bike${result.updatedCount === 1 ? '' : 's'} In review.`
+        `Marked ${result.updatedCount} displayed bike${result.updatedCount === 1 ? '' : 's'} In Progress.`
       );
     } catch (cause) {
       setError(
         cause instanceof AdminApiError
           ? cause.message
-          : 'Unable to mark displayed bikes In review.'
+          : 'Unable to mark displayed bikes In Progress.'
       );
     } finally {
       setMarkingDisplayedInReview(false);
@@ -548,7 +548,7 @@ export default function BikeManagement({
       await updateAdminBikeSpecGrid({ reviewStatusChanges: [{ bikeId: bike.id, reviewStatus }] });
       await load();
     } catch {
-      setError('Unable to update reviewed state.');
+      setError('Unable to update review status.');
     }
   }
 
@@ -708,13 +708,13 @@ export default function BikeManagement({
           loading ||
           resettingTags ||
           markingDisplayedInReview ||
-          !visibleBikes.some((bike) => bike.reviewStatus !== 'inReview')
+          !visibleBikes.some((bike) => bike.reviewStatus !== 'inProgress')
         }
         onClick={() => void markDisplayedInReview()}
       >
         {markingDisplayedInReview
           ? 'Marking...'
-          : "Set displayed to 'In review'"}
+          : "Set displayed to 'In Progress'"}
       </AdminToolbarButton>
       <AdminToolbarButton
         disabled={
@@ -725,7 +725,7 @@ export default function BikeManagement({
         }
         onClick={() => void resetVisibleConfirmations()}
       >
-        {resettingTags ? 'Resetting...' : "Reset displayed to 'Not reviewed'"}
+        {resettingTags ? 'Resetting...' : "Reset displayed to 'Draft'"}
       </AdminToolbarButton>
       <AdminToolbarButton disabled={loading} onClick={() => void load()}>
         {loading ? 'Refreshing...' : 'Refresh'}
@@ -859,9 +859,9 @@ export default function BikeManagement({
                   <input className="mt-1 w-full border border-black/20 bg-white px-3 py-2 font-normal" min="0" step="0.01" type="number" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} />
                 </label>
                 <label className="block text-sm font-semibold">
-                  Status
+                  Published
                   <select className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-                    <option value="">All statuses</option>
+                    <option value="">All publication states</option>
                     <option value="published">Published</option>
                     <option value="unpublished">Unpublished</option>
                   </select>
@@ -936,8 +936,10 @@ export default function BikeManagement({
                   {sortHeader('variant', 'Variant')}
                   {sortHeader('model', 'Bike Model')}
                   {sortHeader('msrp', 'MSRP')}
-                  {sortHeader('status', 'Status')}
+                  {sortHeader('status', 'Published')}
+                  <th className="p-2">In Progress</th>
                   {sortHeader('reviewed', 'Review status')}
+                  <th className="p-2">Review completed</th>
                   <th className="relative p-2">
                     <span className="sr-only">Actions</span>
                   </th>
@@ -1004,6 +1006,25 @@ export default function BikeManagement({
                       />
                     </td>
                     <td className="p-2">
+                      <input
+                        type="checkbox"
+                        checked={bike.reviewStatus === 'inProgress'}
+                        aria-label={`In Progress status for ${bike.variantName} (${bike.year})`}
+                        title={
+                          bike.reviewStatus === 'inProgress'
+                            ? 'In Progress - uncheck to return to Draft'
+                            : 'Not in progress - check to set In Progress'
+                        }
+                        className="h-4 w-4 accent-brand-gold"
+                        onChange={(event) => {
+                          void setReviewStatus(
+                            bike,
+                            event.target.checked ? 'inProgress' : 'draft'
+                          );
+                        }}
+                      />
+                    </td>
+                    <td className="p-2">
                       <select
                         className="border border-black/20 px-2 py-1"
                         value={bike.reviewStatus}
@@ -1014,6 +1035,11 @@ export default function BikeManagement({
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
                       </select>
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
+                      {bike.reviewCompletedAt
+                        ? new Date(bike.reviewCompletedAt).toLocaleString()
+                        : '—'}
                     </td>
                     <td className="p-2">
                       <div className="flex items-center justify-end gap-1">
@@ -1152,7 +1178,7 @@ export default function BikeManagement({
               <div className="mt-4">
                 <p className="text-sm text-brand-grey">
                   Changing a spec clears its verification. Changing the model, variant, or year clears all verifications.
-                  Check a spec again to verify the new value. Reviewed is set automatically when all populated specs are verified.
+                  Check a spec again to verify the new value. Completed is set automatically when all populated specs are verified.
                 </p>
                 <p className="mt-1 text-sm text-brand-grey">
                   {Object.keys(form.verifications).length} of {Object.values(form.specs).filter((value) => value.trim()).length} populated specs verified
@@ -1162,7 +1188,7 @@ export default function BikeManagement({
                   className="mt-2 border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
                   disabled={submitting || (form.resetVerifications && Object.keys(form.verifications).length === 0)}
                   onClick={() => {
-                    if (window.confirm('Reset spec verifications and Reviewed for this bike? This also removes stored source information. Save changes to apply.')) {
+                    if (window.confirm('Reset spec verifications and Completed status for this bike? This also removes stored source information. Save changes to apply.')) {
                       setForm({ ...form, verifications: {}, sourceUrls: {}, resetVerifications: true });
                     }
                   }}

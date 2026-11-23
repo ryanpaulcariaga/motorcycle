@@ -112,8 +112,9 @@ public class MotorcycleDbContext : DbContext
             b.Property(x => x.Year).IsRequired().HasDefaultValue(0);
             b.Property(x => x.Slug).IsRequired().HasMaxLength(512);
             b.Property(x => x.MsrpPrice).HasPrecision(10, 2);
-            b.Property(x => x.ReviewStatus).IsRequired().HasMaxLength(16).HasDefaultValue(BikeReviewStatus.NotReviewed);
-            b.ToTable(t => t.HasCheckConstraint("ck_bikes_review_status", "review_status IN ('notReviewed', 'inReview', 'reviewed')"));
+            b.Property(x => x.ReviewStatus).IsRequired().HasMaxLength(16).HasDefaultValue(BikeReviewStatus.Draft);
+            b.Property(x => x.ReviewCompletedAt);
+            b.ToTable(t => t.HasCheckConstraint("ck_bikes_review_status", "review_status IN ('draft', 'inProgress', 'completed')"));
 
             // JSONB mapping for specs with value comparer
             b.Property(x => x.Specs)

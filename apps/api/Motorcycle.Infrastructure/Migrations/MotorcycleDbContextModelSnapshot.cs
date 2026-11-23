@@ -192,12 +192,16 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("msrp_price");
 
+                    b.Property<DateTime?>("ReviewCompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("review_completed_at");
+
                     b.Property<string>("ReviewStatus")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)")
-                        .HasDefaultValue("notReviewed")
+                        .HasDefaultValue("draft")
                         .HasColumnName("review_status");
 
                     b.Property<string>("Slug")
@@ -249,7 +253,7 @@ namespace Motorcycle.Infrastructure.Migrations
 
                     b.ToTable("bikes", t =>
                         {
-                            t.HasCheckConstraint("ck_bikes_review_status", "review_status IN ('notReviewed', 'inReview', 'reviewed')");
+                            t.HasCheckConstraint("ck_bikes_review_status", "review_status IN ('draft', 'inProgress', 'completed')");
                         });
                 });
 

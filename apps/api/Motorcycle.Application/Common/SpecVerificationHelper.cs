@@ -27,10 +27,10 @@ public static class SpecVerificationHelper
         var populatedCodes = bike.Specs.Where(pair => HasValue(pair.Value)).Select(pair => pair.Key).ToList();
         var verifiedCodes = bike.SpecVerifications.Select(v => v.SpecDefinition.Code).ToHashSet();
         if (populatedCodes.Count > 0 && populatedCodes.All(verifiedCodes.Contains)) {
-            bike.ReviewStatus = BikeReviewStatus.Reviewed;
+            BikeReviewStatus.Set(bike, BikeReviewStatus.Completed);
         }
-        else if (bike.ReviewStatus == BikeReviewStatus.Reviewed) {
-            bike.ReviewStatus = BikeReviewStatus.NotReviewed;
+        else if (bike.ReviewStatus == BikeReviewStatus.Completed) {
+            BikeReviewStatus.Set(bike, BikeReviewStatus.Draft);
         }
     }
 

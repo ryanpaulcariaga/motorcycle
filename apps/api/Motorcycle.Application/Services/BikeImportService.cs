@@ -85,7 +85,8 @@ public sealed class BikeImportService : IBikeImportService
             b.IsPublished,
             b.Specs.ToDictionary(s => s.Key, s => (object?)s.Value),
             null,
-            BikeReviewStatus.Get(b))).ToList();
+            BikeReviewStatus.Get(b),
+            b.ReviewCompletedAt)).ToList();
         var criteria = BikeSpecGridSorter.ParseCriteria(sort, sortBy, sortDirection);
         if (criteria.Count == 0 && bikeIds is not null) {
             var positionById = bikeIds

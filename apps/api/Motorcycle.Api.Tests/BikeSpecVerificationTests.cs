@@ -39,6 +39,30 @@ public class BikeSpecVerificationTests
         Assert.True(down.IndexOf("UPDATE bikes", StringComparison.Ordinal) < down.IndexOf("DROP COLUMN review_status", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void ReviewStatusMigrationRenamesStatesAndAddsCompletionTimestamp()
+    {
+        var options = new DbContextOptionsBuilder<MotorcycleDbContext>()
+            .UseNpgsql("Host=localhost;Database=migration_test").Options;
+        using var db = new MotorcycleDbContext(options);
+        var bike = db.Model.FindEntityType(typeof(Bike))!;
+        Assert.NotNull(bike.FindProperty(nameof(Bike.ReviewCompletedAt)));
+
+        var migrator = db.GetService<IMigrator>();
+        var up = migrator.GenerateScript("20261122184542_AddBikeDiscussionCommentReplies", "20261123075056_RenameBikeReviewStatusesAndAddCompletedAt");
+        Assert.Contains("WHEN 'notReviewed' THEN 'draft'", up);
+        Assert.Contains("WHEN 'inReview' THEN 'inProgress'", up);
+        Assert.Contains("WHEN 'reviewed' THEN 'completed'", up);
+        Assert.Contains("review_completed_at", up);
+        Assert.True(up.IndexOf("UPDATE bikes", StringComparison.Ordinal) < up.IndexOf("ADD CONSTRAINT ck_bikes_review_status", StringComparison.Ordinal));
+
+        var down = migrator.GenerateScript("20261123075056_RenameBikeReviewStatusesAndAddCompletedAt", "20261122184542_AddBikeDiscussionCommentReplies");
+        Assert.Contains("WHEN 'draft' THEN 'notReviewed'", down);
+        Assert.Contains("WHEN 'inProgress' THEN 'inReview'", down);
+        Assert.Contains("WHEN 'completed' THEN 'reviewed'", down);
+        Assert.True(down.IndexOf("UPDATE bikes", StringComparison.Ordinal) < down.IndexOf("ADD CONSTRAINT ck_bikes_review_status", StringComparison.Ordinal));
+    }
+
     private static BikeAdminService AdminService(MotorcycleDbContext db) =>
         new(new BikeAdminRepository(db), new BikeModelRepository(db), new SpecGroupRepository(db));
 
@@ -80,22 +104,26 @@ public class BikeSpecVerificationTests
     {
         var options = await SeedAsync();
         await using (var db = new MotorcycleDbContext(options)) {
-            await AdminService(db).UpdateSpecGridAsync(new(null, ReviewStatusChanges: [new(1, "inReview"), new(2, "inReview")]));
+            await AdminService(db).UpdateSpecGridAsync(new(null, ReviewStatusChanges: [new(1, "inProgress"), new(2, "inProgress")]));
             await AdminService(db).UpdateSpecGridAsync(new(null, VerificationChanges: [new(1, "engine", true, null)]));
         }
         await using (var db = new MotorcycleDbContext(options)) {
             var service = AdminService(db);
-            Assert.All(await service.GetAllAsync(null), row => Assert.Equal("inReview", row.ReviewStatus));
-            Assert.Equal(2, (await service.GetSpecGridAsync(null, null, null, null, reviewStatus: "inReview")).Count);
-            Assert.Equal(2, (await ImportService(db).GetExportAsync(null, null, null, null, reviewStatus: "inReview")).Rows.Count);
+            Assert.All(await service.GetAllAsync(null), row => Assert.Equal("inProgress", row.ReviewStatus));
+            Assert.Equal(2, (await service.GetSpecGridAsync(null, null, null, null, reviewStatus: "inProgress")).Count);
+            Assert.Equal(2, (await ImportService(db).GetExportAsync(null, null, null, null, reviewStatus: "inProgress")).Rows.Count);
             await service.UpdateSpecGridAsync(new(null, VerificationChanges: [new(1, "abs", true, null)]));
         }
         await using (var db = new MotorcycleDbContext(options)) {
             var service = AdminService(db);
-            Assert.Equal("reviewed", (await service.GetByIdAsync(1)).ReviewStatus);
-            Assert.Equal(2, Assert.Single(await service.GetSpecGridAsync(null, null, null, null, reviewStatus: "inReview")).Id);
+            var completed = await service.GetByIdAsync(1);
+            Assert.Equal("completed", completed.ReviewStatus);
+            Assert.NotNull(completed.ReviewCompletedAt);
+            Assert.Equal(2, Assert.Single(await service.GetSpecGridAsync(null, null, null, null, reviewStatus: "inProgress")).Id);
             await service.UpdateSingleSpecAsync(new("engine", [new(1, 400)]));
-            Assert.Equal("notReviewed", (await service.GetByIdAsync(1)).ReviewStatus);
+            var reset = await service.GetByIdAsync(1);
+            Assert.Equal("draft", reset.ReviewStatus);
+            Assert.Null(reset.ReviewCompletedAt);
         }
     }
 
@@ -108,18 +136,20 @@ public class BikeSpecVerificationTests
         await Assert.ThrowsAsync<ArgumentException>(() => service.UpdateSpecGridAsync(new(
             [new(1, "engine", 400)], ReviewStatusChanges: [new(2, "invalid")])));
         await Assert.ThrowsAsync<ArgumentException>(() => service.UpdateSpecGridAsync(new(
-            null, ReviewStatusChanges: [new(1, "inReview"), new(1, "reviewed")])));
+            null, ReviewStatusChanges: [new(1, "inProgress"), new(1, "completed")])));
         await Assert.ThrowsAsync<KeyNotFoundException>(() => service.UpdateSpecGridAsync(new(
-            null, ReviewStatusChanges: [new(999, "inReview")])));
+            null, ReviewStatusChanges: [new(999, "inProgress")])));
         Assert.Equal("399", (await service.GetByIdAsync(1)).Specs["engine"]!.ToString());
 
-        await service.UpdateSpecGridAsync(new(null, ReviewStatusChanges: [new(1, "reviewed")]));
-        Assert.True((await service.GetByIdAsync(1)).IsReviewed);
+        await service.UpdateSpecGridAsync(new(null, ReviewStatusChanges: [new(1, "completed")]));
+        var completed = await service.GetByIdAsync(1);
+        Assert.True(completed.IsReviewed);
+        Assert.NotNull(completed.ReviewCompletedAt);
         await service.SetReviewedAsync(1, false);
-        Assert.Equal("notReviewed", (await service.GetByIdAsync(1)).ReviewStatus);
-        await service.UpdateSpecGridAsync(new(null, ReviewStatusChanges: [new(1, "inReview")]));
+        Assert.Equal("draft", (await service.GetByIdAsync(1)).ReviewStatus);
+        await service.UpdateSpecGridAsync(new(null, ReviewStatusChanges: [new(1, "inProgress")]));
         await service.UpdateSpecGridAsync(new(null, ResetVerificationBikeIds: [1]));
-        Assert.Equal("notReviewed", (await service.GetByIdAsync(1)).ReviewStatus);
+        Assert.Equal("draft", (await service.GetByIdAsync(1)).ReviewStatus);
         await Assert.ThrowsAsync<ArgumentException>(() => service.GetSpecGridAsync(null, null, null, null, reviewStatus: "invalid"));
         await Assert.ThrowsAsync<ArgumentException>(() => ImportService(db).GetExportAsync(null, null, null, null, reviewStatus: "invalid"));
     }
@@ -132,8 +162,8 @@ public class BikeSpecVerificationTests
         var service = AdminService(db);
         await service.UpdateSpecGridAsync(new(null,
             VerificationChanges: [new(1, "engine", true, null), new(1, "abs", true, null)],
-            ReviewStatusChanges: [new(1, "inReview")]));
-        Assert.Equal("reviewed", (await service.GetByIdAsync(1)).ReviewStatus);
+            ReviewStatusChanges: [new(1, "inProgress")]));
+        Assert.Equal("completed", (await service.GetByIdAsync(1)).ReviewStatus);
     }
 
     [Fact]
