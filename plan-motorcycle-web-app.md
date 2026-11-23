@@ -36,7 +36,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 
 | # | Feature |
 |---|---|
-| F-01 | ✅ Public catalog: latest-bikes home preview with a View all bikes link to browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria and admin-style direction toggles; detail page; compact home and browse bike cards with gold hover borders and no hover shadow in one column through tablet widths and responsive desktop columns, with 24 bikes on home and per browse page |
+| F-01 | ✅ Public catalog: home discovery sections for the top 10 latest bikes, top 10 by daily interest, top 10 by fans, and top 10 popular comparisons, plus a View all bikes link to browse and search with all brand, category, year, MSRP and engine displacement filters in a collapsed-by-default Advanced filters panel above results; collapsed sort controls with draggable ordered brand, category, model, variant, year, and price criteria and admin-style direction toggles; detail page; compact home and browse bike cards with gold hover borders and no hover shadow in one column through tablet widths and responsive desktop columns, with 24 bikes per browse page |
 | F-02 | ✅ Compare N bikes with grouped specs; group, header, and value cells share one alignment; up to two in columns, three or more in rows on desktop and in side-by-side bike columns on phones; suggestions below the search field; bikes stay in the order added |
 | F-03 | ✅ "Often compared with" on bike detail |
 | F-04 | ✅ Public sign-in with Facebook |
@@ -269,6 +269,8 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-24** — Refined the public home page into four separately surfaced discovery groups: Top 10 Latest Bikes, Top 10 by Daily Interest, Top 10 by Fans, and Top 10 Popular Comparisons. Home and the shared catalog sidebar reuse the same ranking data. Focused web lint and the production build pass.
 
 **2026-11-24** — Required a brand before the admin Bikes grid loads and added server-side brand filtering to the list endpoint, so the main screen sends only the selected brand while model-scoped admin views remain unchanged. Clear filters now preserves the required brand; a focused service test covers cross-brand exclusion.
 

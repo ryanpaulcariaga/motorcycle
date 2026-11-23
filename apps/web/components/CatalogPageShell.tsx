@@ -8,26 +8,62 @@ import {
   getTopBikesByDailyInterest,
   getTopBikesByFans,
 } from '@/lib/api';
-import { buildBikeDetailHref, buildBrowseHref } from '@/lib/catalogFilters';
-import type { BrandDto } from '@/lib/types';
+import {
+  buildBikeDetailHref,
+  buildBrowseHref,
+  HOME_DISCOVERY_LIMIT,
+} from '@/lib/catalogFilters';
+import type {
+  BikeListItemDto,
+  BrandDto,
+  DailyInterestRankedBikeDto,
+  FanRankedBikeDto,
+  PopularComparisonDto,
+} from '@/lib/types';
+
+export interface CatalogOverview {
+  latestBikes: BikeListItemDto[];
+  topByDailyInterest: DailyInterestRankedBikeDto[];
+  topByFans: FanRankedBikeDto[];
+  popularComparisons: PopularComparisonDto[];
+}
 
 interface CatalogPageShellProps {
   children: ReactNode;
   browseParams?: Record<string, string | undefined>;
   catalogBrands?: BrandDto[];
+  catalogOverview?: CatalogOverview;
+  separatedContent?: boolean;
 }
 
 export default async function CatalogPageShell({
   children,
   browseParams,
   catalogBrands,
+  catalogOverview,
+  separatedContent = false,
 }: CatalogPageShellProps) {
-  const [{ items: latestBikes }, brands, topByDailyInterest, topByFans, popularComparisons] = await Promise.all([
-    getBikes({ pageSize: 12, sortBy: 'year', sortDescending: true }),
+  const overviewPromise = catalogOverview
+    ? Promise.resolve(catalogOverview)
+    : Promise.all([
+      getBikes({ pageSize: HOME_DISCOVERY_LIMIT, sortBy: 'year', sortDescending: true }),
+      getTopBikesByDailyInterest(HOME_DISCOVERY_LIMIT),
+      getTopBikesByFans(HOME_DISCOVERY_LIMIT),
+      getPopularComparisons(HOME_DISCOVERY_LIMIT),
+    ]).then(([latest, topByDailyInterest, topByFans, popularComparisons]) => ({
+      latestBikes: latest.items,
+      topByDailyInterest,
+      topByFans,
+      popularComparisons,
+    }));
+  const [brands, {
+    latestBikes,
+    topByDailyInterest,
+    topByFans,
+    popularComparisons,
+  }] = await Promise.all([
     catalogBrands ? Promise.resolve(catalogBrands) : getBrands(),
-    getTopBikesByDailyInterest(10),
-    getTopBikesByFans(10),
-    getPopularComparisons(10),
+    overviewPromise,
   ]);
 
   function brandHref(brandId?: number) {
@@ -57,7 +93,7 @@ export default async function CatalogPageShell({
           </SidebarSection>
           <SidebarSection title="Latest Bikes">
             <div className="flex flex-col">
-              {latestBikes.slice(0, 5).map((bike) => (
+              {latestBikes.slice(0, HOME_DISCOVERY_LIMIT).map((bike) => (
                 <SidebarLink key={bike.id} href={buildBikeDetailHref(bike.slug, browseParams ?? {})}>
                   {bike.variantName}
                 </SidebarLink>
@@ -110,21 +146,28 @@ export default async function CatalogPageShell({
               </ol>
             )}
           </SidebarSection>
-          <SidebarSection title="Popular Comparisons">
+          <SidebarSection title="Top 10 Popular Comparisons">
             {popularComparisons.length === 0 ? (
               <p className="text-xs text-white/50 italic">No comparisons yet — compare some bikes to see them here.</p>
             ) : (
               <div className="flex flex-col">
                 {popularComparisons.map(({ bikeA, bikeB }) => (
                   <SidebarLink key={`${bikeA.id}-${bikeB.id}`} href={`/compare?ids=${bikeA.id},${bikeB.id}`}>
-                    {bikeA.variantName} vs {bikeB.variantName}
+                    <span className="block">{bikeA.variantName}</span>
+                    <span className="block text-white/60">vs</span>
+                    <span className="block">{bikeB.variantName}</span>
                   </SidebarLink>
                 ))}
               </div>
             )}
           </SidebarSection>
         </Sidebar>
-        <div id="catalog-content" className="min-h-screen min-w-0 flex-1 bg-brand-content p-4 shadow-lg sm:p-6 md:min-h-0">
+        <div
+          id="catalog-content"
+          className={`min-h-screen min-w-0 flex-1 md:min-h-0 ${
+            separatedContent ? '' : 'bg-brand-content p-4 shadow-lg sm:p-6'
+          }`}
+        >
           {children}
         </div>
       </div>
