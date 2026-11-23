@@ -13,6 +13,7 @@ export default function ContactInbox({ onUnreadCountChange }: ContactInboxProps)
   const [result, setResult] = useState<ContactInquiryPage | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [updatingInquiryId, setUpdatingInquiryId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async (nextPage: number) => {
@@ -50,14 +51,30 @@ export default function ContactInbox({ onUnreadCountChange }: ContactInboxProps)
   }
 
   async function setRead(id: number, isRead: boolean) {
-    setLoading(true);
+    if (!result) {
+      return;
+    }
+
+    const current = result.items.find((item) => item.id === id);
+    if (!current || current.isRead === isRead) {
+      return;
+    }
+
+    setUpdatingInquiryId(id);
     setError(null);
     try {
       await setContactInquiryRead(id, isRead);
-      await load(page);
+      const unreadCount = Math.max(0, result.unreadCount + (isRead ? -1 : 1));
+      setResult({
+        ...result,
+        items: result.items.map((item) => item.id === id ? { ...item, isRead } : item),
+        unreadCount,
+      });
+      onUnreadCountChange?.(unreadCount);
     } catch {
       setError(`Unable to mark this inquiry as ${isRead ? 'read' : 'unread'}. Please try again.`);
-      setLoading(false);
+    } finally {
+      setUpdatingInquiryId(null);
     }
   }
 
@@ -91,11 +108,11 @@ export default function ContactInbox({ onUnreadCountChange }: ContactInboxProps)
               <div className="flex flex-wrap gap-2">
                 <button
                   className="border border-brand-button px-3 py-2 text-sm font-semibold text-brand-button hover:bg-brand-button hover:text-white"
-                  disabled={loading}
+                  disabled={updatingInquiryId !== null}
                   onClick={() => void setRead(item.id, !item.isRead)}
                   type="button"
                 >
-                  Mark as {item.isRead ? 'unread' : 'read'}
+                  {updatingInquiryId === item.id ? 'Updating...' : `Mark as ${item.isRead ? 'unread' : 'read'}`}
                 </button>
                 <button
                   className="border border-red-700 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-700 hover:text-white"
