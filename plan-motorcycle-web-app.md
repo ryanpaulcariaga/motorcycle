@@ -53,7 +53,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results; Browse Bikes has variant-only keyword and Include discontinued filters inside collapsed Advanced filters, detail links retain publication state, and MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
-| F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; wide layouts keep 14rem sidebars and cap the body at its 1366px-desktop size while matching 1.5rem inner spacing to the sidebar/content gap, bike-detail highlights use one column on phones and two at wider widths, mobile account-menu rows and browse links are consistently right-aligned, sidebar sections expand independently, pages scroll to content, and the bulk-edit modal uses one vertical scroller with fixed title and actions |
+| F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; wide layouts keep 14rem sidebars and cap the body at its 1366px-desktop size while matching 1.5rem inner spacing to the sidebar/content gap, bike-detail highlights always use one column, mobile account-menu rows and browse links are consistently right-aligned, sidebar sections expand independently, pages scroll to content, and the bulk-edit modal uses one vertical scroller with fixed title and actions |
 | F-21 | ✅ Admin shared per-bike Draft/In Progress/Completed status with a recorded UTC completion timestamp, per-spec verifications and progress, and a dedicated one-click In Progress checkbox per bike; the Bikes-grid status picker lazily creates options only for the open record, matching the Brand picker, while populated specs drive automatic Completed status with manual override and toolbar labels clarify that updates and resets apply only to displayed bikes |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
@@ -269,6 +269,8 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-24** — Changed public bike-detail highlights to a single column at every viewport width. Focused web lint and the public production build pass.
 
 **2026-11-24** — Refined the public home page into four separately surfaced discovery groups: Top 10 Latest Bikes, Top 10 by Daily Interest, Top 10 by Fans, and Top 10 Popular Comparisons. Home and the shared catalog sidebar reuse the same ranking data. Public and admin shells preserve 14rem sidebars, cap the complete layout at the 1366px desktop width, and use a matching 1.5rem sidebar/content gap and inner spacing. Focused web lint and the production build pass.
 
