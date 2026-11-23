@@ -167,7 +167,7 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
                   <h2 className="font-semibold text-brand-button mb-2">
                     Highlights
                   </h2>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {highlightSpecs.map((spec) => (
                       <div
                         key={spec.code}

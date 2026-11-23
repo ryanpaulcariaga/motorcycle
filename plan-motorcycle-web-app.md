@@ -53,7 +53,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results; MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
-| F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; mobile account-menu rows and browse links are consistently right-aligned, sidebar sections expand independently, pages scroll to content, and the bulk-edit modal uses one vertical scroller with fixed title and actions |
+| F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; bike-detail highlights use one column on phones and two at wider widths, mobile account-menu rows and browse links are consistently right-aligned, sidebar sections expand independently, pages scroll to content, and the bulk-edit modal uses one vertical scroller with fixed title and actions |
 | F-21 | ✅ Admin shared per-bike Not reviewed/In review/Reviewed status, per-spec verifications and progress; populated specs drive automatic Reviewed status, with manual override, and toolbar labels clarify that review updates and resets apply only to displayed bikes |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
@@ -263,6 +263,8 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-23** — Changed public bike-detail highlights to one column on mobile and two columns from the small breakpoint onward. Focused web lint and production build passed.
 
 **2026-11-23** — Changed the shared public and admin sidebar palette from dark brown to dark grey (`#282828`) while preserving the matching section layout and contrast.
 
