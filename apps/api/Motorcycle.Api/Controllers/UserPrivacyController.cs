@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Motorcycle.Api.Services;
 using Motorcycle.Application.Interfaces;
 
 namespace Motorcycle.Api.Controllers;
@@ -9,7 +10,9 @@ namespace Motorcycle.Api.Controllers;
 [ApiController]
 [Route("api/user/account")]
 [Authorize(Policy = "AuthenticatedUser")]
-public sealed class UserPrivacyController(IUserPrivacyService service) : ControllerBase
+public sealed class UserPrivacyController(
+    IUserPrivacyService service,
+    TestDataAccessService? testDataAccess = null) : ControllerBase
 {
     [HttpGet("export")]
     public async Task<IActionResult> Export(CancellationToken ct)
@@ -36,6 +39,7 @@ public sealed class UserPrivacyController(IUserPrivacyService service) : Control
             return Unauthorized();
         }
 
+        testDataAccess?.InvalidateUser(userId);
         await HttpContext.SignOutAsync(UserAuthenticationController.SchemeName);
         return NoContent();
     }

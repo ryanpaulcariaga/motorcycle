@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 56 of 116 tasks done · 7 in progress · 53 not started.**
+**Progress: 57 of 117 tasks done · 7 in progress · 53 not started.**
 
 **Next up:** Configure the production legal operator/contact/jurisdiction values and complete the privacy, inquiry retention, log-retention, and backup-deletion review in T-112 before G-10 can be ticked. Verify the contact form and admin inbox with a test database and authenticated session under T-113. Verify ratings/comments, interest-profile, and account privacy controls in authenticated public browser sessions, and verify the analytics dashboard with an authenticated admin session. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -180,6 +180,7 @@ Each task is small enough to finish in one sitting. Update the row (and its gate
 | T-65 | ✅ | SEO: OpenGraph images | Generated site-wide OpenGraph/Twitter images; bike previews use the primary catalog image | |
 | T-66 | ✅ | SEO: canonical URLs | Canonicals set for home, browse, compare, and bike detail; browse filters do not create duplicate canonicals | |
 | T-67 | ✅ | SEO: JSON-LD structured data | Bike detail pages emit Product data with brand, category, images, and available scalar specs | |
+| T-118 | ✅ | Cache public test-data access decisions | Memoize each authenticated request and cache the database permission decision for five seconds per user; role mutations and account deletion invalidate affected entries. Focused API tests pass | G-09 |
 
 ### Responsive design (public web and admin)
 
@@ -267,6 +268,8 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-24** — Optimized public test-data authorization for bike requests with same-request memoization and a five-second per-user memory cache, reducing repeated administrator-role database lookups across parallel or closely repeated client calls. Administrator-role mutations and account deletion invalidate affected cached decisions; 12 focused API tests pass.
 
 **2026-11-23** — Refined public Browse Bikes so Keyword and the Include discontinued checkbox live inside collapsed Advanced filters. Keyword matches variant names only; checking Include discontinued includes both current and discontinued variants while unchecked results remain published-only. Publication state persists through pagination and detail navigation, and unpublished details hide compare/review/comment actions. Focused API tests, web lint, and the public production build pass.
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Motorcycle.Api.Services;
 using Motorcycle.Application.DTOs;
 using Motorcycle.Application.Interfaces;
 using Motorcycle.Domain;
@@ -12,8 +13,15 @@ namespace Motorcycle.Api.Controllers;
 public sealed class AdminRolesController : ControllerBase
 {
     private readonly IAdminRoleService _service;
+    private readonly TestDataAccessService? _testDataAccess;
 
-    public AdminRolesController(IAdminRoleService service) => _service = service;
+    public AdminRolesController(
+        IAdminRoleService service,
+        TestDataAccessService? testDataAccess = null)
+    {
+        _service = service;
+        _testDataAccess = testDataAccess;
+    }
 
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<AdminRoleDto>>> GetAll(CancellationToken ct)
@@ -27,6 +35,7 @@ public sealed class AdminRolesController : ControllerBase
     {
         try {
             var role = await _service.ProvisionAsync(request.FacebookUserId, request.EmailSnapshot, request.DisplayNameSnapshot, request.Role, request.IncludeTestData, ct);
+            _testDataAccess?.InvalidateAll();
             return CreatedAtAction(nameof(GetAll), new { id = role.Id }, ToDto(role));
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
@@ -40,6 +49,7 @@ public sealed class AdminRolesController : ControllerBase
     {
         try {
             var role = await _service.UpdateAsync(id, request.EmailSnapshot, request.DisplayNameSnapshot, request.Role, request.IsActive, request.IncludeTestData, ct);
+            _testDataAccess?.InvalidateAll();
             return Ok(ToDto(role));
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
@@ -53,6 +63,7 @@ public sealed class AdminRolesController : ControllerBase
     {
         try {
             await _service.DeleteAsync(id, ct);
+            _testDataAccess?.InvalidateAll();
             return NoContent();
         } catch (KeyNotFoundException ex) {
             return NotFound(new { message = ex.Message });
