@@ -1,6 +1,13 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { IconButton } from '@/components/IconButton';
 import Modal, { ModalFooter } from '@/components/Modal';
 import {
@@ -42,6 +49,7 @@ import BikeImageManagement from './BikeImageManagement';
 import SpecGridModal from './SpecGridModal';
 
 type SpecGroup = Awaited<ReturnType<typeof getSpecGroups>>[number];
+const bikeGridPageSize = 100;
 
 const emptyForm = {
   modelId: '',
@@ -92,7 +100,6 @@ export default function BikeManagement({
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [lastTouchedId, setLastTouchedId] = useState<number | null>(null);
   const [reassignTargetBike, setReassignTargetBike] =
     useState<BikeAdminListItem | null>(null);
   const [imagesBike, setImagesBike] = useState<BikeAdminListItem | null>(null);
@@ -101,6 +108,11 @@ export default function BikeManagement({
   const [submitting, setSubmitting] = useState(false);
   const [resettingTags, setResettingTags] = useState(false);
   const [markingDisplayedInReview, setMarkingDisplayedInReview] = useState(false);
+  const [updatingBikeId, setUpdatingBikeId] = useState<number | null>(null);
+  const [openBrandBikeId, setOpenBrandBikeId] = useState<number | null>(null);
+  const [loadingBrands, setLoadingBrands] = useState(false);
+  const [updatingModelId, setUpdatingModelId] = useState<number | null>(null);
+  const inlineSavingRef = useRef(new Set<string>());
   const [openingGrid, setOpeningGrid] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [gridBikes, setGridBikes] = useState<BikeSpecGridRow[]>([]);
@@ -142,63 +154,122 @@ export default function BikeManagement({
   const [yearMax, setYearMax] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [bikeGridPage, setBikeGridPage] = useState(1);
   const [sortRules, setSortRules] = useState<SortRule<SortField>[]>(
     modelId
       ? [{ field: 'year', direction: 'desc' }]
       : [{ field: 'variant', direction: 'asc' }]
   );
   const showModel = modelId === undefined;
-  const modelBikeCounts = new Map(models.map((model) => [model.id, model.bikeCount]));
-  const modelById = new Map(models.map((model) => [model.id, model]));
-  const brandNames = [...new Set(models.map((model) => model.brandName))].sort(
-    (a, b) => a.localeCompare(b)
+  const modelBikeCounts = useMemo(
+    () => new Map(models.map((model) => [model.id, model.bikeCount])),
+    [models]
   );
-  const categoryNames = [...new Set(models.map((model) => model.categoryName))].sort(
-    (a, b) => a.localeCompare(b)
+  const modelById = useMemo(
+    () => new Map(models.map((model) => [model.id, model])),
+    [models]
+  );
+  const brandNames = useMemo(
+    () =>
+      [...new Set(models.map((model) => model.brandName))].sort((a, b) =>
+        a.localeCompare(b)
+      ),
+    [models]
+  );
+  const categoryNames = useMemo(
+    () =>
+      [...new Set(models.map((model) => model.categoryName))].sort((a, b) =>
+        a.localeCompare(b)
+      ),
+    [models]
   );
   const filterModels = models.filter(
     (model) =>
       (!brandFilter || model.brandName === brandFilter) &&
       (!categoryFilter || model.categoryName === categoryFilter)
   );
-  const visibleBikes = sortRows(
-    bikes.filter(
-      (bike) =>
-        (!brandFilter || bike.brandName === brandFilter) &&
-        (!categoryFilter || modelById.get(bike.modelId)?.categoryName === categoryFilter) &&
-        (!modelFilter || String(bike.modelId) === modelFilter) &&
-        (!yearMin || bike.year >= Number(yearMin)) &&
-        (!yearMax || bike.year <= Number(yearMax)) &&
-        (!minPrice || bike.msrpPrice !== null && bike.msrpPrice >= Number(minPrice)) &&
-        (!maxPrice || bike.msrpPrice !== null && bike.msrpPrice <= Number(maxPrice)) &&
-        (!statusFilter ||
-          (statusFilter === 'published') === bike.isPublished) &&
-        (!testDataFilter ||
-          (testDataFilter === 'test-data') ===
-            (bike.isTestData || bike.modelIsTestData)) &&
-        (!reviewFilter || bike.reviewStatus === reviewFilter) &&
-        (!imageFilter ||
-          (imageFilter === 'has-images'
-            ? bike.imageCount > 0
-            : bike.imageCount === 0)) &&
-        (!search ||
-          ` ${bike.variantName} ${bike.year}`
-            .toLowerCase()
-            .includes(search.trim().toLowerCase()))
-    ),
-    sortRules,
-    {
-      variant: (a, b) => compareText(a.variantName, b.variantName),
-      model: (a, b) => compareText(a.modelName, b.modelName),
-      brand: (a, b) => compareText(a.brandName, b.brandName),
-      year: (a, b) => a.year - b.year,
-      msrp: (a, b) => (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1),
-      status: (a, b) => Number(a.isPublished) - Number(b.isPublished),
-      reviewed: (a, b) => reviewStatusOptions.findIndex((option) => option.value === a.reviewStatus) - reviewStatusOptions.findIndex((option) => option.value === b.reviewStatus),
-      reviewCompleted: (a, b) =>
-        (a.reviewCompletedAt ? Date.parse(a.reviewCompletedAt) : 0) -
-        (b.reviewCompletedAt ? Date.parse(b.reviewCompletedAt) : 0),
-    }
+  const visibleBikes = useMemo(
+    () =>
+      sortRows(
+        bikes.filter(
+          (bike) =>
+            (!brandFilter || bike.brandName === brandFilter) &&
+            (!categoryFilter ||
+              modelById.get(bike.modelId)?.categoryName === categoryFilter) &&
+            (!modelFilter || String(bike.modelId) === modelFilter) &&
+            (!yearMin || bike.year >= Number(yearMin)) &&
+            (!yearMax || bike.year <= Number(yearMax)) &&
+            (!minPrice ||
+              (bike.msrpPrice !== null &&
+                bike.msrpPrice >= Number(minPrice))) &&
+            (!maxPrice ||
+              (bike.msrpPrice !== null &&
+                bike.msrpPrice <= Number(maxPrice))) &&
+            (!statusFilter ||
+              (statusFilter === 'published') === bike.isPublished) &&
+            (!testDataFilter ||
+              (testDataFilter === 'test-data') ===
+                (bike.isTestData || bike.modelIsTestData)) &&
+            (!reviewFilter || bike.reviewStatus === reviewFilter) &&
+            (!imageFilter ||
+              (imageFilter === 'has-images'
+                ? bike.imageCount > 0
+                : bike.imageCount === 0)) &&
+            (!search ||
+              ` ${bike.variantName} ${bike.year}`
+                .toLowerCase()
+                .includes(search.trim().toLowerCase()))
+        ),
+        sortRules,
+        {
+          variant: (a, b) => compareText(a.variantName, b.variantName),
+          model: (a, b) => compareText(a.modelName, b.modelName),
+          brand: (a, b) => compareText(a.brandName, b.brandName),
+          year: (a, b) => a.year - b.year,
+          msrp: (a, b) => (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1),
+          status: (a, b) => Number(a.isPublished) - Number(b.isPublished),
+          reviewed: (a, b) =>
+            reviewStatusOptions.findIndex(
+              (option) => option.value === a.reviewStatus
+            ) -
+            reviewStatusOptions.findIndex(
+              (option) => option.value === b.reviewStatus
+            ),
+          reviewCompleted: (a, b) =>
+            (a.reviewCompletedAt ? Date.parse(a.reviewCompletedAt) : 0) -
+            (b.reviewCompletedAt ? Date.parse(b.reviewCompletedAt) : 0),
+        }
+      ),
+    [
+      bikes,
+      brandFilter,
+      categoryFilter,
+      imageFilter,
+      maxPrice,
+      minPrice,
+      modelById,
+      modelFilter,
+      reviewFilter,
+      search,
+      sortRules,
+      statusFilter,
+      testDataFilter,
+      yearMax,
+      yearMin,
+    ]
+  );
+  const bikeGridPageCount = Math.max(
+    1,
+    Math.ceil(visibleBikes.length / bikeGridPageSize)
+  );
+  const currentBikeGridPage = Math.min(bikeGridPage, bikeGridPageCount);
+  const pagedBikes = useMemo(
+    () =>
+      visibleBikes.slice(
+        (currentBikeGridPage - 1) * bikeGridPageSize,
+        currentBikeGridPage * bikeGridPageSize
+      ),
+    [currentBikeGridPage, visibleBikes]
   );
   const primarySort = sortRules[0];
   const activeFilterCount = [
@@ -214,10 +285,10 @@ export default function BikeManagement({
     imageFilter,
   ].filter(Boolean).length;
 
-  function sortHeader(field: SortField, label: string) {
+  function sortHeader(field: SortField, label: string, className = 'p-2') {
     return (
       <th
-        className="p-2"
+        className={className}
         aria-sort={
           primarySort?.field !== field
             ? undefined
@@ -254,6 +325,52 @@ export default function BikeManagement({
   useEffect(() => {
     queueMicrotask(() => void load());
   }, [modelId]);
+
+  useEffect(() => {
+    queueMicrotask(() => setBikeGridPage(1));
+  }, [
+    brandFilter,
+    categoryFilter,
+    imageFilter,
+    maxPrice,
+    minPrice,
+    modelFilter,
+    reviewFilter,
+    search,
+    sortRules,
+    statusFilter,
+    testDataFilter,
+    yearMax,
+    yearMin,
+  ]);
+
+  useEffect(() => {
+    if (openBrandBikeId === null) {
+      return;
+    }
+
+    const closeOnOutsideInteraction = (event: PointerEvent) => {
+      if (!(event.target instanceof Element)) {
+        return;
+      }
+
+      if (!event.target.closest('[data-brand-dropdown]')) {
+        window.setTimeout(() => setOpenBrandBikeId(null), 0);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpenBrandBikeId(null);
+      }
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsideInteraction);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideInteraction);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [openBrandBikeId]);
 
   const reset = useCallback(() => {
     setForm(emptyForm);
@@ -562,9 +679,203 @@ export default function BikeManagement({
     }
   }
 
+  async function toggleTestData(bike: BikeAdminListItem, isTestData: boolean) {
+    const saveKey = `${bike.id}:isTestData`;
+    if (inlineSavingRef.current.has(saveKey)) {
+      return;
+    }
+    setError(null);
+    setUpdatingBikeId(bike.id);
+    inlineSavingRef.current.add(saveKey);
+    try {
+      const detail = await getAdminBike(bike.id);
+      const updated = await updateAdminBike(bike.id, {
+        modelId: detail.modelId,
+        variantName: detail.variantName,
+        year: detail.year,
+        msrpPrice: detail.msrpPrice,
+        specs: detail.specs,
+        isTestData,
+      });
+      setBikes((current) =>
+        current.map((item) =>
+          item.id === updated.id
+            ? { ...item, isTestData: updated.isTestData, updatedAt: updated.updatedAt }
+            : item
+        )
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to update test data state.'
+      );
+    } finally {
+      inlineSavingRef.current.delete(saveKey);
+      setUpdatingBikeId(null);
+    }
+  }
+
+  async function updateInlineField(
+    bike: BikeAdminListItem,
+    field: 'year' | 'variantName' | 'msrpPrice',
+    value: string,
+    input: HTMLInputElement
+  ) {
+    let parsedValue: string | number | null = value;
+    if (field === 'year') {
+      parsedValue = Number(value);
+      if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+        input.value = String(bike.year);
+        setError('Enter a valid year.');
+        return;
+      }
+    } else if (field === 'variantName') {
+      parsedValue = value.trim();
+      if (!parsedValue) {
+        input.value = bike.variantName;
+        setError('Enter a variant name.');
+        return;
+      }
+    } else {
+      parsedValue = value.trim() === '' ? null : Number(value);
+      if (
+        parsedValue !== null &&
+        (!Number.isFinite(parsedValue) || parsedValue < 0)
+      ) {
+        input.value = bike.msrpPrice === null ? '' : String(bike.msrpPrice);
+        setError('Enter a valid MSRP or leave it blank.');
+        return;
+      }
+    }
+
+    if (parsedValue === bike[field]) {
+      return;
+    }
+
+    const saveKey = `${bike.id}:${field}`;
+    if (inlineSavingRef.current.has(saveKey)) {
+      return;
+    }
+    inlineSavingRef.current.add(saveKey);
+    try {
+      const detail = await getAdminBike(bike.id);
+      const updated = await updateAdminBike(bike.id, {
+        modelId: detail.modelId,
+        variantName:
+          field === 'variantName'
+            ? (parsedValue as string)
+            : detail.variantName,
+        year: field === 'year' ? (parsedValue as number) : detail.year,
+        msrpPrice:
+          field === 'msrpPrice'
+            ? (parsedValue as number | null)
+            : detail.msrpPrice,
+        specs: detail.specs,
+        isTestData: detail.isTestData,
+      });
+      setBikes((current) =>
+        current.map((item) =>
+          item.id === updated.id
+            ? {
+                ...item,
+                variantName: updated.variantName,
+                year: updated.year,
+                msrpPrice: updated.msrpPrice,
+                updatedAt: updated.updatedAt,
+              }
+            : item
+        )
+      );
+    } catch (cause) {
+      input.value =
+        field === 'variantName'
+          ? bike.variantName
+          : field === 'year'
+            ? String(bike.year)
+            : bike.msrpPrice === null
+              ? ''
+              : String(bike.msrpPrice);
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to update this bike.'
+      );
+    } finally {
+      inlineSavingRef.current.delete(saveKey);
+    }
+  }
+
+  async function openBrandDropdown(bikeId: number) {
+    if (openBrandBikeId === bikeId) {
+      setOpenBrandBikeId(null);
+      return;
+    }
+
+    setOpenBrandBikeId(bikeId);
+    if (brands.length > 0) {
+      return;
+    }
+
+    setLoadingBrands(true);
+    setError(null);
+    try {
+      setBrands(await getBrands());
+    } catch (cause) {
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to load brands.'
+      );
+      setOpenBrandBikeId(null);
+    } finally {
+      setLoadingBrands(false);
+    }
+  }
+
+  async function updateBikeModelBrand(
+    bike: BikeAdminListItem,
+    brandId: number
+  ) {
+    const model = modelById.get(bike.modelId);
+    if (!model || model.brandId === brandId) {
+      setOpenBrandBikeId(null);
+      return;
+    }
+
+    setError(null);
+    setUpdatingModelId(model.id);
+    try {
+      const updated = await updateBikeModel(model.id, {
+        brandId,
+        categoryId: model.categoryId,
+        name: model.name,
+        isTestData: model.isTestData,
+      });
+      setModels((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item))
+      );
+      setBikes((current) =>
+        current.map((item) =>
+          item.modelId === updated.id
+            ? { ...item, brandName: updated.brandName }
+            : item
+        )
+      );
+      setOpenBrandBikeId(null);
+    } catch (cause) {
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to update the bike model brand.'
+      );
+    } finally {
+      setUpdatingModelId(null);
+    }
+  }
+
   async function setReviewStatus(bike: BikeAdminListItem, reviewStatus: ReviewStatus) {
     setError(null);
-    setLastTouchedId(bike.id);
     try {
       await updateAdminBikeSpecGrid({ reviewStatusChanges: [{ bikeId: bike.id, reviewStatus }] });
       await load();
@@ -970,28 +1281,129 @@ export default function BikeManagement({
                   {sortHeader('year', 'Year')}
                   {sortHeader('brand', 'Brand')}
                   {sortHeader('variant', 'Variant')}
-                  {sortHeader('model', 'Bike Model')}
+                  {sortHeader('model', 'Bike Model', 'min-w-56 p-2')}
                   {sortHeader('msrp', 'MSRP')}
                   {sortHeader('status', 'Published')}
                   <th className="p-2">In Progress</th>
                   {sortHeader('reviewed', 'Review status')}
-                  <th className="p-2">Data</th>
-                  <th className="relative p-2">
+                  <th className="p-2">Test</th>
+                  <th className="sticky right-0 z-20 bg-white p-2 shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.45)]">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {visibleBikes.map((bike) => (
+                {pagedBikes.map((bike) => (
                   <tr
-                    className={`border-b border-black/10 ${bike.id === lastTouchedId ? 'bg-brand-button/10' : ''}`}
+                    className="border-b border-black/10 focus-within:bg-brand-button/10"
                     key={bike.id}
-                    onClick={() => setLastTouchedId(bike.id)}
                   >
-                    <td className="p-2">{bike.year}</td>
-                    <td className="p-2">{bike.brandName}</td>
-                    <td className="p-2 font-semibold">{bike.variantName}</td>
                     <td className="p-2">
+                      <input
+                        key={`${bike.id}-year-${bike.year}`}
+                        type="number"
+                        min="1"
+                        step="1"
+                        defaultValue={bike.year}
+                        aria-label={`Year for ${bike.variantName}`}
+                        className="w-20 border border-black/20 bg-white px-2 py-1"
+                        onBlur={(event) =>
+                          void updateInlineField(
+                            bike,
+                            'year',
+                            event.currentTarget.value,
+                            event.currentTarget
+                          )
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </td>
+                    <td className="relative p-2" data-brand-dropdown>
+                      <button
+                        type="button"
+                        className="inline-flex min-w-28 items-center justify-between gap-2 border border-black/20 bg-white px-2 py-1 text-left disabled:bg-black/5"
+                        aria-expanded={openBrandBikeId === bike.id}
+                        aria-haspopup="listbox"
+                        aria-label={`Brand for ${bike.variantName} (${bike.year})`}
+                        disabled={updatingModelId === bike.modelId}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void openBrandDropdown(bike.id);
+                        }}
+                      >
+                        <span>{bike.brandName}</span>
+                        <span aria-hidden="true">▾</span>
+                      </button>
+                      {openBrandBikeId === bike.id && (
+                        <div
+                          className="absolute left-2 top-full z-20 max-h-64 min-w-48 overflow-y-auto border border-black/20 bg-white shadow-lg"
+                          role="listbox"
+                          aria-label="Brands"
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Escape') {
+                              setOpenBrandBikeId(null);
+                            }
+                          }}
+                        >
+                          {loadingBrands ? (
+                            <p className="px-3 py-2 text-brand-grey">
+                              Loading brands...
+                            </p>
+                          ) : (
+                            brands.map((brand) => (
+                              <button
+                                key={brand.id}
+                                type="button"
+                                role="option"
+                                aria-selected={
+                                  modelById.get(bike.modelId)?.brandId ===
+                                  brand.id
+                                }
+                                className={`block w-full px-3 py-2 text-left hover:bg-brand-button/10 ${
+                                  modelById.get(bike.modelId)?.brandId ===
+                                  brand.id
+                                    ? 'bg-brand-button/10 font-semibold'
+                                    : ''
+                                }`}
+                                onClick={() =>
+                                  void updateBikeModelBrand(bike, brand.id)
+                                }
+                              >
+                                {brand.name}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-2 font-semibold">
+                      <input
+                        key={`${bike.id}-variant-${bike.variantName}`}
+                        type="text"
+                        defaultValue={bike.variantName}
+                        aria-label={`Variant name for ${bike.year}`}
+                        className="w-48 border border-black/20 bg-white px-2 py-1"
+                        onBlur={(event) =>
+                          void updateInlineField(
+                            bike,
+                            'variantName',
+                            event.currentTarget.value,
+                            event.currentTarget
+                          )
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.currentTarget.blur();
+                          }
+                        }}
+                      />
+                    </td>
+                    <td className="min-w-56 p-2">
                       <span className="inline-flex items-center gap-2">
                         {bikeModelLabel(bike.modelName, modelBikeCounts.get(bike.modelId))}
                         <button
@@ -1000,7 +1412,6 @@ export default function BikeManagement({
                           aria-label={`Reassign BikeModel for ${bike.variantName} (${bike.year})`}
                           title="Reassign BikeModel"
                           onClick={() => {
-                            setLastTouchedId(bike.id);
                             startReassign(bike);
                           }}
                         >
@@ -1024,9 +1435,29 @@ export default function BikeManagement({
                       </span>
                     </td>
                     <td className="p-2">
-                      {bike.msrpPrice
-                        ? `$${bike.msrpPrice.toLocaleString()}`
-                        : '—'}
+                      <input
+                        key={`${bike.id}-msrp-${bike.msrpPrice}`}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        defaultValue={bike.msrpPrice ?? ''}
+                        aria-label={`MSRP for ${bike.variantName} (${bike.year})`}
+                        placeholder="—"
+                        className="w-28 border border-black/20 bg-white px-2 py-1"
+                        onBlur={(event) =>
+                          void updateInlineField(
+                            bike,
+                            'msrpPrice',
+                            event.currentTarget.value,
+                            event.currentTarget
+                          )
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.currentTarget.blur();
+                          }
+                        }}
+                      />
                     </td>
                     <td className="p-2">
                       <input
@@ -1036,7 +1467,6 @@ export default function BikeManagement({
                         title={bike.isPublished ? 'Published - click to unpublish' : 'Not published - click to publish'}
                         className="h-4 w-4 accent-brand-gold"
                         onChange={() => {
-                          setLastTouchedId(bike.id);
                           void togglePublish(bike);
                         }}
                       />
@@ -1073,19 +1503,32 @@ export default function BikeManagement({
                       </select>
                     </td>
                     <td className="p-2">
-                      {(bike.isTestData || bike.modelIsTestData) && (
-                        <span className="border border-amber-700 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900">
-                          {bike.modelIsTestData ? 'Test model' : 'Test data'}
-                        </span>
-                      )}
+                      <input
+                        type="checkbox"
+                        checked={bike.isTestData || bike.modelIsTestData}
+                        disabled={
+                          bike.modelIsTestData || updatingBikeId !== null
+                        }
+                        aria-label={`Test data status for ${bike.variantName} (${bike.year})`}
+                        title={
+                          bike.modelIsTestData
+                            ? 'Test data is inherited from the bike model'
+                            : bike.isTestData
+                              ? 'Test data - uncheck to use production data'
+                              : 'Production data - check to mark as test data'
+                        }
+                        className="h-4 w-4 accent-brand-gold disabled:cursor-not-allowed disabled:opacity-60"
+                        onChange={(event) =>
+                          void toggleTestData(bike, event.target.checked)
+                        }
+                      />
                     </td>
-                    <td className="p-2">
+                    <td className="sticky right-0 z-10 bg-white p-2 shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.45)]">
                       <div className="flex items-center justify-end gap-1">
                         <IconButton
                           icon="edit"
                           label="Edit"
                           onClick={() => {
-                            setLastTouchedId(bike.id);
                             void startEdit(bike);
                           }}
                         />
@@ -1099,7 +1542,6 @@ export default function BikeManagement({
                           variant={bike.imageCount > 0 ? 'success' : 'default'}
                           badge={bike.imageCount}
                           onClick={() => {
-                            setLastTouchedId(bike.id);
                             setImagesBike(bike);
                           }}
                         />
@@ -1107,7 +1549,6 @@ export default function BikeManagement({
                           icon="clone"
                           label="Clone"
                           onClick={() => {
-                            setLastTouchedId(bike.id);
                             void startClone(bike);
                           }}
                         />
@@ -1116,7 +1557,6 @@ export default function BikeManagement({
                           label="Delete"
                           variant="danger"
                           onClick={() => {
-                            setLastTouchedId(bike.id);
                             void remove(bike);
                           }}
                         />
@@ -1126,6 +1566,40 @@ export default function BikeManagement({
                 ))}
               </tbody>
             </table>
+            {bikeGridPageCount > 1 && (
+              <div className="mt-4 flex items-center justify-between gap-3 border-t border-black/10 pt-4">
+                <p className="text-sm text-brand-grey">
+                  Showing{' '}
+                  {(currentBikeGridPage - 1) * bikeGridPageSize + 1}–
+                  {Math.min(
+                    currentBikeGridPage * bikeGridPageSize,
+                    visibleBikes.length
+                  )}{' '}
+                  of {visibleBikes.length}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="border border-black/20 bg-white px-3 py-2 text-sm font-semibold disabled:opacity-40"
+                    disabled={currentBikeGridPage === 1}
+                    onClick={() => setBikeGridPage((page) => page - 1)}
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm">
+                    {currentBikeGridPage} / {bikeGridPageCount}
+                  </span>
+                  <button
+                    type="button"
+                    className="border border-black/20 bg-white px-3 py-2 text-sm font-semibold disabled:opacity-40"
+                    disabled={currentBikeGridPage === bikeGridPageCount}
+                    onClick={() => setBikeGridPage((page) => page + 1)}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>

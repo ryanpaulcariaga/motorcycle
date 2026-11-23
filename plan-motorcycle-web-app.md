@@ -48,7 +48,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, displayed-bike review updates, Excel export, and Excel import for exactly the displayed variants |
 | F-11 | ✅ API rate limiting |
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
-| F-13 | ✅ Aligned look and tighter grids across web and admin; sidebars use a shared super-dark grey, while top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; account name and sign-out controls have consistent header spacing; bike variant headers match cell padding; admin modal action icons match grid icon colors |
+| F-13 | ✅ Aligned look and tighter grids across web and admin; sidebars use a shared super-dark grey, while top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; account name and sign-out controls have consistent header spacing; bike variant headers match cell padding, the right-side bike actions stay fixed while the grid scrolls horizontally, and admin modal action icons match grid icon colors |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
 | F-17 | ✅ Public header bike search with live suggestions and searchable browse results; Browse Bikes has variant-only keyword and Include discontinued filters inside collapsed Advanced filters, detail links retain publication state, and MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
@@ -61,7 +61,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-26 | ✅ Public and admin show the same branded browser compatibility notice when JavaScript, required capabilities, or framework startup is unavailable |
 | F-28 | ✅ Public privacy and terms pages, global legal links, and authenticated JSON account export plus permanent cascade-backed account deletion from Settings |
 | F-29 | ✅ Public contact form stores inquiries through the shared API; protected admin inbox supports reading and deleting, with no email notifications |
-| F-30 | ✅ Admins can tag models or variants as test data and configure test-bike visibility per administrator in the private Administrators tab; mapped administrators receive published production plus tagged test bikes through the same public UI and interactions only when enabled on their administrator role, including unpublished test bikes, while anonymous/normal users and opted-out administrators receive published production only |
+| F-30 | ✅ Admins can tag models or variants as test data, toggle variant test data directly from the Bikes grid, and configure test-bike visibility per administrator in the private Administrators tab; mapped administrators receive published production plus tagged test bikes through the same public UI and interactions only when enabled on their administrator role, including unpublished test bikes, while anonymous/normal users and opted-out administrators receive published production only |
 
 ## Features (planned)
 
@@ -268,6 +268,10 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-24** — Fixed the admin Bikes grid action icons to the right edge during horizontal scrolling, with opaque header/row backgrounds and an edge shadow separating the frozen column from scrolling data. The admin production build and focused lint pass; lint retains the component's existing `useEffect` dependency warning.
+
+**2026-11-24** — Changed the admin Bikes grid Data column to a label-free Test checkbox and made Year, Variant, MSRP, and Brand directly editable in the grid. Brand uses one lazily populated list only while a row dropdown is open, avoiding duplicated option nodes across records; changing it updates the bike model. Year/Variant/MSRP validate and save on blur or Enter, and model-inherited test-data state remains checked and disabled. Removed last-touched row tracking, memoized filtering/lookups, and capped live grid DOM to 100 bikes per page while keeping displayed-bike bulk actions scoped to all filtered records. Temporary focus highlighting is CSS-only, inline save locks use refs, and outside-click dropdown dismissal is deferred. The admin production build and focused lint pass, with the component's existing `useEffect` dependency warning.
 
 **2026-11-24** — Optimized public test-data authorization for bike requests with same-request memoization and a five-second per-user memory cache, reducing repeated administrator-role database lookups across parallel or closely repeated client calls. Administrator-role mutations and account deletion invalidate affected cached decisions; 12 focused API tests pass.
 
