@@ -26,11 +26,20 @@ public class BikeComparisonRepository : IBikeComparisonRepository
         }
     }
 
-    public async Task<List<PopularComparisonMatch>> GetMostComparedPairsAsync(int limit, CancellationToken ct = default)
+    public async Task<List<PopularComparisonMatch>> GetMostComparedPairsAsync(
+        int limit,
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
         var rows = await _context.BikeComparisons
-            .Where(c => _context.Bikes.Any(b => b.Id == c.BikeAId && b.IsPublished)
-                && _context.Bikes.Any(b => b.Id == c.BikeBId && b.IsPublished))
+            .Where(c => _context.Bikes.Any(b =>
+                    b.Id == c.BikeAId &&
+                    ((b.IsPublished && !b.IsTestData && !b.Model.IsTestData) ||
+                     (includeTestData && (b.IsTestData || b.Model.IsTestData))))
+                && _context.Bikes.Any(b =>
+                    b.Id == c.BikeBId &&
+                    ((b.IsPublished && !b.IsTestData && !b.Model.IsTestData) ||
+                     (includeTestData && (b.IsTestData || b.Model.IsTestData)))))
             .OrderByDescending(c => c.CompareCount)
             .ThenByDescending(c => c.LastComparedAt)
             .Take(limit)
@@ -48,7 +57,11 @@ public class BikeComparisonRepository : IBikeComparisonRepository
         return rows.Select(r => new PopularComparisonMatch(bikes[r.BikeAId], bikes[r.BikeBId], r.CompareCount)).ToList();
     }
 
-    public async Task<List<ComparedBikeMatch>> GetMostComparedWithAsync(int bikeId, int limit, CancellationToken ct = default)
+    public async Task<List<ComparedBikeMatch>> GetMostComparedWithAsync(
+        int bikeId,
+        int limit,
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
         var rows = await _context.BikeComparisons
             .Where(c => c.BikeAId == bikeId || c.BikeBId == bikeId)
@@ -58,7 +71,13 @@ public class BikeComparisonRepository : IBikeComparisonRepository
                 c.CompareCount,
                 c.LastComparedAt
             })
-            .Join(_context.Bikes.Where(b => b.IsPublished), r => r.OtherId, b => b.Id, (r, b) => new { r.CompareCount, r.LastComparedAt, b.Id })
+            .Join(
+                _context.Bikes.Where(b =>
+                    (b.IsPublished && !b.IsTestData && !b.Model.IsTestData) ||
+                    (includeTestData && (b.IsTestData || b.Model.IsTestData))),
+                r => r.OtherId,
+                b => b.Id,
+                (r, b) => new { r.CompareCount, r.LastComparedAt, b.Id })
             .OrderByDescending(r => r.CompareCount)
             .ThenByDescending(r => r.LastComparedAt)
             .Take(limit)

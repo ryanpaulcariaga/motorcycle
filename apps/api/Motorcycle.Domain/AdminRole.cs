@@ -13,6 +13,7 @@ public class AdminRole
     public string? DisplayNameSnapshot { get; set; }
     public string Role { get; set; } = AdminRoles.Administrator;
     public bool IsActive { get; set; } = true;
+    public bool IncludeTestData { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

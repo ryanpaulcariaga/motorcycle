@@ -11,6 +11,8 @@ public class BikeDetailDto
     public string Slug { get; set; } = string.Empty;
     public string BrandName { get; set; } = string.Empty;
     public string CategoryName { get; set; } = string.Empty;
+    public bool IsTestData { get; set; }
+    public bool ModelIsTestData { get; set; }
     public List<BikeImageDto> Images { get; set; } = new();
     public List<SpecGroupWithValuesDto> SpecGroups { get; set; } = new();
 }

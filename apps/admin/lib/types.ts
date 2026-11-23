@@ -5,6 +5,7 @@ export type AdminRole = {
   displayNameSnapshot: string | null;
   role: "Administrator";
   isActive: boolean;
+  includeTestData: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -60,6 +61,7 @@ export type CreateAdminRoleRequest = {
   emailSnapshot: string;
   displayNameSnapshot: string;
   role: "Administrator";
+  includeTestData: boolean;
 };
 
 export type UpdateAdminRoleRequest = {
@@ -67,6 +69,7 @@ export type UpdateAdminRoleRequest = {
   displayNameSnapshot: string;
   role: "Administrator";
   isActive: boolean;
+  includeTestData: boolean;
 };
 
 export type BikeModel = {
@@ -78,10 +81,16 @@ export type BikeModel = {
   name: string;
   createdAt: string;
   bikeCount: number;
+  isTestData: boolean;
 };
 
 export type LookupOption = { id: number; name: string };
-export type BikeModelRequest = { brandId: number; categoryId: number; name: string };
+export type BikeModelRequest = {
+  brandId: number;
+  categoryId: number;
+  name: string;
+  isTestData: boolean;
+};
 
 export type ReviewStatus = 'draft' | 'inProgress' | 'completed';
 
@@ -100,6 +109,8 @@ export type BikeAdminListItem = {
   createdAt: string;
   updatedAt: string;
   imageCount: number;
+  isTestData: boolean;
+  modelIsTestData: boolean;
 };
 
 export type BikeAdminDetail = BikeAdminListItem & {
@@ -117,6 +128,7 @@ export type CreateBikeRequest = {
   year: number;
   msrpPrice: number | null;
   specs: Record<string, unknown>;
+  isTestData: boolean;
 };
 
 export type UpdateBikeRequest = {
@@ -127,6 +139,7 @@ export type UpdateBikeRequest = {
   specs: Record<string, unknown>;
   verificationChanges?: SpecVerificationUpdate[];
   resetVerifications?: boolean;
+  isTestData: boolean;
 };
 
 export type ReassignBikeModelRequest = { modelId: number };

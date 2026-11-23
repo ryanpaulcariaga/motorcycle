@@ -11,6 +11,8 @@ public class BikeListItemDto
     public string Slug { get; set; } = string.Empty;
     public string BrandName { get; set; } = string.Empty;
     public string CategoryName { get; set; } = string.Empty;
+    public bool IsTestData { get; set; }
+    public bool ModelIsTestData { get; set; }
     public string? PrimaryImageUrl { get; set; }
     public BikeImageVariantsDto? PrimaryImageVariants { get; set; }
 }

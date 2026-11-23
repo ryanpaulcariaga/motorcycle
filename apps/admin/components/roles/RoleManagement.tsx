@@ -17,6 +17,7 @@ const emptyForm = {
   facebookUserId: '',
   emailSnapshot: '',
   displayNameSnapshot: '',
+  includeTestData: false,
 };
 
 export default function RoleManagement() {
@@ -62,6 +63,7 @@ export default function RoleManagement() {
       facebookUserId: role.facebookUserId,
       emailSnapshot: role.emailSnapshot ?? '',
       displayNameSnapshot: role.displayNameSnapshot ?? '',
+      includeTestData: role.includeTestData,
     });
     setError(null);
     setModalOpen(true);
@@ -73,6 +75,7 @@ export default function RoleManagement() {
       facebookUserId: '',
       emailSnapshot: role.emailSnapshot ?? '',
       displayNameSnapshot: role.displayNameSnapshot ?? '',
+      includeTestData: false,
     });
     setError(null);
     setModalOpen(true);
@@ -89,6 +92,7 @@ export default function RoleManagement() {
           displayNameSnapshot: form.displayNameSnapshot,
           role: 'Administrator',
           isActive: editingRole.isActive,
+          includeTestData: form.includeTestData,
         });
       } else {
         await createAdminRole({ ...form, role: 'Administrator' });
@@ -116,6 +120,7 @@ export default function RoleManagement() {
         displayNameSnapshot: role.displayNameSnapshot ?? '',
         role: 'Administrator',
         isActive: !role.isActive,
+        includeTestData: role.includeTestData,
       });
       setRoles((current) =>
         current.map((item) => (item.id === updated.id ? updated : item))
@@ -125,6 +130,28 @@ export default function RoleManagement() {
         cause instanceof AdminApiError
           ? cause.message
           : 'Unable to update administrator.'
+      );
+    }
+  }
+
+  async function toggleTestData(role: AdminRole) {
+    setError(null);
+    try {
+      const updated = await updateAdminRole(role.id, {
+        emailSnapshot: role.emailSnapshot ?? '',
+        displayNameSnapshot: role.displayNameSnapshot ?? '',
+        role: 'Administrator',
+        isActive: role.isActive,
+        includeTestData: !role.includeTestData,
+      });
+      setRoles((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item))
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof AdminApiError
+          ? cause.message
+          : 'Unable to update test-data access.'
       );
     }
   }
@@ -196,6 +223,7 @@ export default function RoleManagement() {
                   <th className="p-2">Identity</th>
                   <th className="p-2">Name</th>
                   <th className="p-2">Status</th>
+                  <th className="p-2">View test bikes</th>
                   <th className="relative p-2">
                     <span className="sr-only">Actions</span>
                   </th>
@@ -219,6 +247,17 @@ export default function RoleManagement() {
                     </td>
                     <td className="p-2">
                       {role.isActive ? 'Active' : 'Inactive'}
+                    </td>
+                    <td className="p-2">
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={role.includeTestData}
+                          aria-label={`Include test bikes for ${role.displayNameSnapshot ?? role.facebookUserId}`}
+                          onChange={() => void toggleTestData(role)}
+                        />
+                        {role.includeTestData ? 'Included' : 'Hidden'}
+                      </label>
                     </td>
                     <td className="p-2 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -318,6 +357,16 @@ export default function RoleManagement() {
                 setForm({ ...form, displayNameSnapshot: event.target.value })
               }
             />
+            <label className="mt-4 flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={form.includeTestData}
+                onChange={(event) =>
+                  setForm({ ...form, includeTestData: event.target.checked })
+                }
+              />
+              Allow this administrator to view test bikes on the public site
+            </label>
             <ModalFooter>
               <button
                 className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"

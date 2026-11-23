@@ -91,3 +91,6 @@ Lessons:
 - Environment secrets only change when the app registration, tenant, or subscription changes.
 - Docs-only pushes do not deploy; use **Run workflow** with `deploy_all` to redeploy everything.
 - CI uses pnpm `version: 10`; the lockfile (v9.0) works with `--frozen-lockfile` in CI (confirmed 2026-10-19).
+## Public-user session cookie
+
+The public user cookie (`mc_user_session`) uses `SameSite=None`, `Secure`, and `HttpOnly` so credentialed browser requests from the separately deployed web app can authenticate with the API. The CORS allowlist, protected-mutation `Origin` validation, rate limits, and custom request headers remain the CSRF controls. After changing cookie SameSite configuration, sign out and sign in again so the browser receives the updated cookie attributes.

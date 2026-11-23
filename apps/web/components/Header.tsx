@@ -263,7 +263,7 @@ export default function Header() {
               autoComplete="off"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder=""
+              placeholder="Search bikes..."
               className="min-w-0 flex-1 border border-white/20 bg-white/10 px-3 py-1.5 pr-9 text-sm text-white placeholder:text-white/60 focus:border-brand-gold focus:outline-none focus:ring-2 focus:ring-brand-gold"
             />
             <button
@@ -317,7 +317,11 @@ export default function Header() {
                 searchResults.map((bike) => (
                   <Link
                     key={bike.id}
-                    href={`/bikes/${bike.slug}`}
+                    href={`/bikes/${bike.slug}${
+                      bike.isTestData || bike.modelIsTestData
+                        ? '?preview=test'
+                        : ''
+                    }`}
                     onClick={() => {
                       trackUserInterest({ type: 'bike_search_selection', id: bike.id });
                       setIsSearchFocused(false);

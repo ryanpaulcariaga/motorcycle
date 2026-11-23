@@ -22,11 +22,36 @@ export default function CatalogFilters({ params, brands, categories, ccAvailable
 
   return (
     <div className="mb-4 border border-zinc-200 bg-zinc-50 p-4">
-      <AnalyticsFilterForm key={JSON.stringify([params.brandId, params.categoryId, ...rangeFields.map(([key]) => params[key])])}>
-        {(['search', 'sort'] as const).map((key) =>
+      <AnalyticsFilterForm key={JSON.stringify([params.search, params.brandId, params.categoryId, ...rangeFields.map(([key]) => params[key])])}>
+        {(['sort'] as const).map((key) =>
           params[key] ? <input key={key} type="hidden" name={key} value={params[key]} /> : null
         )}
-        <details>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <label className="flex min-w-0 flex-1 flex-col gap-1 text-sm font-semibold">
+            Keyword
+            <input
+              type="search"
+              name="search"
+              defaultValue={params.search ?? ''}
+              placeholder="Search by model, variant, or brand"
+              className="w-full min-w-0 border border-zinc-300 bg-white px-3 py-2 font-normal text-brand-black"
+            />
+          </label>
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="submit" className="bg-brand-button px-4 py-2 text-sm font-semibold text-white">
+              Search bikes
+            </button>
+            {params.search && (
+              <Link
+                href={buildBrowseHref(params, { search: undefined, page: undefined })}
+                className="py-2 text-sm font-semibold text-brand-button hover:underline"
+              >
+                Clear keyword
+              </Link>
+            )}
+          </div>
+        </div>
+        <details className="mt-3">
           <summary className="cursor-pointer text-sm font-semibold text-brand-button hover:underline">
             Advanced filters{activeFilters > 0 ? ` (${activeFilters} active)` : ''}
           </summary>

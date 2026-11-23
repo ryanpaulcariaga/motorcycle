@@ -58,6 +58,7 @@ export default function CompareClient({
       brandSelectRef.current?.focus();
     }
   }, [showAdvanced]);
+
   const [brands, setBrands] = useState<BrandDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [filters, setFilters] = useState({

@@ -1,12 +1,10 @@
-import Link from 'next/link';
 import CatalogPageShell from '@/components/CatalogPageShell';
-import BikeCardContent from '@/components/BikeCardContent';
 import CatalogFilters from '@/components/CatalogFilters';
 import CatalogSortControls from '@/components/CatalogSortControls';
-import AnalyticsTracker from '@/components/AnalyticsTracker';
-import SearchResultLink from '@/components/SearchResultLink';
+import CatalogBikeGrid from '@/components/CatalogBikeGrid';
+import CatalogResultsCount from '@/components/CatalogResultsCount';
 import { getBikes, getBrands, getCategories, getSpecGroups } from '@/lib/api';
-import { buildBikeDetailHref, buildBrowseHref, CATALOG_PAGE_SIZE, getBrowseParams, getCatalogSorts, isDisplacementFilterAvailable, rangeFields, serializeCatalogSorts } from '@/lib/catalogFilters';
+import { CATALOG_PAGE_SIZE, getBrowseParams, getCatalogSorts, isDisplacementFilterAvailable, rangeFields, serializeCatalogSorts } from '@/lib/catalogFilters';
 import type { Metadata } from 'next';
 
 interface BikesPageProps {
@@ -104,67 +102,80 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
 
   return (
     <CatalogPageShell browseParams={browseParams} catalogBrands={brands}>
-          {!filterError && <AnalyticsTracker kind="search" hasSearch={!!params.search?.trim()} zeroResults={totalCount === 0} />}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h1 className="min-w-0 break-words text-2xl font-bold">
               {params.search
                 ? `Search results for "${params.search}"`
                 : 'Browse Bikes'}
             </h1>
-            {!filterError && <p className="shrink-0 text-sm text-brand-grey">{totalCount} bikes</p>}
+            {!filterError && (
+              <CatalogResultsCount
+                initialTotalCount={totalCount}
+                query={{
+                  page,
+                  pageSize: CATALOG_PAGE_SIZE,
+                  search: params.search,
+                  brandId: params.brandId,
+                  categoryId: params.categoryId,
+                  yearMin: params.yearMin
+                    ? Number(params.yearMin)
+                    : params.yearMax
+                      ? 1
+                      : undefined,
+                  yearMax: params.yearMax ? Number(params.yearMax) : undefined,
+                  priceMin: params.priceMin
+                    ? Number(params.priceMin)
+                    : undefined,
+                  priceMax: params.priceMax
+                    ? Number(params.priceMax)
+                    : undefined,
+                  specCode: hasCcFilter ? 'cc' : undefined,
+                  specMin: params.ccMin
+                    ? String(Number(params.ccMin))
+                    : undefined,
+                  specMax: params.ccMax
+                    ? String(Number(params.ccMax))
+                    : undefined,
+                  sort: browseParams.sort,
+                }}
+              />
+            )}
           </div>
           <CatalogFilters params={browseParams} brands={brands} categories={categories} ccAvailable={ccAvailable} />
           <CatalogSortControls key={browseParams.sort} params={browseParams} initialSorts={sorts} />
           {filterError && <p role="alert" className="mb-4 text-sm text-red-700">{filterError}</p>}
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-            {bikes.map((bike) => (
-              <SearchResultLink
-                key={bike.id}
-                href={buildBikeDetailHref(bike.slug, browseParams)}
-                bikeId={bike.id}
-                isSearch={!!params.search?.trim()}
-              >
-                <BikeCardContent bike={bike}>
-                  <p className="text-xs text-brand-grey">{bike.categoryName}</p>
-                  <p className="font-semibold">
-                    {bike.variantName}
-                  </p>
-                  <p className="text-sm text-brand-grey">
-                    {bike.year}{' '}
-                    {bike.msrpPrice
-                      ? `· $${bike.msrpPrice.toLocaleString()}`
-                      : ''}
-                  </p>
-                </BikeCardContent>
-              </SearchResultLink>
-            ))}
-          </div>
-
-          {!filterError && bikes.length === 0 && (
-            <p className="text-center text-brand-grey py-12">
-              {params.search
-                ? `No bikes found for "${params.search}".`
-                : 'No bikes match the selected filters.'}
-            </p>
-          )}
-
-          {totalPages > 1 && (
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <Link
-                  key={p}
-                  href={buildBrowseHref(browseParams, { page: String(p) })}
-                  className={`px-3 py-1.5 text-sm transition-colors hover:bg-brand-button hover:text-white ${
-                    p === page
-                      ? 'bg-brand-sidebar text-white'
-                      : 'bg-zinc-100 text-brand-grey'
-                  }`}
-                >
-                  {p}
-                </Link>
-              ))}
-            </div>
-          )}
+          <CatalogBikeGrid
+              initialBikes={bikes}
+              initialTotalPages={totalPages}
+              showBrowseStatus={!filterError}
+              noResultsMessage={
+                params.search
+                  ? `No bikes found for "${params.search}".`
+                  : 'No bikes match the selected filters.'
+              }
+              currentPage={page}
+              browseParams={browseParams}
+              isSearch={!!params.search?.trim()}
+              query={{
+                page,
+                pageSize: CATALOG_PAGE_SIZE,
+                search: params.search,
+                brandId: params.brandId,
+                categoryId: params.categoryId,
+                yearMin: params.yearMin
+                  ? Number(params.yearMin)
+                  : params.yearMax
+                    ? 1
+                    : undefined,
+                yearMax: params.yearMax ? Number(params.yearMax) : undefined,
+                priceMin: params.priceMin ? Number(params.priceMin) : undefined,
+                priceMax: params.priceMax ? Number(params.priceMax) : undefined,
+                specCode: hasCcFilter ? 'cc' : undefined,
+                specMin: params.ccMin ? String(Number(params.ccMin)) : undefined,
+                specMax: params.ccMax ? String(Number(params.ccMax)) : undefined,
+                sort: browseParams.sort,
+              }}
+            />
     </CatalogPageShell>
   );
 }

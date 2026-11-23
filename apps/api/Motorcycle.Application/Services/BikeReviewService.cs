@@ -5,25 +5,49 @@ namespace Motorcycle.Application.Services;
 
 public interface IBikeReviewService
 {
-    Task<BikeReviewsDto?> GetByBikeAsync(int bikeId, CancellationToken ct);
-    Task<BikeReviewDto?> GetByUserAsync(int bikeId, int userId, CancellationToken ct);
-    Task<BikeReviewWriteResult> UpsertAsync(int bikeId, int userId, UpsertBikeReviewRequest request, CancellationToken ct);
-    Task<bool> DeleteAsync(int bikeId, int userId, CancellationToken ct);
+    Task<BikeReviewsDto?> GetByBikeAsync(
+        int bikeId,
+        CancellationToken ct,
+        bool includeTestData = false);
+    Task<BikeReviewDto?> GetByUserAsync(
+        int bikeId,
+        int userId,
+        CancellationToken ct,
+        bool includeTestData = false);
+    Task<BikeReviewWriteResult> UpsertAsync(
+        int bikeId,
+        int userId,
+        UpsertBikeReviewRequest request,
+        CancellationToken ct,
+        bool includeTestData = false);
+    Task<bool> DeleteAsync(
+        int bikeId,
+        int userId,
+        CancellationToken ct,
+        bool includeTestData = false);
 }
 
 public sealed class BikeReviewService(IBikeReviewRepository repository) : IBikeReviewService
 {
-    public Task<BikeReviewsDto?> GetByBikeAsync(int bikeId, CancellationToken ct) =>
-        repository.GetByBikeAsync(bikeId, ct);
+    public Task<BikeReviewsDto?> GetByBikeAsync(
+        int bikeId,
+        CancellationToken ct,
+        bool includeTestData = false) =>
+        repository.GetByBikeAsync(bikeId, ct, includeTestData);
 
-    public Task<BikeReviewDto?> GetByUserAsync(int bikeId, int userId, CancellationToken ct) =>
-        repository.GetByUserAsync(bikeId, userId, ct);
+    public Task<BikeReviewDto?> GetByUserAsync(
+        int bikeId,
+        int userId,
+        CancellationToken ct,
+        bool includeTestData = false) =>
+        repository.GetByUserAsync(bikeId, userId, ct, includeTestData);
 
     public Task<BikeReviewWriteResult> UpsertAsync(
         int bikeId,
         int userId,
         UpsertBikeReviewRequest request,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool includeTestData = false)
     {
         if (request.Rating is < 1 or > 5 ||
             request.Body is not null && request.Body.Trim().Length > 1000)
@@ -32,9 +56,19 @@ public sealed class BikeReviewService(IBikeReviewRepository repository) : IBikeR
         }
 
         var body = request.Body?.Trim();
-        return repository.UpsertAsync(bikeId, userId, request.Rating, string.IsNullOrEmpty(body) ? null : body, ct);
+        return repository.UpsertAsync(
+            bikeId,
+            userId,
+            request.Rating,
+            string.IsNullOrEmpty(body) ? null : body,
+            ct,
+            includeTestData);
     }
 
-    public Task<bool> DeleteAsync(int bikeId, int userId, CancellationToken ct) =>
-        repository.DeleteAsync(bikeId, userId, ct);
+    public Task<bool> DeleteAsync(
+        int bikeId,
+        int userId,
+        CancellationToken ct,
+        bool includeTestData = false) =>
+        repository.DeleteAsync(bikeId, userId, ct, includeTestData);
 }

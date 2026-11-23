@@ -8,7 +8,17 @@ public sealed record BikeModelDto(
     string CategoryName,
     string Name,
     DateTime CreatedAt,
-    int BikeCount);
+    int BikeCount,
+    bool IsTestData = false);
 
-public sealed record CreateBikeModelRequest(int BrandId, int CategoryId, string Name);
-public sealed record UpdateBikeModelRequest(int BrandId, int CategoryId, string Name);
+public sealed record CreateBikeModelRequest(
+    int BrandId,
+    int CategoryId,
+    string Name,
+    bool IsTestData = false);
+
+public sealed record UpdateBikeModelRequest(
+    int BrandId,
+    int CategoryId,
+    string Name,
+    bool IsTestData = false);

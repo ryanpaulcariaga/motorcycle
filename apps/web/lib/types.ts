@@ -21,6 +21,7 @@ export interface UserSessionDto {
   userId: number;
   email: string | null;
   displayName: string | null;
+  isAdministrator: boolean;
 }
 
 export interface UserDataExport {
@@ -121,6 +122,8 @@ export interface BikeListItemDto {
   slug: string;
   brandName: string;
   categoryName: string;
+  isTestData: boolean;
+  modelIsTestData: boolean;
   primaryImageUrl: string | null;
   primaryImageVariants: BikeImageVariantsDto | null;
 }
@@ -150,6 +153,8 @@ export interface BikeDetailDto {
   slug: string;
   brandName: string;
   categoryName: string;
+  isTestData: boolean;
+  modelIsTestData: boolean;
   images: BikeImageDto[];
   specGroups: SpecGroupWithValuesDto[];
 }

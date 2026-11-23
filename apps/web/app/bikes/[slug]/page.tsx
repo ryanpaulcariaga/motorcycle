@@ -7,6 +7,7 @@ import AnalyticsTracker from '@/components/AnalyticsTracker';
 import BikeImageGallery from '@/components/BikeImageGallery';
 import BikeReviews from '@/components/BikeReviews';
 import BikeComments from '@/components/BikeComments';
+import TestBikeDetailFallback from '@/components/TestBikeDetailFallback';
 import { getBikeBySlug, getBikeComments, getBikeReviews, getComparedWith } from '@/lib/api';
 import { buildBikeDetailHref, buildBrowseHref, getBrowseParams } from '@/lib/catalogFilters';
 import { SITE_URL } from '@/lib/site';
@@ -66,12 +67,16 @@ export const dynamic = 'force-dynamic';
 
 export default async function BikeDetailPage({ params, searchParams }: BikeDetailPageProps) {
   const { slug } = await params;
-  const browseParams = getBrowseParams(await searchParams);
+  const resolvedSearchParams = await searchParams;
+  const browseParams = getBrowseParams(resolvedSearchParams);
 
   let bike;
   try {
     bike = await getBikeBySlug(slug);
   } catch {
+    if (resolvedSearchParams.preview === 'test') {
+      return <TestBikeDetailFallback slug={slug} />;
+    }
     notFound();
   }
 

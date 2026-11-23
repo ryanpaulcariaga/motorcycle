@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 53 of 113 tasks done · 7 in progress · 53 not started.**
+**Progress: 55 of 115 tasks done · 7 in progress · 53 not started.**
 
 **Next up:** Configure the production legal operator/contact/jurisdiction values and complete the privacy, inquiry retention, log-retention, and backup-deletion review in T-112 before G-10 can be ticked. Verify the contact form and admin inbox with a test database and authenticated session under T-113. Verify ratings/comments, interest-profile, and account privacy controls in authenticated public browser sessions, and verify the analytics dashboard with an authenticated admin session. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -50,7 +50,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin; sidebars use a shared super-dark grey, while top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; account name and sign-out controls have consistent header spacing; bike variant headers match cell padding; admin modal action icons match grid icon colors |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
-| F-17 | ✅ Public header bike search with live suggestions and searchable browse results; MotoCompare links home |
+| F-17 | ✅ Public header bike search with live suggestions and searchable browse results; the browse page also has a visible keyword field, and MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; bike-detail highlights use one column on phones and two at wider widths, mobile account-menu rows and browse links are consistently right-aligned, sidebar sections expand independently, pages scroll to content, and the bulk-edit modal uses one vertical scroller with fixed title and actions |
@@ -61,6 +61,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-26 | ✅ Public and admin show the same branded browser compatibility notice when JavaScript, required capabilities, or framework startup is unavailable |
 | F-28 | ✅ Public privacy and terms pages, global legal links, and authenticated JSON account export plus permanent cascade-backed account deletion from Settings |
 | F-29 | ✅ Public contact form stores inquiries through the shared API; protected admin inbox supports reading and deleting, with no email notifications |
+| F-30 | ✅ Admins can tag models or variants as test data and configure test-bike visibility per administrator in the private Administrators tab; mapped administrators receive published production plus tagged test bikes through the same public UI and interactions only when enabled on their administrator role, including unpublished test bikes, while anonymous/normal users and opted-out administrators receive published production only |
 
 ## Features (planned)
 
@@ -231,7 +232,9 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-116 | ✅ Add a visible keyword search option to public bike browsing | Browse has a keyword field with Search bikes and Clear keyword actions, preserves advanced filters and sorting, and uses the same anonymous search analytics flow; header search now has a visible placeholder. Web lint and production build pass |
 | T-114 | ✅ Make Bikes the admin landing page | `/`, `/admin`, and `/admin/` render the Bikes variant screen and highlight Bikes after sign-in; explicit admin deep links remain unchanged. Admin build and lint pass |
+| T-115 | ✅ Add test-data tags to bike models and variants | Added independent `is_test_data` columns and admin controls; model tags hide all variants and variant tags hide one row. Public test-data access requires the signed-in user's Facebook login to match an active Administrator role and includes real rating/comment flows. 135 API tests pass (2 PostgreSQL opt-in tests skipped), EF has no pending changes, and admin/web builds and lint pass (6 pre-existing admin warnings) |
 | T-70 | ✅ Replace placeholder "Top 10" sidebar sections with real data | Public fan rankings use active-user ratings; daily interest uses the current UTC day's anonymous opt-in bike-view aggregates, published-bike filtering, count/ID tie-breaks, an API endpoint, and sidebar counts. 15 focused API tests, web lint and production build pass. |
 | T-51 | ✅ Define and implement the user data export and deletion process | `GET /api/user/account/export`, `DELETE /api/user/account`, Settings controls, versioned JSON export, database-cascade deletion, session clearing, CSRF-origin checks, 3 passing focused tests, and an optional PostgreSQL cascade test |
 | T-50 | ✅ Terms page | `/terms`, shared footer link, configurable operator/contact/jurisdiction, web lint and production build pass |
@@ -263,6 +266,12 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-23** — Added a persisted, default-off View test bikes control to each administrator role in the private Administrators tab. The API checks that role setting for catalog, comparison, ranking, review, and comment access, keeping the public Settings page unchanged. The EF migration was generated; API tests, web/admin builds and lint pass.
+
+**2026-11-23** — Added a visible keyword search field above the public browse filters, with Search bikes and Clear keyword actions. Keyword state is preserved alongside advanced filters and sorting, browse submissions participate in anonymous search analytics, and the header search now shows a discoverable placeholder. Public web ESLint and the production build pass.
+
+**2026-11-23** — Added independent test-data tags for bike models and variants. Admins can set and see the tags in model/variant editing and filters. Tagged records stay out of anonymous/normal-user catalog, comparison, ranking, analytics, review, comment and interest paths. A public user gains access only when their linked Facebook provider ID matches an active Administrator role, including real rating/comment operations and credentialed test-detail previews. The EF migration was generated; 135 API tests pass (2 opt-in PostgreSQL tests skipped), EF has no pending changes, admin/web builds pass, web lint is clean, and admin lint retains 6 pre-existing warnings.
 
 **2026-11-23** — Expanded and aligned the displayed-bike review actions: the grid and bulk-edit workflow use "Set displayed to 'Draft'", "Set displayed to 'In Progress'", and "Set displayed to 'Completed'"; bulk-edit status changes remain staged until save.
 

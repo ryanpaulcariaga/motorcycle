@@ -7,6 +7,7 @@ public sealed record AdminRoleDto(
     string? DisplayNameSnapshot,
     string Role,
     bool IsActive,
+    bool IncludeTestData,
     DateTime CreatedAt,
     DateTime UpdatedAt);
 
@@ -14,10 +15,12 @@ public sealed record CreateAdminRoleRequest(
     string FacebookUserId,
     string? EmailSnapshot,
     string? DisplayNameSnapshot,
-    string Role);
+    string Role,
+    bool IncludeTestData = false);
 
 public sealed record UpdateAdminRoleRequest(
     string? EmailSnapshot,
     string? DisplayNameSnapshot,
     string Role,
-    bool IsActive);
+    bool IsActive,
+    bool IncludeTestData);

@@ -42,6 +42,22 @@ public class BikeAdminServiceTests
     }
 
     [Fact]
+    public async Task CreateAsync_PersistsAndReturnsVariantTestDataTag()
+    {
+        var (service, _) = CreateService();
+
+        var result = await service.CreateAsync(new CreateBikeRequest(
+            1,
+            "Test Variant",
+            2024,
+            null,
+            null,
+            true));
+
+        Assert.True(result.IsTestData);
+    }
+
+    [Fact]
     public async Task UpdateSpecGridAsync_UpdatesMotorcycleYearAndMsrp()
     {
         var (service, repository) = CreateService();

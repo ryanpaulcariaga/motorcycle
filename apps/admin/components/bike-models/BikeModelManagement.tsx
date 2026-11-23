@@ -24,7 +24,7 @@ import {
 import { compareText, sortRows } from '@/lib/multiSort';
 import { SortGroup } from '@/components/GridSidebar';
 
-const emptyForm = { brandId: '', categoryId: '', name: '' };
+const emptyForm = { brandId: '', categoryId: '', name: '', isTestData: false };
 
 export default function BikeModelManagement() {
   const [initialListState] = useState(() =>
@@ -37,6 +37,7 @@ export default function BikeModelManagement() {
   const [categoryFilter, setCategoryFilter] = useState(
     initialListState.categoryFilter
   );
+  const [testDataFilter, setTestDataFilter] = useState('');
   const [sortRules, setSortRules] = useState(initialListState.sort);
   const [filtersOpen, setFiltersOpen] = useState(() =>
     window.matchMedia('(min-width: 768px)').matches
@@ -51,12 +52,16 @@ export default function BikeModelManagement() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const primarySort = sortRules[0];
-  const activeFilterCount = [brandFilter, categoryFilter].filter(Boolean).length;
+  const activeFilterCount = [brandFilter, categoryFilter, testDataFilter].filter(
+    Boolean
+  ).length;
   const filteredModels = sortRows(
     models.filter(
       (model) =>
         (!brandFilter || model.brandId === Number(brandFilter)) &&
-        (!categoryFilter || model.categoryId === Number(categoryFilter))
+        (!categoryFilter || model.categoryId === Number(categoryFilter)) &&
+        (!testDataFilter ||
+          (testDataFilter === 'test-data') === model.isTestData)
     ),
     sortRules,
     {
@@ -139,6 +144,7 @@ export default function BikeModelManagement() {
       brandId: String(model.brandId),
       categoryId: String(model.categoryId),
       name: model.name,
+      isTestData: model.isTestData,
     });
     setError(null);
     setModalOpen(true);
@@ -150,6 +156,7 @@ export default function BikeModelManagement() {
       brandId: String(model.brandId),
       categoryId: String(model.categoryId),
       name: model.name,
+      isTestData: model.isTestData,
     });
     setError(null);
     setModalOpen(true);
@@ -164,6 +171,7 @@ export default function BikeModelManagement() {
         brandId: Number(form.brandId),
         categoryId: Number(form.categoryId),
         name: form.name,
+        isTestData: form.isTestData,
       };
       if (editingId === null) {
         await createBikeModel(request);
@@ -270,6 +278,18 @@ export default function BikeModelManagement() {
                   </select>
                 </label>
                 <label className="block text-sm font-semibold">
+                  Data
+                  <select
+                    className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal"
+                    value={testDataFilter}
+                    onChange={(event) => setTestDataFilter(event.target.value)}
+                  >
+                    <option value="">All data</option>
+                    <option value="production">Production data</option>
+                    <option value="test-data">Test data</option>
+                  </select>
+                </label>
+                <label className="block text-sm font-semibold">
                   Category
                   <select
                     className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal"
@@ -292,6 +312,7 @@ export default function BikeModelManagement() {
                 onClick={() => {
                   setBrandFilter('');
                   setCategoryFilter('');
+                  setTestDataFilter('');
                 }}
               >
                 Clear filters
@@ -327,6 +348,7 @@ export default function BikeModelManagement() {
                       <th aria-sort={ariaSort('name')} className="p-2">
                         Model
                       </th>
+                      <th className="p-2">Data</th>
                       <th className="relative p-2">
                         <span className="sr-only">Actions</span>
                       </th>
@@ -343,6 +365,13 @@ export default function BikeModelManagement() {
                         <td className="p-2">{model.categoryName}</td>
                         <td className="p-2 font-semibold">
                           {bikeModelLabel(model.name, model.bikeCount)}
+                        </td>
+                        <td className="p-2">
+                          {model.isTestData && (
+                            <span className="border border-amber-700 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900">
+                              Test data
+                            </span>
+                          )}
                         </td>
                         <td className="p-2">
                           <div className="flex items-center justify-end gap-1">
@@ -478,6 +507,20 @@ export default function BikeModelManagement() {
                 setForm({ ...form, name: event.target.value })
               }
             />
+            <label className="mt-4 flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={form.isTestData}
+                className="h-4 w-4 accent-brand-gold"
+                onChange={(event) =>
+                  setForm({ ...form, isTestData: event.target.checked })
+                }
+              />
+              Test data
+            </label>
+            <p className="mt-1 text-xs text-brand-grey">
+              Test models and all of their variants are hidden from the public catalog.
+            </p>
             <ModalFooter>
               <button
                 className="flex-1 bg-brand-gold px-4 py-3 font-bold text-brand-black disabled:opacity-50"

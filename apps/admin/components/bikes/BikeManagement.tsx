@@ -53,6 +53,7 @@ const emptyForm = {
   sourceUrls: {} as Record<string, string>,
   savedVerificationCodes: [] as string[],
   resetVerifications: false,
+  isTestData: false,
 };
 
 type SortField =
@@ -115,6 +116,7 @@ export default function BikeManagement({
     brandId: '',
     categoryId: '',
     name: '',
+    isTestData: false,
   });
   const [brands, setBrands] = useState<LookupOption[]>([]);
   const [categories, setCategories] = useState<LookupOption[]>([]);
@@ -129,6 +131,7 @@ export default function BikeManagement({
       ''
   );
   const [statusFilter, setStatusFilter] = useState('');
+  const [testDataFilter, setTestDataFilter] = useState('');
   const [reviewFilter, setReviewFilter] = useState('');
   const [imageFilter, setImageFilter] = useState('');
   const [search, setSearch] = useState('');
@@ -170,6 +173,9 @@ export default function BikeManagement({
         (!maxPrice || bike.msrpPrice !== null && bike.msrpPrice <= Number(maxPrice)) &&
         (!statusFilter ||
           (statusFilter === 'published') === bike.isPublished) &&
+        (!testDataFilter ||
+          (testDataFilter === 'test-data') ===
+            (bike.isTestData || bike.modelIsTestData)) &&
         (!reviewFilter || bike.reviewStatus === reviewFilter) &&
         (!imageFilter ||
           (imageFilter === 'has-images'
@@ -203,6 +209,7 @@ export default function BikeManagement({
     yearMin || yearMax,
     minPrice || maxPrice,
     statusFilter,
+    testDataFilter,
     reviewFilter,
     imageFilter,
   ].filter(Boolean).length;
@@ -384,6 +391,7 @@ export default function BikeManagement({
       ),
       savedVerificationCodes: Object.keys(detail.specVerifications),
       resetVerifications: false,
+      isTestData: detail.isTestData,
     };
   }
 
@@ -500,6 +508,7 @@ export default function BikeManagement({
         year: Number(form.year) || 0,
         msrpPrice: form.msrpPrice === '' ? null : Number(form.msrpPrice),
         specs: buildSpecs(),
+        isTestData: form.isTestData,
       };
       if (editingId === null) {
         const targetModelId = modelId ?? Number(form.modelId);
@@ -606,8 +615,9 @@ export default function BikeManagement({
             brandId: String(source.brandId),
             categoryId: String(source.categoryId),
             name: mode === 'clone' ? `${source.name} (Copy)` : source.name,
+            isTestData: mode === 'clone' ? false : source.isTestData,
           }
-        : { brandId: '', categoryId: '', name: '' }
+        : { brandId: '', categoryId: '', name: '', isTestData: false }
     );
     setModelFormMode(source ? mode : 'new');
     setCreatingModel(true);
@@ -656,6 +666,7 @@ export default function BikeManagement({
           brandId: Number(newModel.brandId),
           categoryId: Number(newModel.categoryId),
           name: newModel.name.trim(),
+          isTestData: newModel.isTestData,
         };
         targetModel =
           modelFormMode === 'edit'
@@ -879,6 +890,18 @@ export default function BikeManagement({
                   </select>
                 </label>
                 <label className="block text-sm font-semibold">
+                  Data
+                  <select
+                    className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal"
+                    value={testDataFilter}
+                    onChange={(event) => setTestDataFilter(event.target.value)}
+                  >
+                    <option value="">All data</option>
+                    <option value="production">Production data</option>
+                    <option value="test-data">Test data</option>
+                  </select>
+                </label>
+                <label className="block text-sm font-semibold">
                   Review status
                   <select className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal" value={reviewFilter} onChange={(event) => setReviewFilter(event.target.value)}>
                     <option value="">All review statuses</option>
@@ -911,6 +934,7 @@ export default function BikeManagement({
                   setMinPrice('');
                   setMaxPrice('');
                   setStatusFilter('');
+                  setTestDataFilter('');
                   setReviewFilter('');
                   setImageFilter('');
                 }}
@@ -951,6 +975,7 @@ export default function BikeManagement({
                   {sortHeader('status', 'Published')}
                   <th className="p-2">In Progress</th>
                   {sortHeader('reviewed', 'Review status')}
+                  <th className="p-2">Data</th>
                   <th className="relative p-2">
                     <span className="sr-only">Actions</span>
                   </th>
@@ -1046,6 +1071,13 @@ export default function BikeManagement({
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
                       </select>
+                    </td>
+                    <td className="p-2">
+                      {(bike.isTestData || bike.modelIsTestData) && (
+                        <span className="border border-amber-700 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900">
+                          {bike.modelIsTestData ? 'Test model' : 'Test data'}
+                        </span>
+                      )}
                     </td>
                     <td className="p-2">
                       <div className="flex items-center justify-end gap-1">
@@ -1180,6 +1212,20 @@ export default function BikeManagement({
                 setForm({ ...form, msrpPrice: event.target.value })
               }
             />
+            <label className="mt-4 flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={form.isTestData}
+                className="h-4 w-4 accent-brand-gold"
+                onChange={(event) =>
+                  setForm({ ...form, isTestData: event.target.checked })
+                }
+              />
+              Test data
+            </label>
+            <p className="mt-1 text-xs text-brand-grey">
+              Tagged variants are hidden from the public catalog.
+            </p>
             {editingId !== null && (
               <div className="mt-4">
                 <p className="text-sm text-brand-grey">
@@ -1486,6 +1532,18 @@ export default function BikeManagement({
                     setNewModel({ ...newModel, name: e.target.value })
                   }
                 />
+                <label className="flex items-center gap-2 text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={newModel.isTestData}
+                    className="h-4 w-4 accent-brand-gold"
+                    disabled={reassigning}
+                    onChange={(e) =>
+                      setNewModel({ ...newModel, isTestData: e.target.checked })
+                    }
+                  />
+                  Test data
+                </label>
               </div>
             ) : (
               <select

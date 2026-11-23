@@ -7,15 +7,35 @@ namespace Motorcycle.Application.Services;
 
 public interface IBikeService
 {
-    Task<PagedResult<BikeListItemDto>> GetBikesAsync(BikeQueryParameters query, CancellationToken ct = default);
-    Task<BikeDetailDto?> GetBikeDetailAsync(string slug, CancellationToken ct = default);
-    Task<CompareResultDto> CompareBikesAsync(List<int> bikeIds, CancellationToken ct = default);
-    Task<List<ComparedBikeDto>?> GetMostComparedWithAsync(string slug, int limit, CancellationToken ct = default);
-    Task<List<PopularComparisonDto>> GetPopularComparisonsAsync(int limit, CancellationToken ct = default);
-    Task<List<FanRankedBikeDto>> GetTopBikesByFansAsync(int limit, CancellationToken ct = default);
+    Task<PagedResult<BikeListItemDto>> GetBikesAsync(
+        BikeQueryParameters query,
+        CancellationToken ct = default,
+        bool includeTestData = false);
+    Task<BikeDetailDto?> GetBikeDetailAsync(
+        string slug,
+        CancellationToken ct = default,
+        bool includeTestData = false);
+    Task<CompareResultDto> CompareBikesAsync(
+        List<int> bikeIds,
+        CancellationToken ct = default,
+        bool includeTestData = false);
+    Task<List<ComparedBikeDto>?> GetMostComparedWithAsync(
+        string slug,
+        int limit,
+        CancellationToken ct = default,
+        bool includeTestData = false);
+    Task<List<PopularComparisonDto>> GetPopularComparisonsAsync(
+        int limit,
+        CancellationToken ct = default,
+        bool includeTestData = false);
+    Task<List<FanRankedBikeDto>> GetTopBikesByFansAsync(
+        int limit,
+        CancellationToken ct = default,
+        bool includeTestData = false);
     Task<List<DailyInterestRankedBikeDto>> GetTopBikesByDailyInterestAsync(
         int limit,
-        CancellationToken ct = default);
+        CancellationToken ct = default,
+        bool includeTestData = false);
 }
 
 public class BikeService : IBikeService
@@ -40,11 +60,14 @@ public class BikeService : IBikeService
         _clock = clock;
     }
 
-    public async Task<PagedResult<BikeListItemDto>> GetBikesAsync(BikeQueryParameters query, CancellationToken ct = default)
+    public async Task<PagedResult<BikeListItemDto>> GetBikesAsync(
+        BikeQueryParameters query,
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
         var bikes = await _bikeRepository.GetPublishedWithStaticFiltersAsync(
             query.Search, query.BrandId, query.CategoryId, query.YearMin, query.YearMax,
-            query.PriceMin, query.PriceMax, ct);
+            query.PriceMin, query.PriceMax, ct, includeTestData);
 
         if (query.SpecFilters.Count > 0) {
             var specDefinitions = (await _specGroupRepository.GetAllWithDefinitionsAsync(ct))
@@ -83,9 +106,12 @@ public class BikeService : IBikeService
         };
     }
 
-    public async Task<BikeDetailDto?> GetBikeDetailAsync(string slug, CancellationToken ct = default)
+    public async Task<BikeDetailDto?> GetBikeDetailAsync(
+        string slug,
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
-        var bike = await _bikeRepository.GetBySlugAsync(slug, ct);
+        var bike = await _bikeRepository.GetBySlugAsync(slug, ct, includeTestData);
         if (bike is null) {
             return null;
         }
@@ -94,9 +120,12 @@ public class BikeService : IBikeService
         return ToDetailDto(bike, specGroups);
     }
 
-    public async Task<CompareResultDto> CompareBikesAsync(List<int> bikeIds, CancellationToken ct = default)
+    public async Task<CompareResultDto> CompareBikesAsync(
+        List<int> bikeIds,
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
-        var bikesById = (await _bikeRepository.GetByIdsAsync(bikeIds, ct))
+        var bikesById = (await _bikeRepository.GetByIdsAsync(bikeIds, ct, includeTestData))
             .ToDictionary(bike => bike.Id);
         var bikes = bikeIds
             .Distinct()
@@ -156,20 +185,34 @@ public class BikeService : IBikeService
         return result;
     }
 
-    public async Task<List<ComparedBikeDto>?> GetMostComparedWithAsync(string slug, int limit, CancellationToken ct = default)
+    public async Task<List<ComparedBikeDto>?> GetMostComparedWithAsync(
+        string slug,
+        int limit,
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
-        var bike = await _bikeRepository.GetBySlugAsync(slug, ct);
+        var bike = await _bikeRepository.GetBySlugAsync(slug, ct, includeTestData);
         if (bike is null) {
             return null;
         }
 
-        var matches = await _comparisonRepository.GetMostComparedWithAsync(bike.Id, limit, ct);
+        var matches = await _comparisonRepository.GetMostComparedWithAsync(
+            bike.Id,
+            limit,
+            ct,
+            includeTestData);
         return matches.Select(m => new ComparedBikeDto { Bike = ToListItemDto(m.Bike), CompareCount = m.CompareCount }).ToList();
     }
 
-    public async Task<List<PopularComparisonDto>> GetPopularComparisonsAsync(int limit, CancellationToken ct = default)
+    public async Task<List<PopularComparisonDto>> GetPopularComparisonsAsync(
+        int limit,
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
-        var matches = await _comparisonRepository.GetMostComparedPairsAsync(limit, ct);
+        var matches = await _comparisonRepository.GetMostComparedPairsAsync(
+            limit,
+            ct,
+            includeTestData);
         return matches.Select(m => new PopularComparisonDto
         {
             BikeA = ToListItemDto(m.BikeA),
@@ -180,9 +223,10 @@ public class BikeService : IBikeService
 
     public async Task<List<FanRankedBikeDto>> GetTopBikesByFansAsync(
         int limit,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
-        var matches = await _bikeRepository.GetTopByFansAsync(limit, ct);
+        var matches = await _bikeRepository.GetTopByFansAsync(limit, ct, includeTestData);
         return matches.Select(match => new FanRankedBikeDto(
             ToListItemDto(match.Bike),
             match.FanCount,
@@ -192,10 +236,15 @@ public class BikeService : IBikeService
 
     public async Task<List<DailyInterestRankedBikeDto>> GetTopBikesByDailyInterestAsync(
         int limit,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
         var day = DateOnly.FromDateTime(_clock.GetUtcNow().UtcDateTime);
-        var matches = await _bikeRepository.GetTopByDailyInterestAsync(day, limit, ct);
+        var matches = await _bikeRepository.GetTopByDailyInterestAsync(
+            day,
+            limit,
+            ct,
+            includeTestData);
         return matches.Select(match => new DailyInterestRankedBikeDto(
             ToListItemDto(match.Bike),
             match.ViewCount))
@@ -286,6 +335,8 @@ public class BikeService : IBikeService
             Slug = bike.Slug,
             BrandName = bike.Model.Brand.Name,
             CategoryName = bike.Model.Category.Name,
+            IsTestData = bike.IsTestData,
+            ModelIsTestData = bike.Model.IsTestData,
             PrimaryImageUrl = primaryImage?.BlobUrl,
             PrimaryImageVariants = ToVariants(primaryImage)
         };
@@ -304,6 +355,8 @@ public class BikeService : IBikeService
             Slug = bike.Slug,
             BrandName = bike.Model.Brand.Name,
             CategoryName = bike.Model.Category.Name,
+            IsTestData = bike.IsTestData,
+            ModelIsTestData = bike.Model.IsTestData,
             Images = bike.Images
                 .OrderBy(i => i.SortOrder)
                 .Select(i => new BikeImageDto

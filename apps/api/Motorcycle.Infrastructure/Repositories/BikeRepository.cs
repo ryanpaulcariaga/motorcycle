@@ -16,7 +16,8 @@ public class BikeRepository : IBikeRepository
 
     public async Task<List<Bike>> GetPublishedWithStaticFiltersAsync(
         string? search, int? brandId, int? categoryId, int? yearMin, int? yearMax,
-        decimal? priceMin, decimal? priceMax, CancellationToken ct = default)
+        decimal? priceMin, decimal? priceMax, CancellationToken ct = default,
+        bool includeTestData = false)
     {
         var query = _context.Bikes
             .Include(b => b.Model)
@@ -24,7 +25,9 @@ public class BikeRepository : IBikeRepository
             .Include(b => b.Model)
                 .ThenInclude(m => m.Category)
             .Include(b => b.Images)
-            .Where(b => b.IsPublished);
+            .Where(b =>
+                (b.IsPublished && (!b.IsTestData && !b.Model.IsTestData)) ||
+                (includeTestData && (b.IsTestData || b.Model.IsTestData)));
 
         if (!string.IsNullOrWhiteSpace(search)) {
             var pattern = $"%{search.Trim()}%";
@@ -61,7 +64,10 @@ public class BikeRepository : IBikeRepository
         return await query.ToListAsync(ct);
     }
 
-    public async Task<Bike?> GetBySlugAsync(string slug, CancellationToken ct = default)
+    public async Task<Bike?> GetBySlugAsync(
+        string slug,
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
         return await _context.Bikes
             .Include(b => b.Model)
@@ -69,10 +75,17 @@ public class BikeRepository : IBikeRepository
             .Include(b => b.Model)
                 .ThenInclude(m => m.Category)
             .Include(b => b.Images)
-            .FirstOrDefaultAsync(b => b.Slug == slug && b.IsPublished, ct);
+            .FirstOrDefaultAsync(
+                b => b.Slug == slug &&
+                    ((b.IsPublished && (!b.IsTestData && !b.Model.IsTestData)) ||
+                     (includeTestData && (b.IsTestData || b.Model.IsTestData))),
+                ct);
     }
 
-    public async Task<List<Bike>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default)
+    public async Task<List<Bike>> GetByIdsAsync(
+        IEnumerable<int> ids,
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
         var idList = ids.ToList();
         return await _context.Bikes
@@ -81,17 +94,26 @@ public class BikeRepository : IBikeRepository
             .Include(b => b.Model)
                 .ThenInclude(m => m.Category)
             .Include(b => b.Images)
-            .Where(b => idList.Contains(b.Id) && b.IsPublished)
+            .Where(b => idList.Contains(b.Id) &&
+                ((b.IsPublished && (!b.IsTestData && !b.Model.IsTestData)) ||
+                 (includeTestData && (b.IsTestData || b.Model.IsTestData))))
             .ToListAsync(ct);
     }
 
     public async Task<List<FanRankedBikeMatch>> GetTopByFansAsync(
         int limit,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
         var rows = await _context.BikeComments
             .AsNoTracking()
-            .Where(review => review.Bike.IsPublished && review.User.IsActive)
+            .Where(review =>
+                ((review.Bike.IsPublished &&
+                  !review.Bike.IsTestData &&
+                  !review.Bike.Model.IsTestData) ||
+                 (includeTestData &&
+                  (review.Bike.IsTestData || review.Bike.Model.IsTestData))) &&
+                review.User.IsActive)
             .GroupBy(review => review.BikeId)
             .Select(group => new
             {
@@ -113,7 +135,9 @@ public class BikeRepository : IBikeRepository
             .Include(b => b.Model)
                 .ThenInclude(m => m.Category)
             .Include(b => b.Images)
-            .Where(b => ids.Contains(b.Id) && b.IsPublished)
+            .Where(b => ids.Contains(b.Id) &&
+                ((b.IsPublished && !b.IsTestData && !b.Model.IsTestData) ||
+                 (includeTestData && (b.IsTestData || b.Model.IsTestData))))
             .ToDictionaryAsync(b => b.Id, ct);
 
         return rows
@@ -127,14 +151,16 @@ public class BikeRepository : IBikeRepository
     public async Task<List<DailyInterestRankedBikeMatch>> GetTopByDailyInterestAsync(
         DateOnly day,
         int limit,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        bool includeTestData = false)
     {
         var rows = await (
             from activity in _context.AnalyticsDailyCounts.AsNoTracking()
             join bike in _context.Bikes on activity.Dimension1 equals bike.Id
             where activity.Day == day &&
                   activity.Metric == "bike_view" &&
-                  bike.IsPublished
+                  ((bike.IsPublished && !bike.IsTestData && !bike.Model.IsTestData) ||
+                   (includeTestData && (bike.IsTestData || bike.Model.IsTestData)))
             group activity by bike.Id into grouped
             orderby grouped.Sum(row => row.Count) descending, grouped.Key
             select new
@@ -153,7 +179,9 @@ public class BikeRepository : IBikeRepository
             .Include(b => b.Model)
                 .ThenInclude(m => m.Category)
             .Include(b => b.Images)
-            .Where(b => ids.Contains(b.Id) && b.IsPublished)
+            .Where(b => ids.Contains(b.Id) &&
+                ((b.IsPublished && !b.IsTestData && !b.Model.IsTestData) ||
+                 (includeTestData && (b.IsTestData || b.Model.IsTestData))))
             .ToDictionaryAsync(b => b.Id, ct);
 
         return rows

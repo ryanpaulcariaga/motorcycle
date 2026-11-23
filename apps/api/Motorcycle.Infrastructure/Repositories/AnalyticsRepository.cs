@@ -10,7 +10,11 @@ public sealed class AnalyticsRepository(MotorcycleDbContext db, TimeProvider clo
     public async Task<bool> RecordAsync(AnalyticsEventRequest request, CancellationToken ct)
     {
         var ids = request.BikeIds ?? (request.Type == "bike_view" ? [request.Id!.Value] : []);
-        if (ids.Length > 0 && await db.Bikes.CountAsync(b => ids.Contains(b.Id) && b.IsPublished, ct) != ids.Length)
+        if (ids.Length > 0 && await db.Bikes.CountAsync(b =>
+            ids.Contains(b.Id) &&
+            b.IsPublished &&
+            !b.IsTestData &&
+            !b.Model.IsTestData, ct) != ids.Length)
         {
             return false;
         }

@@ -46,6 +46,7 @@ CREATE TABLE bikes (
   slug VARCHAR(512) NOT NULL UNIQUE,
   specs JSONB NOT NULL DEFAULT '{}',  -- { "cc": "399", "horsepower": "45", ... }
   is_published BOOLEAN DEFAULT false,
+  is_test_data BOOLEAN NOT NULL DEFAULT false,
   review_status VARCHAR(16) NOT NULL DEFAULT 'draft'
     CHECK (review_status IN ('draft', 'inProgress', 'completed')),
   review_completed_at TIMESTAMPTZ,
@@ -121,6 +122,7 @@ CREATE TABLE bike_models (
   brand_id INT NOT NULL REFERENCES brands(id),
   category_id INT NOT NULL REFERENCES categories(id),
   name VARCHAR(255) NOT NULL,
+  is_test_data BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(brand_id, name)
 );
@@ -131,6 +133,8 @@ CREATE INDEX idx_bike_models_category_id ON bike_models(category_id);
 
 `bike_models` is the stable product line inferred from related source records, such as `Honda Click` or `Honda ADV`. Each `bikes` row is one comparable variant whose `variant_name` preserves the complete source `Model` value. Year-specific price, specifications, images, slug, and publication state belong to the variant. A year of `0` means the imported source did not identify a model year.
 
+`is_test_data` can be set independently on a model or variant. A tagged model hides every variant under it; a tagged variant hides only that variant. Public catalog queries, recommendations, rankings, analytics, reviews, comments, and user-interest ingestion treat either tag as unavailable even when the variant is published, unless the catalog request belongs to an active administrator. The admin API and SPA continue to return and edit tagged records.
+
 ### admin_roles
 ```sql
 CREATE TABLE admin_roles (
@@ -140,12 +144,13 @@ CREATE TABLE admin_roles (
   display_name_snapshot VARCHAR(255),
   role VARCHAR(50) NOT NULL,
   is_active BOOLEAN NOT NULL DEFAULT true,
+  include_test_data BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 ```
 
-Stage 1 accepts the `Administrator` role value. Deactivation is a retained state change; role records are not deleted. The operator-only bootstrap command creates the first active record after the migration is applied.
+Stage 1 accepts the `Administrator` role value. Deactivation is a retained state change; role records are not deleted. `include_test_data` is configured in the private Administrators UI and controls whether the mapped public user may see tagged bikes. The operator-only bootstrap command creates the first active record with test-data visibility disabled after the migration is applied.
 
 ### admin_audit_logs
 ```sql

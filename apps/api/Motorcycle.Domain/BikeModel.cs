@@ -6,6 +6,7 @@ public class BikeModel
     public int BrandId { get; set; }
     public int CategoryId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public bool IsTestData { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation

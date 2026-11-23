@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Motorcycle.Application.Common;
 using Motorcycle.Application.Services;
+using Motorcycle.Api.Services;
 
 namespace Motorcycle.Api.Controllers;
 
@@ -9,10 +11,14 @@ namespace Motorcycle.Api.Controllers;
 public class BikesController : ControllerBase
 {
     private readonly IBikeService _bikeService;
+    private readonly TestDataAccessService _testDataAccess;
 
-    public BikesController(IBikeService bikeService)
+    public BikesController(
+        IBikeService bikeService,
+        TestDataAccessService testDataAccess)
     {
         _bikeService = bikeService;
+        _testDataAccess = testDataAccess;
     }
 
     /// <summary>List bikes with pagination, sorting, static filters, and dynamic spec filters.</summary>
@@ -86,7 +92,10 @@ public class BikesController : ControllerBase
             });
         }
 
-        var result = await _bikeService.GetBikesAsync(query, ct);
+        var result = await _bikeService.GetBikesAsync(
+            query,
+            ct,
+            await CanViewTestDataAsync(ct));
         return Ok(result);
     }
 
@@ -94,7 +103,10 @@ public class BikesController : ControllerBase
     [HttpGet("{slug}")]
     public async Task<IActionResult> GetBikeBySlug(string slug, CancellationToken ct)
     {
-        var bike = await _bikeService.GetBikeDetailAsync(slug, ct);
+        var bike = await _bikeService.GetBikeDetailAsync(
+            slug,
+            ct,
+            await CanViewTestDataAsync(ct));
         return bike is null ? NotFound() : Ok(bike);
     }
 
@@ -116,7 +128,10 @@ public class BikesController : ControllerBase
             return BadRequest("No valid bike ids found in 'ids'.");
         }
 
-        var result = await _bikeService.CompareBikesAsync(bikeIds, ct);
+        var result = await _bikeService.CompareBikesAsync(
+            bikeIds,
+            ct,
+            await CanViewTestDataAsync(ct));
         return Ok(result);
     }
 
@@ -124,7 +139,10 @@ public class BikesController : ControllerBase
     [HttpGet("popular-comparisons")]
     public async Task<IActionResult> GetPopularComparisons([FromQuery] int limit = 10, CancellationToken ct = default)
     {
-        var result = await _bikeService.GetPopularComparisonsAsync(limit is < 1 or > 20 ? 10 : limit, ct);
+        var result = await _bikeService.GetPopularComparisonsAsync(
+            limit is < 1 or > 20 ? 10 : limit,
+            ct,
+            await CanViewTestDataAsync(ct));
         return Ok(result);
     }
 
@@ -132,7 +150,10 @@ public class BikesController : ControllerBase
     [HttpGet("top-by-fans")]
     public async Task<IActionResult> GetTopByFans([FromQuery] int limit = 10, CancellationToken ct = default)
     {
-        var result = await _bikeService.GetTopBikesByFansAsync(limit is < 1 or > 20 ? 10 : limit, ct);
+        var result = await _bikeService.GetTopBikesByFansAsync(
+            limit is < 1 or > 20 ? 10 : limit,
+            ct,
+            await CanViewTestDataAsync(ct));
         return Ok(result);
     }
 
@@ -144,7 +165,8 @@ public class BikesController : ControllerBase
     {
         var result = await _bikeService.GetTopBikesByDailyInterestAsync(
             limit is < 1 or > 20 ? 10 : limit,
-            ct);
+            ct,
+            await CanViewTestDataAsync(ct));
         return Ok(result);
     }
 
@@ -152,7 +174,14 @@ public class BikesController : ControllerBase
     [HttpGet("{slug}/compared-with")]
     public async Task<IActionResult> GetComparedWith(string slug, [FromQuery] int limit = 4, CancellationToken ct = default)
     {
-        var result = await _bikeService.GetMostComparedWithAsync(slug, limit is < 1 or > 12 ? 4 : limit, ct);
+        var result = await _bikeService.GetMostComparedWithAsync(
+            slug,
+            limit is < 1 or > 12 ? 4 : limit,
+            ct,
+            await CanViewTestDataAsync(ct));
         return result is null ? NotFound() : Ok(result);
     }
+
+    private Task<bool> CanViewTestDataAsync(CancellationToken ct) =>
+        _testDataAccess.CanViewAsync(HttpContext, ct);
 }

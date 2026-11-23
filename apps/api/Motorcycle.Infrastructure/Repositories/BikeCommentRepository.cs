@@ -11,9 +11,10 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
     public async Task<IReadOnlyList<BikeCommentDto>?> GetByBikeAsync(
         int bikeId,
         int limit,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool includeTestData = false)
     {
-        if (!await db.Bikes.AsNoTracking().AnyAsync(b => b.Id == bikeId && b.IsPublished, ct))
+        if (!await IsPubliclyAvailableAsync(bikeId, ct, includeTestData))
         {
             return null;
         }
@@ -36,9 +37,10 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
     public async Task<IReadOnlyList<BikeCommentDto>?> GetByUserAsync(
         int bikeId,
         int userId,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool includeTestData = false)
     {
-        if (!await db.Bikes.AsNoTracking().AnyAsync(b => b.Id == bikeId && b.IsPublished, ct))
+        if (!await IsPubliclyAvailableAsync(bikeId, ct, includeTestData))
         {
             return null;
         }
@@ -62,9 +64,10 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
         int userId,
         int? parentCommentId,
         string body,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool includeTestData = false)
     {
-        if (!await db.Bikes.AnyAsync(b => b.Id == bikeId && b.IsPublished, ct) ||
+        if (!await IsPubliclyAvailableAsync(bikeId, ct, includeTestData) ||
             !await db.Users.AnyAsync(u => u.Id == userId && u.IsActive, ct))
         {
             return null;
@@ -110,7 +113,8 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
         int commentId,
         int userId,
         string body,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool includeTestData = false)
     {
         var comment = await db.BikeDiscussionComments
             .Include(c => c.User)
@@ -119,7 +123,11 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
                 c.BikeId == bikeId &&
                 c.UserId == userId &&
                 c.User.IsActive &&
-                c.Bike.IsPublished, ct);
+                ((c.Bike.IsPublished &&
+                  !c.Bike.IsTestData &&
+                  !c.Bike.Model.IsTestData) ||
+                 (includeTestData &&
+                  (c.Bike.IsTestData || c.Bike.Model.IsTestData))), ct);
         if (comment is null)
         {
             return null;
@@ -141,14 +149,19 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
         int bikeId,
         int commentId,
         int userId,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool includeTestData = false)
     {
         var comment = await db.BikeDiscussionComments.SingleOrDefaultAsync(c =>
             c.Id == commentId &&
             c.BikeId == bikeId &&
             c.UserId == userId &&
             c.User.IsActive &&
-            c.Bike.IsPublished, ct);
+            ((c.Bike.IsPublished &&
+              !c.Bike.IsTestData &&
+              !c.Bike.Model.IsTestData) ||
+             (includeTestData &&
+              (c.Bike.IsTestData || c.Bike.Model.IsTestData))), ct);
         if (comment is null)
         {
             return false;
@@ -158,4 +171,14 @@ public sealed class BikeCommentRepository(MotorcycleDbContext db, TimeProvider c
         await db.SaveChangesAsync(ct);
         return true;
     }
+
+    private Task<bool> IsPubliclyAvailableAsync(
+        int bikeId,
+        CancellationToken ct,
+        bool includeTestData) =>
+        db.Bikes.AsNoTracking().AnyAsync(
+            b => b.Id == bikeId &&
+                ((b.IsPublished && !b.IsTestData && !b.Model.IsTestData) ||
+                 (includeTestData && (b.IsTestData || b.Model.IsTestData))),
+            ct);
 }

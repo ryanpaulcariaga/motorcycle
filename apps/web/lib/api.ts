@@ -56,6 +56,7 @@ export async function sendAnalyticsEvent(event: AnalyticsEvent): Promise<void> {
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    credentials: "include",
     headers: { Accept: "application/json", ...options?.headers },
   });
 

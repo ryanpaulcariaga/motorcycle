@@ -29,15 +29,18 @@ public sealed class UserAuthenticationController : ControllerBase
     private readonly UserAuthOptions _options;
     private readonly IExternalAuthProviderFactory _providerFactory;
     private readonly IUserAuthService _userAuthService;
+    private readonly IAdminRoleRepository _adminRoles;
 
     public UserAuthenticationController(
         IOptions<UserAuthOptions> options,
         IExternalAuthProviderFactory providerFactory,
-        IUserAuthService userAuthService)
+        IUserAuthService userAuthService,
+        IAdminRoleRepository adminRoles)
     {
         _options = options.Value;
         _providerFactory = providerFactory;
         _userAuthService = userAuthService;
+        _adminRoles = adminRoles;
     }
 
     [EnableRateLimiting(RateLimitPolicies.Auth)]
@@ -127,7 +130,14 @@ public sealed class UserAuthenticationController : ControllerBase
             return Unauthorized();
         }
 
-        return Ok(new UserSessionDto(user.Id, user.Email, user.DisplayName));
+        var isAdministrator = await _adminRoles.IsActiveAdministratorUserAsync(
+            user.Id,
+            ct);
+        return Ok(new UserSessionDto(
+            user.Id,
+            user.Email,
+            user.DisplayName,
+            isAdministrator));
     }
 
     [HttpPost("signout")]

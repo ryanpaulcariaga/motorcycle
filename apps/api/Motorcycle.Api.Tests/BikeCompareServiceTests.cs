@@ -122,10 +122,16 @@ public class BikeCompareServiceTests
 
     private sealed class FakeBikeRepository(List<Bike> bikes) : IBikeRepository
     {
-        public Task<List<Bike>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default) =>
+        public Task<List<Bike>> GetByIdsAsync(
+            IEnumerable<int> ids,
+            CancellationToken ct = default,
+            bool includeTestData = false) =>
             Task.FromResult(bikes);
 
-        public Task<Bike?> GetBySlugAsync(string slug, CancellationToken ct = default) =>
+        public Task<Bike?> GetBySlugAsync(
+            string slug,
+            CancellationToken ct = default,
+            bool includeTestData = false) =>
             Task.FromResult<Bike?>(null);
 
         public Task<List<Bike>> GetPublishedWithStaticFiltersAsync(
@@ -136,7 +142,8 @@ public class BikeCompareServiceTests
             int? yearMax,
             decimal? priceMin,
             decimal? priceMax,
-            CancellationToken ct = default) =>
+            CancellationToken ct = default,
+            bool includeTestData = false) =>
             Task.FromResult(bikes);
 
         private int? TopFansLimit { get; set; }
@@ -145,7 +152,8 @@ public class BikeCompareServiceTests
 
         public Task<List<FanRankedBikeMatch>> GetTopByFansAsync(
             int limit,
-            CancellationToken ct = default)
+            CancellationToken ct = default,
+            bool includeTestData = false)
         {
             TopFansLimit = limit;
             return Task.FromResult(
@@ -157,7 +165,8 @@ public class BikeCompareServiceTests
         public Task<List<DailyInterestRankedBikeMatch>> GetTopByDailyInterestAsync(
             DateOnly day,
             int limit,
-            CancellationToken ct = default)
+            CancellationToken ct = default,
+            bool includeTestData = false)
         {
             DailyInterestDay = day;
             DailyInterestLimit = limit;
@@ -195,7 +204,8 @@ public class BikeCompareServiceTests
     {
         public Task<List<PopularComparisonMatch>> GetMostComparedPairsAsync(
             int limit,
-            CancellationToken ct = default) =>
+            CancellationToken ct = default,
+            bool includeTestData = false) =>
             Task.FromResult(new List<PopularComparisonMatch>());
 
         public Task RecordAsync(IEnumerable<(int BikeAId, int BikeBId)> pairs, CancellationToken ct = default) =>
@@ -204,7 +214,8 @@ public class BikeCompareServiceTests
         public Task<List<ComparedBikeMatch>> GetMostComparedWithAsync(
             int bikeId,
             int limit,
-            CancellationToken ct = default) =>
+            CancellationToken ct = default,
+            bool includeTestData = false) =>
             Task.FromResult(new List<ComparedBikeMatch>());
     }
 }

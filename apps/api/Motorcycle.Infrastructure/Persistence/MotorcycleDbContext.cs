@@ -100,6 +100,7 @@ public class MotorcycleDbContext : DbContext
         {
             m.HasKey(x => x.Id);
             m.Property(x => x.Name).IsRequired().HasMaxLength(255);
+            m.Property(x => x.IsTestData).HasDefaultValue(false);
             m.HasIndex(x => new { x.BrandId, x.Name }).IsUnique();
             m.HasMany(x => x.Variants).WithOne(x => x.Model).HasForeignKey(x => x.ModelId).OnDelete(DeleteBehavior.Cascade);
         });
@@ -112,6 +113,7 @@ public class MotorcycleDbContext : DbContext
             b.Property(x => x.Year).IsRequired().HasDefaultValue(0);
             b.Property(x => x.Slug).IsRequired().HasMaxLength(512);
             b.Property(x => x.MsrpPrice).HasPrecision(10, 2);
+            b.Property(x => x.IsTestData).HasDefaultValue(false);
             b.Property(x => x.ReviewStatus).IsRequired().HasMaxLength(16).HasDefaultValue(BikeReviewStatus.Draft);
             b.Property(x => x.ReviewCompletedAt);
             b.ToTable(t => t.HasCheckConstraint("ck_bikes_review_status", "review_status IN ('draft', 'inProgress', 'completed')"));
@@ -190,6 +192,7 @@ public class MotorcycleDbContext : DbContext
             ar.Property(x => x.DisplayNameSnapshot).HasMaxLength(255);
             ar.Property(x => x.Role).IsRequired().HasMaxLength(50);
             ar.Property(x => x.IsActive).IsRequired();
+            ar.Property(x => x.IncludeTestData).IsRequired();
             ar.Property(x => x.CreatedAt).IsRequired();
             ar.Property(x => x.UpdatedAt).IsRequired();
             ar.HasIndex(x => x.FacebookUserId).IsUnique();

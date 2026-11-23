@@ -20,6 +20,42 @@ public sealed class AdminRoleRepository : IAdminRoleRepository
     public Task<AdminRole?> GetByFacebookUserIdAsync(string facebookUserId, CancellationToken ct = default) =>
         _context.AdminRoles.SingleOrDefaultAsync(x => x.FacebookUserId == facebookUserId, ct);
 
+    public Task<bool> IsActiveAdministratorUserAsync(
+        int userId,
+        CancellationToken ct = default) =>
+        (from role in _context.AdminRoles
+         from user in _context.Users.Where(user => user.Id == userId)
+         where role.IsActive &&
+             role.Role == Domain.AdminRoles.Administrator &&
+             (_context.UserExternalLogins.Any(login =>
+                 login.UserId == userId &&
+                 login.Provider == ExternalAuthProviders.Facebook &&
+                 login.ProviderUserId == role.FacebookUserId) ||
+              user.EmailVerified &&
+              user.Email != null &&
+              role.EmailSnapshot != null &&
+              user.Email.ToLower() == role.EmailSnapshot.ToLower())
+         select role.Id).AnyAsync(ct);
+
+    public Task<bool> CanViewTestDataAsync(
+        int userId,
+        CancellationToken ct = default) =>
+        (from role in _context.AdminRoles
+         from user in _context.Users.Where(user => user.Id == userId)
+         where role.IsActive &&
+             user.IsActive &&
+             role.IncludeTestData &&
+             role.Role == Domain.AdminRoles.Administrator &&
+             (_context.UserExternalLogins.Any(login =>
+                 login.UserId == userId &&
+                 login.Provider == ExternalAuthProviders.Facebook &&
+                 login.ProviderUserId == role.FacebookUserId) ||
+              user.EmailVerified &&
+              user.Email != null &&
+              role.EmailSnapshot != null &&
+              user.Email.ToLower() == role.EmailSnapshot.ToLower())
+         select role.Id).AnyAsync(ct);
+
     public async Task AddAsync(AdminRole role, CancellationToken ct = default) =>
         await _context.AdminRoles.AddAsync(role, ct);
 

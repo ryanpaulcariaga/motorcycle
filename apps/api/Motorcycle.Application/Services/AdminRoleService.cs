@@ -14,12 +14,12 @@ public sealed class AdminRoleService : IAdminRoleService
         await _repository.GetAllAsync(ct);
 
     public Task<AdminRole> BootstrapAsync(string facebookUserId, string? email, string? displayName, CancellationToken ct = default) =>
-        ProvisionInternalAsync(facebookUserId, email, displayName, AdminRoles.Administrator, allowExistingActive: true, ct);
+        ProvisionInternalAsync(facebookUserId, email, displayName, AdminRoles.Administrator, includeTestData: false, allowExistingActive: true, ct);
 
-    public Task<AdminRole> ProvisionAsync(string facebookUserId, string? email, string? displayName, string role, CancellationToken ct = default) =>
-        ProvisionInternalAsync(facebookUserId, email, displayName, role, allowExistingActive: false, ct);
+    public Task<AdminRole> ProvisionAsync(string facebookUserId, string? email, string? displayName, string role, bool includeTestData, CancellationToken ct = default) =>
+        ProvisionInternalAsync(facebookUserId, email, displayName, role, includeTestData, allowExistingActive: false, ct);
 
-    public async Task<AdminRole> UpdateAsync(int id, string? email, string? displayName, string role, bool isActive, CancellationToken ct = default)
+    public async Task<AdminRole> UpdateAsync(int id, string? email, string? displayName, string role, bool isActive, bool includeTestData, CancellationToken ct = default)
     {
         ValidateRole(role);
         var entity = await _repository.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Administrator role was not found.");
@@ -27,6 +27,7 @@ public sealed class AdminRoleService : IAdminRoleService
         entity.DisplayNameSnapshot = displayName;
         entity.Role = role;
         entity.IsActive = isActive;
+        entity.IncludeTestData = includeTestData;
         entity.UpdatedAt = DateTime.UtcNow;
         await _repository.SaveChangesAsync(ct);
         return entity;
@@ -39,7 +40,7 @@ public sealed class AdminRoleService : IAdminRoleService
         await _repository.SaveChangesAsync(ct);
     }
 
-    private async Task<AdminRole> ProvisionInternalAsync(string facebookUserId, string? email, string? displayName, string role, bool allowExistingActive, CancellationToken ct)
+    private async Task<AdminRole> ProvisionInternalAsync(string facebookUserId, string? email, string? displayName, string role, bool includeTestData, bool allowExistingActive, CancellationToken ct)
     {
         AdminRoleValidators.Validate(facebookUserId, role);
         var existing = await _repository.GetByFacebookUserIdAsync(facebookUserId, ct);
@@ -58,6 +59,7 @@ public sealed class AdminRoleService : IAdminRoleService
             DisplayNameSnapshot = displayName?.Trim(),
             Role = role,
             IsActive = true,
+            IncludeTestData = includeTestData,
         };
         await _repository.AddAsync(entity, ct);
         await _repository.SaveChangesAsync(ct);

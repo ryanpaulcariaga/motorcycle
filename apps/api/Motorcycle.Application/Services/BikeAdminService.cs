@@ -326,6 +326,7 @@ public sealed class BikeAdminService : IBikeAdminService
             MsrpPrice = request.MsrpPrice,
             Specs = ToObjectDictionary(specs),
             IsPublished = false,
+            IsTestData = request.IsTestData,
             Slug = await GenerateSlugAsync(request.ModelId, variantName, year, ct)
         };
 
@@ -374,6 +375,7 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.VariantName = variantName;
         bike.Year = year;
         bike.MsrpPrice = request.MsrpPrice;
+        bike.IsTestData = request.IsTestData;
         bike.Specs = newSpecs;
         if (reviewChanged) {
             SpecVerificationHelper.UpdateReviewed(bike);
@@ -497,7 +499,9 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.UpdatedAt,
         bike.Images.Count,
         BikeReviewStatus.Get(bike),
-        bike.ReviewCompletedAt);
+        bike.ReviewCompletedAt,
+        bike.IsTestData,
+        bike.Model?.IsTestData ?? false);
 
     private static BikeAdminDetailDto ToDetailDto(Bike bike, IReadOnlyDictionary<string, SpecDefinition>? definitions = null) => new(
         bike.Id,
@@ -515,7 +519,9 @@ public sealed class BikeAdminService : IBikeAdminService
         bike.UpdatedAt,
         SpecVerificationHelper.ToDto(bike, definitions),
         BikeReviewStatus.Get(bike),
-        bike.ReviewCompletedAt);
+        bike.ReviewCompletedAt,
+        bike.IsTestData,
+        bike.Model?.IsTestData ?? false);
 }
 
 public sealed class BikeReferencedException : Exception

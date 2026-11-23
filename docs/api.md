@@ -22,6 +22,8 @@ https://api.motorcycle-app.example.com
 
 List motorcycles with pagination, sorting, and filtering.
 
+Tagged variants and every variant under a tagged model are omitted from this endpoint and the other public catalog endpoints for anonymous users, normal signed-in users, and administrators whose role does not allow test-data viewing. The condition is enforced by the API, not by frontend filtering. A public user whose linked Facebook provider identity matches an active Administrator role, or whose verified email matches the role's email snapshot, receives tagged test bikes only when `includeTestData` is enabled on that role in the private Administrators UI. The role setting defaults to off. Tagged test bikes do not need to be published. The email fallback handles separate Facebook app-scoped IDs. The same role setting and active-role check applies to reading and writing reviews and comments for test data. Active administrators can always inspect and edit all tagged models and variants through `/api/admin`.
+
 **Query Parameters**:
 - `page` (int, default 1)
 - `pageSize` (int, default 20)
@@ -288,7 +290,7 @@ List all categories.
 
 - `GET /api/auth/{provider}` starts Authorization Code + PKCE for `facebook` (or a future provider such as `google`) and stores the state/verifier in short-lived secure HttpOnly cookies.
 - `GET /api/auth/{provider}/callback` exchanges the authorization code server-side, resolves or creates the `User` record, creates a 30-day secure HttpOnly `mc_user_session` cookie, and redirects to the configured public web app URL (`?authError=...` on failure).
-- `GET /api/auth/session` returns `{ userId, email, displayName }` for the signed-in user, or `401` when there is no active session.
+- `GET /api/auth/session` returns `{ userId, email, displayName, isAdministrator }` for the signed-in user, or `401` when there is no active session.
 - `POST /api/auth/signout` clears the session cookie.
 - `GET /api/user/account/export` returns a versioned JSON export of the active user's account, linked external sign-ins, optional interest counters, bike reviews, and discussion comments. It uses `no-store` and returns `401` without an active account session.
 - `DELETE /api/user/account` permanently deletes that active user and all database rows linked through cascading user foreign keys, then clears the `mc_user_session` cookie. Mutations require a configured allowed `Origin` and the `X-Account-Request` header and return `204` on success or `401` for an inactive/missing account.
@@ -312,9 +314,9 @@ Protected `/api/admin` requests require the API session cookie. The SPA refreshe
 
 #### Administrator Roles
 
-- `GET /api/admin/admin-roles` lists administrator role records.
-- `POST /api/admin/admin-roles` provisions an active `Administrator` role.
-- `PATCH /api/admin/admin-roles/{id}` updates snapshots, role, or active status.
+- `GET /api/admin/admin-roles` lists administrator role records, including `includeTestData`.
+- `POST /api/admin/admin-roles` provisions an active `Administrator` role and optionally enables test-data viewing.
+- `PATCH /api/admin/admin-roles/{id}` updates snapshots, role, active status, or test-data viewing.
 - `DELETE /api/admin/admin-roles/{id}` permanently deletes an administrator role and returns `204`; a missing role returns `404`.
 - All administrator-role endpoints require the active-administrator policy. Duplicate Facebook identities return `409` with `admin_role_exists`.
 

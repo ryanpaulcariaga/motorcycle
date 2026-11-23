@@ -113,6 +113,10 @@ namespace Motorcycle.Infrastructure.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("facebook_user_id");
 
+                    b.Property<bool>("IncludeTestData")
+                        .HasColumnType("boolean")
+                        .HasColumnName("include_test_data");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
@@ -182,6 +186,12 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean")
                         .HasColumnName("is_published");
+
+                    b.Property<bool>("IsTestData")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_test_data");
 
                     b.Property<int>("ModelId")
                         .HasColumnType("integer")
@@ -493,6 +503,12 @@ namespace Motorcycle.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<bool>("IsTestData")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_test_data");
 
                     b.Property<string>("Name")
                         .IsRequired()

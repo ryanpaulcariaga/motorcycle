@@ -42,7 +42,11 @@ public sealed class UserInterestRepository(MotorcycleDbContext db, TimeProvider 
             return UserInterestRecordResult.NotEnabled;
         }
         var ids = request.BikeIds ?? (request.Type is "bike_view" or "bike_search_selection" ? [request.Id!.Value] : []);
-        if (ids.Length > 0 && await db.Bikes.CountAsync(b => ids.Contains(b.Id) && b.IsPublished, ct) != ids.Length ||
+        if (ids.Length > 0 && await db.Bikes.CountAsync(b =>
+            ids.Contains(b.Id) &&
+            b.IsPublished &&
+            !b.IsTestData &&
+            !b.Model.IsTestData, ct) != ids.Length ||
             request.Type == "brand_filter" && !await db.Brands.AnyAsync(b => b.Id == request.Id, ct) ||
             request.Type == "category_filter" && !await db.Categories.AnyAsync(c => c.Id == request.Id, ct))
         {

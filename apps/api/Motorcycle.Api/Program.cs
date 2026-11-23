@@ -125,7 +125,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "mc_user_session";
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.Cookie.SameSite = SameSiteMode.Lax;
+        // The public web and API can be deployed on separate origins. None is required
+        // for credentialed cross-origin API requests; Secure is enforced above and
+        // protected mutations retain their Origin validation and request headers.
+        options.Cookie.SameSite = SameSiteMode.None;
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.SlidingExpiration = true;
         options.Events.OnRedirectToLogin = context =>
@@ -147,6 +150,7 @@ builder.Services.AddAuthorization(options =>
         policy.AddAuthenticationSchemes(Motorcycle.Api.Controllers.UserAuthenticationController.SchemeName).RequireAuthenticatedUser());
 });
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, ActiveAdminHandler>();
+builder.Services.AddScoped<Motorcycle.Api.Services.TestDataAccessService>();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient();

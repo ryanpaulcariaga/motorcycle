@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import CatalogPageShell from '@/components/CatalogPageShell';
-import BikeCardContent from '@/components/BikeCardContent';
+import CatalogBikeGrid from '@/components/CatalogBikeGrid';
 import { getBikes } from '@/lib/api';
 import { CATALOG_PAGE_SIZE } from '@/lib/catalogFilters';
 import type { Metadata } from 'next';
@@ -27,27 +27,14 @@ export default async function Home() {
               View all bikes
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
-            {latestBikes.map((bike) => (
-              <Link
-                key={bike.id}
-                href={`/bikes/${bike.slug}`}
-                className="border border-zinc-200 overflow-hidden transition-colors hover:border-brand-gold"
-              >
-                <BikeCardContent bike={bike}>
-                  <p className="font-semibold">
-                    {bike.variantName}
-                  </p>
-                  <p className="text-sm text-brand-grey">
-                    {bike.year}{' '}
-                    {bike.msrpPrice !== null
-                      ? `· MSRP $${bike.msrpPrice.toLocaleString()}`
-                      : ''}
-                  </p>
-                </BikeCardContent>
-              </Link>
-            ))}
-          </div>
+          <CatalogBikeGrid
+            initialBikes={latestBikes}
+            query={{
+              pageSize: CATALOG_PAGE_SIZE,
+              sortBy: 'year',
+              sortDescending: true,
+            }}
+          />
     </CatalogPageShell>
   );
 }

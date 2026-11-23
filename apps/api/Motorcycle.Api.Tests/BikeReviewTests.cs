@@ -91,14 +91,26 @@ public class BikeReviewTests
         public int Rating { get; private set; }
         public string? Body { get; private set; }
 
-        public Task<BikeReviewsDto?> GetByBikeAsync(int bikeId, CancellationToken ct) =>
+        public Task<BikeReviewsDto?> GetByBikeAsync(
+            int bikeId,
+            CancellationToken ct,
+            bool includeTestData = false) =>
             Task.FromResult<BikeReviewsDto?>(new BikeReviewsDto(null, 0, []));
 
-        public Task<BikeReviewDto?> GetByUserAsync(int bikeId, int userId, CancellationToken ct) =>
+        public Task<BikeReviewDto?> GetByUserAsync(
+            int bikeId,
+            int userId,
+            CancellationToken ct,
+            bool includeTestData = false) =>
             Task.FromResult<BikeReviewDto?>(new BikeReviewDto(3, "Rider", Rating, Body, DateTime.UtcNow, DateTime.UtcNow));
 
         public Task<BikeReviewWriteResult> UpsertAsync(
-            int bikeId, int userId, int rating, string? body, CancellationToken ct)
+            int bikeId,
+            int userId,
+            int rating,
+            string? body,
+            CancellationToken ct,
+            bool includeTestData = false)
         {
             UpsertCalled = true;
             BikeId = bikeId;
@@ -108,7 +120,11 @@ public class BikeReviewTests
             return Task.FromResult(BikeReviewWriteResult.Saved);
         }
 
-        public Task<bool> DeleteAsync(int bikeId, int userId, CancellationToken ct) =>
+        public Task<bool> DeleteAsync(
+            int bikeId,
+            int userId,
+            CancellationToken ct,
+            bool includeTestData = false) =>
             Task.FromResult(true);
     }
 }

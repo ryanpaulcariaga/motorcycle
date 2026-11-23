@@ -108,15 +108,26 @@ public class BikeCommentTests
         public string? Body { get; private set; }
 
         public Task<IReadOnlyList<BikeCommentDto>?> GetByBikeAsync(
-            int bikeId, int limit, CancellationToken ct) =>
+            int bikeId,
+            int limit,
+            CancellationToken ct,
+            bool includeTestData = false) =>
             Task.FromResult<IReadOnlyList<BikeCommentDto>?>([]);
 
         public Task<IReadOnlyList<BikeCommentDto>?> GetByUserAsync(
-            int bikeId, int userId, CancellationToken ct) =>
+            int bikeId,
+            int userId,
+            CancellationToken ct,
+            bool includeTestData = false) =>
             Task.FromResult<IReadOnlyList<BikeCommentDto>?>([]);
 
         public Task<BikeCommentDto?> CreateAsync(
-            int bikeId, int userId, int? parentCommentId, string body, CancellationToken ct)
+            int bikeId,
+            int userId,
+            int? parentCommentId,
+            string body,
+            CancellationToken ct,
+            bool includeTestData = false)
         {
             CreateCalled = true;
             BikeId = bikeId;
@@ -127,7 +138,12 @@ public class BikeCommentTests
         }
 
         public Task<BikeCommentDto?> UpdateAsync(
-            int bikeId, int commentId, int userId, string body, CancellationToken ct)
+            int bikeId,
+            int commentId,
+            int userId,
+            string body,
+            CancellationToken ct,
+            bool includeTestData = false)
         {
             UpdateCalled = true;
             BikeId = bikeId;
@@ -138,7 +154,11 @@ public class BikeCommentTests
         }
 
         public Task<bool> DeleteAsync(
-            int bikeId, int commentId, int userId, CancellationToken ct)
+            int bikeId,
+            int commentId,
+            int userId,
+            CancellationToken ct,
+            bool includeTestData = false)
         {
             DeleteCalled = true;
             BikeId = bikeId;

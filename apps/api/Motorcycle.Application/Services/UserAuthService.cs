@@ -65,7 +65,7 @@ public sealed class UserAuthService : IUserAuthService
             user.DisplayName = profile.DisplayName;
         }
 
-        if (string.IsNullOrWhiteSpace(user.Email) && profile.EmailVerified && !string.IsNullOrWhiteSpace(profile.Email)) {
+        if (profile.EmailVerified && !string.IsNullOrWhiteSpace(profile.Email)) {
             user.Email = profile.Email!.Trim().ToLowerInvariant();
             user.EmailVerified = true;
         }

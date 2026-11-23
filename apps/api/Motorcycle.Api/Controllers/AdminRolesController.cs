@@ -26,7 +26,7 @@ public sealed class AdminRolesController : ControllerBase
     public async Task<ActionResult<AdminRoleDto>> Create(CreateAdminRoleRequest request, CancellationToken ct)
     {
         try {
-            var role = await _service.ProvisionAsync(request.FacebookUserId, request.EmailSnapshot, request.DisplayNameSnapshot, request.Role, ct);
+            var role = await _service.ProvisionAsync(request.FacebookUserId, request.EmailSnapshot, request.DisplayNameSnapshot, request.Role, request.IncludeTestData, ct);
             return CreatedAtAction(nameof(GetAll), new { id = role.Id }, ToDto(role));
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
@@ -39,7 +39,7 @@ public sealed class AdminRolesController : ControllerBase
     public async Task<ActionResult<AdminRoleDto>> Update(int id, UpdateAdminRoleRequest request, CancellationToken ct)
     {
         try {
-            var role = await _service.UpdateAsync(id, request.EmailSnapshot, request.DisplayNameSnapshot, request.Role, request.IsActive, ct);
+            var role = await _service.UpdateAsync(id, request.EmailSnapshot, request.DisplayNameSnapshot, request.Role, request.IsActive, request.IncludeTestData, ct);
             return Ok(ToDto(role));
         } catch (ArgumentException ex) {
             return BadRequest(new { message = ex.Message });
@@ -66,6 +66,7 @@ public sealed class AdminRolesController : ControllerBase
         role.DisplayNameSnapshot,
         role.Role,
         role.IsActive,
+        role.IncludeTestData,
         role.CreatedAt,
         role.UpdatedAt);
 }

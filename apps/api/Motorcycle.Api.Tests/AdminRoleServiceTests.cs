@@ -47,6 +47,16 @@ public class AdminRoleServiceTests
         public Task<AdminRole?> GetByFacebookUserIdAsync(string facebookUserId, CancellationToken ct = default) =>
             Task.FromResult(_roles.SingleOrDefault(role => role.FacebookUserId == facebookUserId));
 
+        public Task<bool> IsActiveAdministratorUserAsync(
+            int userId,
+            CancellationToken ct = default) =>
+            Task.FromResult(false);
+
+        public Task<bool> CanViewTestDataAsync(
+            int userId,
+            CancellationToken ct = default) =>
+            Task.FromResult(false);
+
         public Task AddAsync(AdminRole role, CancellationToken ct = default)
         {
             _roles.Add(role);

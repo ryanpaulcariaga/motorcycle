@@ -8,9 +8,12 @@ namespace Motorcycle.Infrastructure.Repositories;
 
 public sealed class BikeReviewRepository(MotorcycleDbContext db, TimeProvider clock) : IBikeReviewRepository
 {
-    public async Task<BikeReviewsDto?> GetByBikeAsync(int bikeId, CancellationToken ct)
+    public async Task<BikeReviewsDto?> GetByBikeAsync(
+        int bikeId,
+        CancellationToken ct,
+        bool includeTestData = false)
     {
-        if (!await db.Bikes.AsNoTracking().AnyAsync(b => b.Id == bikeId && b.IsPublished, ct))
+        if (!await IsPubliclyAvailableAsync(bikeId, ct, includeTestData))
         {
             return null;
         }
@@ -34,9 +37,21 @@ public sealed class BikeReviewRepository(MotorcycleDbContext db, TimeProvider cl
         return new BikeReviewsDto(average, reviews.Count, reviews);
     }
 
-    public Task<BikeReviewDto?> GetByUserAsync(int bikeId, int userId, CancellationToken ct) =>
+    public Task<BikeReviewDto?> GetByUserAsync(
+        int bikeId,
+        int userId,
+        CancellationToken ct,
+        bool includeTestData = false) =>
         db.BikeComments.AsNoTracking()
-            .Where(r => r.BikeId == bikeId && r.UserId == userId && r.Bike.IsPublished && r.User.IsActive)
+            .Where(r =>
+                r.BikeId == bikeId &&
+                r.UserId == userId &&
+                ((r.Bike.IsPublished &&
+                  !r.Bike.IsTestData &&
+                  !r.Bike.Model.IsTestData) ||
+                 (includeTestData &&
+                  (r.Bike.IsTestData || r.Bike.Model.IsTestData))) &&
+                r.User.IsActive)
             .Select(r => new BikeReviewDto(
                 r.Id,
                 r.User.DisplayName ?? "MotoCompare rider",
@@ -51,10 +66,11 @@ public sealed class BikeReviewRepository(MotorcycleDbContext db, TimeProvider cl
         int userId,
         int rating,
         string? body,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool includeTestData = false)
     {
         var now = clock.GetUtcNow().UtcDateTime;
-        if (!await db.Bikes.AnyAsync(b => b.Id == bikeId && b.IsPublished, ct) ||
+        if (!await IsPubliclyAvailableAsync(bikeId, ct, includeTestData) ||
             !await db.Users.AnyAsync(u => u.Id == userId && u.IsActive, ct))
         {
             return BikeReviewWriteResult.Unavailable;
@@ -72,10 +88,21 @@ public sealed class BikeReviewRepository(MotorcycleDbContext db, TimeProvider cl
         return BikeReviewWriteResult.Saved;
     }
 
-    public async Task<bool> DeleteAsync(int bikeId, int userId, CancellationToken ct)
+    public async Task<bool> DeleteAsync(
+        int bikeId,
+        int userId,
+        CancellationToken ct,
+        bool includeTestData = false)
     {
         var review = await db.BikeComments.SingleOrDefaultAsync(
-            r => r.BikeId == bikeId && r.UserId == userId && r.User.IsActive && r.Bike.IsPublished, ct);
+            r => r.BikeId == bikeId &&
+                r.UserId == userId &&
+                r.User.IsActive &&
+            ((r.Bike.IsPublished &&
+              !r.Bike.IsTestData &&
+              !r.Bike.Model.IsTestData) ||
+             (includeTestData &&
+              (r.Bike.IsTestData || r.Bike.Model.IsTestData))), ct);
         if (review is null)
         {
             return false;
@@ -85,4 +112,14 @@ public sealed class BikeReviewRepository(MotorcycleDbContext db, TimeProvider cl
         await db.SaveChangesAsync(ct);
         return true;
     }
+
+    private Task<bool> IsPubliclyAvailableAsync(
+        int bikeId,
+        CancellationToken ct,
+        bool includeTestData) =>
+        db.Bikes.AsNoTracking().AnyAsync(
+            b => b.Id == bikeId &&
+                ((b.IsPublished && !b.IsTestData && !b.Model.IsTestData) ||
+                 (includeTestData && (b.IsTestData || b.Model.IsTestData))),
+            ct);
 }

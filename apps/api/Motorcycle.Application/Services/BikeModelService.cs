@@ -28,7 +28,13 @@ public sealed class BikeModelService : IBikeModelService
     {
         var name = BikeModelValidators.Validate(request.BrandId, request.CategoryId, request.Name);
         await EnsureReferencesAsync(request.BrandId, request.CategoryId, name, null, ct);
-        var model = new BikeModel { BrandId = request.BrandId, CategoryId = request.CategoryId, Name = name };
+        var model = new BikeModel
+        {
+            BrandId = request.BrandId,
+            CategoryId = request.CategoryId,
+            Name = name,
+            IsTestData = request.IsTestData
+        };
         await _repository.AddAsync(model, ct);
         await _repository.SaveChangesAsync(ct);
         return ToDto(await _repository.GetByIdAsync(model.Id, ct) ?? model, 0);
@@ -45,6 +51,7 @@ public sealed class BikeModelService : IBikeModelService
         model.BrandId = request.BrandId;
         model.CategoryId = request.CategoryId;
         model.Name = name;
+        model.IsTestData = request.IsTestData;
         await _repository.SaveChangesAsync(ct);
         return ToDto(model, await _repository.CountDependentBikesAsync(id, ct));
     }
@@ -84,7 +91,8 @@ public sealed class BikeModelService : IBikeModelService
         model.Category?.Name ?? string.Empty,
         model.Name,
         model.CreatedAt,
-        bikeCount);
+        bikeCount,
+        model.IsTestData);
 }
 
 public sealed class BikeModelReferencedException : Exception

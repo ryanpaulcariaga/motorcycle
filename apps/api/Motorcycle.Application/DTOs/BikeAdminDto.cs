@@ -14,7 +14,9 @@ public sealed record BikeAdminListItemDto(
     DateTime UpdatedAt,
     int ImageCount = 0,
     string ReviewStatus = "draft",
-    DateTime? ReviewCompletedAt = null);
+    DateTime? ReviewCompletedAt = null,
+    bool IsTestData = false,
+    bool ModelIsTestData = false);
 
 public sealed record BikeAdminDetailDto(
     int Id,
@@ -32,7 +34,9 @@ public sealed record BikeAdminDetailDto(
     DateTime UpdatedAt,
     Dictionary<string, SpecVerificationDto> SpecVerifications,
     string ReviewStatus = "draft",
-    DateTime? ReviewCompletedAt = null);
+    DateTime? ReviewCompletedAt = null,
+    bool IsTestData = false,
+    bool ModelIsTestData = false);
 
 public sealed record SpecVerificationDto(string? SourceUrl, DateTime VerifiedAt);
 
@@ -88,7 +92,8 @@ public sealed record CreateBikeRequest(
     string VariantName,
     int Year,
     decimal? MsrpPrice,
-    Dictionary<string, object?>? Specs);
+    Dictionary<string, object?>? Specs,
+    bool IsTestData = false);
 
 public sealed record UpdateBikeRequest(
     string VariantName,
@@ -97,7 +102,8 @@ public sealed record UpdateBikeRequest(
     Dictionary<string, object?>? Specs,
     int? ModelId = null,
     List<SpecVerificationUpdate>? VerificationChanges = null,
-    bool ResetVerifications = false);
+    bool ResetVerifications = false,
+    bool IsTestData = false);
 
 public sealed record ReassignBikeModelRequest(int ModelId);
 
