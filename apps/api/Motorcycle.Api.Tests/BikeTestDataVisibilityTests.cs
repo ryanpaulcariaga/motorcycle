@@ -99,15 +99,20 @@ public sealed class BikeTestDataVisibilityTests
         await db.SaveChangesAsync();
         var repository = new BikeRepository(db);
 
-        var list = await repository.GetPublishedWithStaticFiltersAsync(
+        var list = await repository.GetWithStaticFiltersAsync(
             null, null, null, null, null, null, null);
         var byIds = await repository.GetByIdsAsync([1, 2, 3, 4]);
-        var adminList = await repository.GetPublishedWithStaticFiltersAsync(
+        var adminList = await repository.GetWithStaticFiltersAsync(
             null, null, null, null, null, null, null, includeTestData: true);
+        var unpublishedList = await repository.GetWithStaticFiltersAsync(
+            null, null, null, null, null, null, null,
+            includeTestData: true,
+            includeDiscontinued: true);
 
         Assert.Equal(1, Assert.Single(list).Id);
         Assert.Equal(1, Assert.Single(byIds).Id);
-        Assert.Equal(4, adminList.Count);
+        Assert.Equal(3, adminList.Count);
+        Assert.Equal(4, unpublishedList.Count);
         Assert.NotNull(await repository.GetBySlugAsync("public"));
         Assert.Null(await repository.GetBySlugAsync("test-variant"));
         Assert.Null(await repository.GetBySlugAsync("test-model"));
@@ -119,7 +124,8 @@ public sealed class BikeTestDataVisibilityTests
             includeTestData: true));
         Assert.NotNull(await repository.GetBySlugAsync(
             "unpublished-test",
-            includeTestData: true));
+            includeTestData: true,
+            isPublished: false));
     }
 
     [Fact]

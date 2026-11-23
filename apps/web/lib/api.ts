@@ -86,8 +86,13 @@ export function searchBikes(term: string, pageSize = 8): Promise<PagedResult<Bik
   return apiFetch(`/api/bikes${buildQueryString({ search: term, pageSize })}`);
 }
 
-export function getBikeBySlug(slug: string): Promise<BikeDetailDto> {
-  return apiFetch(`/api/bikes/${encodeURIComponent(slug)}`);
+export function getBikeBySlug(
+  slug: string,
+  published = true,
+): Promise<BikeDetailDto> {
+  return apiFetch(
+    `/api/bikes/${encodeURIComponent(slug)}${buildQueryString({ published })}`,
+  );
 }
 
 export function compareBikes(ids: string[]): Promise<CompareResultDto> {

@@ -122,6 +122,7 @@ export interface BikeListItemDto {
   slug: string;
   brandName: string;
   categoryName: string;
+  isPublished: boolean;
   isTestData: boolean;
   modelIsTestData: boolean;
   primaryImageUrl: string | null;
@@ -153,6 +154,7 @@ export interface BikeDetailDto {
   slug: string;
   brandName: string;
   categoryName: string;
+  isPublished: boolean;
   isTestData: boolean;
   modelIsTestData: boolean;
   images: BikeImageDto[];
@@ -226,6 +228,7 @@ export interface BikesQuery {
   thenSortBy?: "price" | "year" | "model_name";
   thenSortDescending?: boolean;
   search?: string;
+  includeDiscontinued?: boolean;
   brandId?: string;
   categoryId?: string;
   yearMin?: number;

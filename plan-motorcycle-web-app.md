@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 55 of 115 tasks done · 7 in progress · 53 not started.**
+**Progress: 56 of 116 tasks done · 7 in progress · 53 not started.**
 
 **Next up:** Configure the production legal operator/contact/jurisdiction values and complete the privacy, inquiry retention, log-retention, and backup-deletion review in T-112 before G-10 can be ticked. Verify the contact form and admin inbox with a test database and authenticated session under T-113. Verify ratings/comments, interest-profile, and account privacy controls in authenticated public browser sessions, and verify the analytics dashboard with an authenticated admin session. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -50,7 +50,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-12 | ✅ Azure deployment via GitHub Actions OIDC |
 | F-13 | ✅ Aligned look and tighter grids across web and admin; sidebars use a shared super-dark grey, while top-navigation and bike-detail controls use brown hover states, including the user-rating modal actions; account name and sign-out controls have consistent header spacing; bike variant headers match cell padding; admin modal action icons match grid icon colors |
 | F-16 | ✅ Responsive image variants with API upload processing, backfill, and size-aware public/admin use |
-| F-17 | ✅ Public header bike search with live suggestions and searchable browse results; the browse page also has a visible keyword field, and MotoCompare links home |
+| F-17 | ✅ Public header bike search with live suggestions and searchable browse results; Browse Bikes has variant-only keyword and Include discontinued filters inside collapsed Advanced filters, detail links retain publication state, and MotoCompare links home |
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; bike-detail highlights use one column on phones and two at wider widths, mobile account-menu rows and browse links are consistently right-aligned, sidebar sections expand independently, pages scroll to content, and the bulk-edit modal uses one vertical scroller with fixed title and actions |
@@ -232,7 +232,8 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
-| T-116 | ✅ Add a visible keyword search option to public bike browsing | Browse has a keyword field with Search bikes and Clear keyword actions, preserves advanced filters and sorting, and uses the same anonymous search analytics flow; header search now has a visible placeholder. Web lint and production build pass |
+| T-117 | ✅ Refine public browse keyword and publication filtering | Browse keyword matching is variant-only; Keyword and an Include discontinued checkbox live inside Advanced filters, default results remain published, checked results include both states, state persists through pagination and detail links, and unpublished details suppress published-only compare/review/comment actions. API visibility tests pass (5 focused tests); web lint and production build pass |
+| T-116 | ✅ Add a visible keyword search option to public bike browsing | Browse has a keyword field with Search bikes and Clear keyword actions, preserves advanced filters and sorting, and uses the same anonymous search analytics flow; keywords now match variant names only. Web lint and production build pass |
 | T-114 | ✅ Make Bikes the admin landing page | `/`, `/admin`, and `/admin/` render the Bikes variant screen and highlight Bikes after sign-in; explicit admin deep links remain unchanged. Admin build and lint pass |
 | T-115 | ✅ Add test-data tags to bike models and variants | Added independent `is_test_data` columns and admin controls; model tags hide all variants and variant tags hide one row. Public test-data access requires the signed-in user's Facebook login to match an active Administrator role and includes real rating/comment flows. 135 API tests pass (2 PostgreSQL opt-in tests skipped), EF has no pending changes, and admin/web builds and lint pass (6 pre-existing admin warnings) |
 | T-70 | ✅ Replace placeholder "Top 10" sidebar sections with real data | Public fan rankings use active-user ratings; daily interest uses the current UTC day's anonymous opt-in bike-view aggregates, published-bike filtering, count/ID tie-breaks, an API endpoint, and sidebar counts. 15 focused API tests, web lint and production build pass. |
@@ -266,6 +267,10 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-23** — Refined public Browse Bikes so Keyword and the Include discontinued checkbox live inside collapsed Advanced filters. Keyword matches variant names only; checking Include discontinued includes both current and discontinued variants while unchecked results remain published-only. Publication state persists through pagination and detail navigation, and unpublished details hide compare/review/comment actions. Focused API tests, web lint, and the public production build pass.
+
+**2026-11-23** — Limited public bike keyword searches to model and variant names, excluding brand-only matches, and updated the browse placeholder and API contract. Focused web lint, the public production build, and the changed Infrastructure build pass; the full API build was not rerun because the active local API process held output DLLs.
 
 **2026-11-23** — Added a persisted, default-off View test bikes control to each administrator role in the private Administrators tab. The API checks that role setting for catalog, comparison, ranking, review, and comment access, keeping the public Settings page unchanged. The EF migration was generated; API tests, web/admin builds and lint pass.
 

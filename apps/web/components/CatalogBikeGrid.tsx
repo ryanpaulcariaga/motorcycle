@@ -51,7 +51,13 @@ export default function CatalogBikeGrid({
   }, [serializedQuery]);
 
   const cards = bikes.map((bike) => {
-    const detailHref = buildBikeDetailHref(bike.slug, browseParams ?? {});
+    const detailHref = buildBikeDetailHref(
+      bike.slug,
+      {
+        ...(browseParams ?? {}),
+        published: String(bike.isPublished),
+      },
+    );
     const href =
       bike.isTestData || bike.modelIsTestData
         ? `${detailHref}${detailHref.includes('?') ? '&' : '?'}preview=test`

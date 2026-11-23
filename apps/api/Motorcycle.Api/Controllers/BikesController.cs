@@ -36,6 +36,7 @@ public class BikesController : ControllerBase
         [FromQuery] string? thenSortBy = null,
         [FromQuery] bool thenSortDescending = false,
         [FromQuery] string? search = null,
+        [FromQuery] bool includeDiscontinued = false,
         [FromQuery] int? brandId = null,
         [FromQuery] int? categoryId = null,
         [FromQuery] int? yearMin = null,
@@ -73,6 +74,7 @@ public class BikesController : ControllerBase
             ThenSortBy = thenSortBy,
             ThenSortDescending = thenSortDescending,
             Search = search,
+            IncludeDiscontinued = includeDiscontinued,
             BrandId = brandId,
             CategoryId = categoryId,
             YearMin = yearMin,
@@ -101,12 +103,16 @@ public class BikesController : ControllerBase
 
     /// <summary>Get full detail for a bike by its slug, including images and grouped/ordered specs.</summary>
     [HttpGet("{slug}")]
-    public async Task<IActionResult> GetBikeBySlug(string slug, CancellationToken ct)
+    public async Task<IActionResult> GetBikeBySlug(
+        string slug,
+        [FromQuery] bool published = true,
+        CancellationToken ct = default)
     {
         var bike = await _bikeService.GetBikeDetailAsync(
             slug,
             ct,
-            await CanViewTestDataAsync(ct));
+            await CanViewTestDataAsync(ct),
+            published);
         return bike is null ? NotFound() : Ok(bike);
     }
 

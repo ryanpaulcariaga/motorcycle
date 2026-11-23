@@ -14,7 +14,8 @@ public interface IBikeService
     Task<BikeDetailDto?> GetBikeDetailAsync(
         string slug,
         CancellationToken ct = default,
-        bool includeTestData = false);
+        bool includeTestData = false,
+        bool isPublished = true);
     Task<CompareResultDto> CompareBikesAsync(
         List<int> bikeIds,
         CancellationToken ct = default,
@@ -65,9 +66,9 @@ public class BikeService : IBikeService
         CancellationToken ct = default,
         bool includeTestData = false)
     {
-        var bikes = await _bikeRepository.GetPublishedWithStaticFiltersAsync(
+        var bikes = await _bikeRepository.GetWithStaticFiltersAsync(
             query.Search, query.BrandId, query.CategoryId, query.YearMin, query.YearMax,
-            query.PriceMin, query.PriceMax, ct, includeTestData);
+            query.PriceMin, query.PriceMax, ct, includeTestData, query.IncludeDiscontinued);
 
         if (query.SpecFilters.Count > 0) {
             var specDefinitions = (await _specGroupRepository.GetAllWithDefinitionsAsync(ct))
@@ -109,9 +110,14 @@ public class BikeService : IBikeService
     public async Task<BikeDetailDto?> GetBikeDetailAsync(
         string slug,
         CancellationToken ct = default,
-        bool includeTestData = false)
+        bool includeTestData = false,
+        bool isPublished = true)
     {
-        var bike = await _bikeRepository.GetBySlugAsync(slug, ct, includeTestData);
+        var bike = await _bikeRepository.GetBySlugAsync(
+            slug,
+            ct,
+            includeTestData,
+            isPublished);
         if (bike is null) {
             return null;
         }
@@ -335,6 +341,7 @@ public class BikeService : IBikeService
             Slug = bike.Slug,
             BrandName = bike.Model.Brand.Name,
             CategoryName = bike.Model.Category.Name,
+            IsPublished = bike.IsPublished,
             IsTestData = bike.IsTestData,
             ModelIsTestData = bike.Model.IsTestData,
             PrimaryImageUrl = primaryImage?.BlobUrl,
@@ -355,6 +362,7 @@ public class BikeService : IBikeService
             Slug = bike.Slug,
             BrandName = bike.Model.Brand.Name,
             CategoryName = bike.Model.Category.Name,
+            IsPublished = bike.IsPublished,
             IsTestData = bike.IsTestData,
             ModelIsTestData = bike.Model.IsTestData,
             Images = bike.Images

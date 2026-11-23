@@ -14,10 +14,10 @@ public class BikeRepository : IBikeRepository
         _context = context;
     }
 
-    public async Task<List<Bike>> GetPublishedWithStaticFiltersAsync(
+    public async Task<List<Bike>> GetWithStaticFiltersAsync(
         string? search, int? brandId, int? categoryId, int? yearMin, int? yearMax,
         decimal? priceMin, decimal? priceMax, CancellationToken ct = default,
-        bool includeTestData = false)
+        bool includeTestData = false, bool includeDiscontinued = false)
     {
         var query = _context.Bikes
             .Include(b => b.Model)
@@ -26,15 +26,13 @@ public class BikeRepository : IBikeRepository
                 .ThenInclude(m => m.Category)
             .Include(b => b.Images)
             .Where(b =>
-                (b.IsPublished && (!b.IsTestData && !b.Model.IsTestData)) ||
-                (includeTestData && (b.IsTestData || b.Model.IsTestData)));
+                (b.IsPublished || includeDiscontinued) &&
+                ((!b.IsTestData && !b.Model.IsTestData) ||
+                 (includeTestData && (b.IsTestData || b.Model.IsTestData))));
 
         if (!string.IsNullOrWhiteSpace(search)) {
             var pattern = $"%{search.Trim()}%";
-            query = query.Where(b =>
-                EF.Functions.ILike(b.Model.Name, pattern) ||
-                EF.Functions.ILike(b.VariantName, pattern) ||
-                EF.Functions.ILike(b.Model.Brand.Name, pattern));
+            query = query.Where(b => EF.Functions.ILike(b.VariantName, pattern));
         }
 
         if (brandId.HasValue) {
@@ -67,7 +65,8 @@ public class BikeRepository : IBikeRepository
     public async Task<Bike?> GetBySlugAsync(
         string slug,
         CancellationToken ct = default,
-        bool includeTestData = false)
+        bool includeTestData = false,
+        bool isPublished = true)
     {
         return await _context.Bikes
             .Include(b => b.Model)
@@ -77,7 +76,8 @@ public class BikeRepository : IBikeRepository
             .Include(b => b.Images)
             .FirstOrDefaultAsync(
                 b => b.Slug == slug &&
-                    ((b.IsPublished && (!b.IsTestData && !b.Model.IsTestData)) ||
+                    b.IsPublished == isPublished &&
+                    ((!b.IsTestData && !b.Model.IsTestData) ||
                      (includeTestData && (b.IsTestData || b.Model.IsTestData))),
                 ct);
     }

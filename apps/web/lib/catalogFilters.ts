@@ -28,7 +28,7 @@ export const rangeFields = [
 ] as const;
 
 const browseParamKeys = [
-  'search', 'brandId', 'categoryId', ...rangeFields.map(([key]) => key),
+  'search', 'includeDiscontinued', 'published', 'brandId', 'categoryId', ...rangeFields.map(([key]) => key),
   'sort', 'page',
 ] as const;
 

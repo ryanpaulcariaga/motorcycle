@@ -10,6 +10,7 @@ import type { Metadata } from 'next';
 interface BikesPageProps {
   searchParams: Promise<{
     search?: string;
+    includeDiscontinued?: string;
     brandId?: string;
     categoryId?: string;
     yearMin?: string;
@@ -88,6 +89,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
       page,
       pageSize: CATALOG_PAGE_SIZE,
       search: params.search,
+      includeDiscontinued: params.includeDiscontinued === 'true',
       brandId: params.brandId,
       categoryId: params.categoryId,
       yearMin: params.yearMin ? Number(params.yearMin) : params.yearMax ? 1 : undefined,
@@ -115,6 +117,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                   page,
                   pageSize: CATALOG_PAGE_SIZE,
                   search: params.search,
+                  includeDiscontinued: params.includeDiscontinued === 'true',
                   brandId: params.brandId,
                   categoryId: params.categoryId,
                   yearMin: params.yearMin
@@ -160,6 +163,7 @@ export default async function BikesPage({ searchParams }: BikesPageProps) {
                 page,
                 pageSize: CATALOG_PAGE_SIZE,
                 search: params.search,
+                includeDiscontinued: params.includeDiscontinued === 'true',
                 brandId: params.brandId,
                 categoryId: params.categoryId,
                 yearMin: params.yearMin

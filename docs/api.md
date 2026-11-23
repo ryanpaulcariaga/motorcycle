@@ -20,7 +20,8 @@ https://api.motorcycle-app.example.com
 
 #### GET /api/bikes
 
-List motorcycles with pagination, sorting, and filtering.
+List motorcycles with pagination, sorting, and filtering. Results default to published
+variants; `includeDiscontinued=true` includes unpublished variants alongside them.
 
 Tagged variants and every variant under a tagged model are omitted from this endpoint and the other public catalog endpoints for anonymous users, normal signed-in users, and administrators whose role does not allow test-data viewing. The condition is enforced by the API, not by frontend filtering. A public user whose linked Facebook provider identity matches an active Administrator role, or whose verified email matches the role's email snapshot, receives tagged test bikes only when `includeTestData` is enabled on that role in the private Administrators UI. The role setting defaults to off. Tagged test bikes do not need to be published. The email fallback handles separate Facebook app-scoped IDs. The same role setting and active-role check applies to reading and writing reviews and comments for test data. Active administrators can always inspect and edit all tagged models and variants through `/api/admin`.
 
@@ -29,7 +30,8 @@ Tagged variants and every variant under a tagged model are omitted from this end
 - `pageSize` (int, default 20)
 - `sort` (optional comma-separated ordered criteria, each `field:asc` or `field:desc`; supported fields: `brand`, `category`, `model_name`, `variant_name`, `year`, `price`; for example, `year:desc,price:asc,model_name:asc`)
 - Legacy `sortBy`, `sortDescending`, `thenSortBy`, and `thenSortDescending` parameters remain supported when `sort` is omitted.
-- `search` (string: free-text match against model name, variant name, or brand name; used by the compare-page bike picker)
+- `search` (string: case-insensitive free-text match against the variant name only; used by public browse and the compare-page bike picker)
+- `includeDiscontinued` (boolean, default `false`; use `true` to include unpublished variants)
 - `brandId`, `categoryId` (int, optional)
 - `yearMin`, `yearMax` (int, inclusive bounds)
 - `priceMin`, `priceMax` (decimal, inclusive MSRP bounds; missing prices do not match)
@@ -66,9 +68,10 @@ Imported motorcycles use year `0` when the source does not identify one. Browse 
 }
 ```
 
-#### GET /api/bikes/{slug}
+#### GET /api/bikes/{slug}?published=true|false
 
 Get detailed motorcycle info + all images.
+The optional `published` value must match the selected publication state and defaults to `true`.
 
 **Response**:
 ```json

@@ -20,10 +20,15 @@ interface BikeDetailPageProps {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: BikeDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
   try {
-    const bike = await getBikeBySlug(slug);
+    const bike = await getBikeBySlug(
+      slug,
+      resolvedSearchParams.published !== 'false',
+    );
     const title = `${bike.variantName} (${bike.year})`;
     const description = `Specs and details for the ${bike.year} ${bike.variantName}.`;
     const primaryImage =
@@ -72,7 +77,10 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
 
   let bike;
   try {
-    bike = await getBikeBySlug(slug);
+    bike = await getBikeBySlug(
+      slug,
+      resolvedSearchParams.published !== 'false',
+    );
   } catch {
     if (resolvedSearchParams.preview === 'test') {
       return <TestBikeDetailFallback slug={slug} />;
@@ -82,8 +90,8 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
 
   const [comparedWith, bikeReviews, bikeComments] = await Promise.all([
     getComparedWith(slug).catch(() => []),
-    getBikeReviews(bike.id),
-    getBikeComments(bike.id),
+    bike.isPublished ? getBikeReviews(bike.id) : Promise.resolve(null),
+    bike.isPublished ? getBikeComments(bike.id) : Promise.resolve(null),
   ]);
 
   const groupsWithSpecs = bike.specGroups.filter(
@@ -102,7 +110,7 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
     model: bike.variantName,
     category: bike.categoryName,
     image: bike.images.map((image) => image.blobUrl),
-    ...(bikeReviews.averageRating !== null
+    ...(bikeReviews?.averageRating !== null && bikeReviews
       ? {
           aggregateRating: {
             '@type': 'AggregateRating',
@@ -191,10 +199,14 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
               )}
 
               <div className="mt-6 flex gap-3">
-                <Link href={`/compare?ids=${bike.id}`}>
-                  <Button variant="gold">Compare</Button>
-                </Link>
-                <BikeReviews bikeId={bike.id} initialReviews={bikeReviews} />
+                {bike.isPublished && (
+                  <Link href={`/compare?ids=${bike.id}`}>
+                    <Button variant="gold">Compare</Button>
+                  </Link>
+                )}
+                {bikeReviews && (
+                  <BikeReviews bikeId={bike.id} initialReviews={bikeReviews} />
+                )}
               </div>
             </div>
           </div>
@@ -275,7 +287,9 @@ export default async function BikeDetailPage({ params, searchParams }: BikeDetai
             ))}
           </div>
 
-          <BikeComments bikeId={bike.id} initialComments={bikeComments} />
+          {bikeComments && (
+            <BikeComments bikeId={bike.id} initialComments={bikeComments} />
+          )}
     </CatalogPageShell>
   );
 }

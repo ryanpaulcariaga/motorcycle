@@ -11,6 +11,7 @@ public class BikeQueryParameters
     public bool ThenSortDescending { get; set; } = false;
 
     public string? Search { get; set; }
+    public bool IncludeDiscontinued { get; set; }
     public int? BrandId { get; set; }
     public int? CategoryId { get; set; }
     public int? YearMin { get; set; }

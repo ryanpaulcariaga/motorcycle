@@ -131,10 +131,11 @@ public class BikeCompareServiceTests
         public Task<Bike?> GetBySlugAsync(
             string slug,
             CancellationToken ct = default,
-            bool includeTestData = false) =>
+            bool includeTestData = false,
+            bool isPublished = true) =>
             Task.FromResult<Bike?>(null);
 
-        public Task<List<Bike>> GetPublishedWithStaticFiltersAsync(
+        public Task<List<Bike>> GetWithStaticFiltersAsync(
             string? search,
             int? brandId,
             int? categoryId,
@@ -143,7 +144,8 @@ public class BikeCompareServiceTests
             decimal? priceMin,
             decimal? priceMax,
             CancellationToken ct = default,
-            bool includeTestData = false) =>
+            bool includeTestData = false,
+            bool includeDiscontinued = false) =>
             Task.FromResult(bikes);
 
         private int? TopFansLimit { get; set; }

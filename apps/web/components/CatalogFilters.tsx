@@ -13,6 +13,8 @@ interface CatalogFiltersProps {
 export default function CatalogFilters({ params, brands, categories, ccAvailable }: CatalogFiltersProps) {
   const hasCcFilter = !!(params.ccMin || params.ccMax);
   const activeFilters = [
+    params.search,
+    params.includeDiscontinued === 'true',
     params.brandId,
     params.categoryId,
     params.yearMin || params.yearMax,
@@ -22,40 +24,35 @@ export default function CatalogFilters({ params, brands, categories, ccAvailable
 
   return (
     <div className="mb-4 border border-zinc-200 bg-zinc-50 p-4">
-      <AnalyticsFilterForm key={JSON.stringify([params.search, params.brandId, params.categoryId, ...rangeFields.map(([key]) => params[key])])}>
+      <AnalyticsFilterForm key={JSON.stringify([params.search, params.includeDiscontinued, params.brandId, params.categoryId, ...rangeFields.map(([key]) => params[key])])}>
         {(['sort'] as const).map((key) =>
           params[key] ? <input key={key} type="hidden" name={key} value={params[key]} /> : null
         )}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-          <label className="flex min-w-0 flex-1 flex-col gap-1 text-sm font-semibold">
-            Keyword
-            <input
-              type="search"
-              name="search"
-              defaultValue={params.search ?? ''}
-              placeholder="Search by model, variant, or brand"
-              className="w-full min-w-0 border border-zinc-300 bg-white px-3 py-2 font-normal text-brand-black"
-            />
-          </label>
-          <div className="flex flex-wrap items-center gap-3">
-            <button type="submit" className="bg-brand-button px-4 py-2 text-sm font-semibold text-white">
-              Search bikes
-            </button>
-            {params.search && (
-              <Link
-                href={buildBrowseHref(params, { search: undefined, page: undefined })}
-                className="py-2 text-sm font-semibold text-brand-button hover:underline"
-              >
-                Clear keyword
-              </Link>
-            )}
-          </div>
-        </div>
-        <details className="mt-3">
+        <details>
           <summary className="cursor-pointer text-sm font-semibold text-brand-button hover:underline">
             Advanced filters{activeFilters > 0 ? ` (${activeFilters} active)` : ''}
           </summary>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm font-semibold">
+              Keyword
+              <input
+                type="search"
+                name="search"
+                defaultValue={params.search ?? ''}
+                placeholder="Search by variant"
+                className="w-full min-w-0 border border-zinc-300 bg-white px-3 py-2 font-normal text-brand-black"
+              />
+            </label>
+            <label className="flex min-h-[42px] items-center gap-2 self-end text-sm font-semibold">
+              <input
+                className="size-4 shrink-0 accent-brand-button"
+                type="checkbox"
+                name="includeDiscontinued"
+                value="true"
+                defaultChecked={params.includeDiscontinued === 'true'}
+              />
+              Include discontinued
+            </label>
             <label className="flex flex-col gap-1 text-sm font-semibold">
               Brand
               <select name="brandId" defaultValue={params.brandId ?? ''} className="w-full border border-zinc-300 bg-white px-2 py-2 font-normal text-brand-black">
@@ -95,7 +92,7 @@ export default function CatalogFilters({ params, brands, categories, ccAvailable
             </button>
             <Link
               href={buildBrowseHref(params, {
-                brandId: undefined, categoryId: undefined, yearMin: undefined, yearMax: undefined,
+                search: undefined, includeDiscontinued: undefined, brandId: undefined, categoryId: undefined, yearMin: undefined, yearMax: undefined,
                 priceMin: undefined, priceMax: undefined, ccMin: undefined, ccMax: undefined, page: undefined,
               })}
               className="py-2 text-sm font-semibold text-brand-button hover:underline"
