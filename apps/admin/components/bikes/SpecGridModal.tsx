@@ -301,6 +301,15 @@ export default function SpecGridModal({
       : rows;
   }, [rows, search]);
 
+  const setDisplayedReviewStatus = (reviewStatus: ReviewStatus, label: string) => {
+    const ids = new Set(visibleRows.map((row) => row.id));
+    setRows((current) => current.map((row) =>
+      ids.has(row.id) ? { ...row, reviewStatus } : row
+    ));
+    setNotice(`Displayed motorcycles set to ${label}. Save changes to apply.`);
+    setError(null);
+  };
+
   const resetConfirmations = useCallback((bikeIds: number[], description: string) => {
     if (!window.confirm(
       `Reset spec verifications and Completed status for ${description}, including hidden specification groups and stored source information? Save changes to apply.`
@@ -806,14 +815,26 @@ export default function SpecGridModal({
         <button
           type="button"
           className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
-          disabled={saving || !visibleRows.some((row) => row.reviewStatus === 'draft')}
-          onClick={() => {
-            const ids = new Set(visibleRows.filter((row) => row.reviewStatus === 'draft').map((row) => row.id));
-            setRows((current) => current.map((row) => ids.has(row.id) ? { ...row, reviewStatus: 'inProgress' } : row));
-            setNotice('Displayed draft motorcycles marked In Progress. Save changes to apply.');
-          }}
+          disabled={saving || !visibleRows.some((row) => row.reviewStatus !== 'draft')}
+          onClick={() => setDisplayedReviewStatus('draft', 'Draft')}
         >
-          Mark displayed drafts In Progress
+          Set displayed to 'Draft'
+        </button>
+        <button
+          type="button"
+          className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
+          disabled={saving || !visibleRows.some((row) => row.reviewStatus !== 'inProgress')}
+          onClick={() => setDisplayedReviewStatus('inProgress', 'In Progress')}
+        >
+          Set displayed to 'In Progress'
+        </button>
+        <button
+          type="button"
+          className="border border-black/30 px-3 py-2 text-sm font-semibold disabled:opacity-50"
+          disabled={saving || !visibleRows.some((row) => row.reviewStatus !== 'completed')}
+          onClick={() => setDisplayedReviewStatus('completed', 'Completed')}
+        >
+          Set displayed to 'Completed'
         </button>
         <button
           type="button"

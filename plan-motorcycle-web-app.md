@@ -42,7 +42,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-04 | ✅ Public sign-in with Facebook |
 | F-05 | ✅ Admin sign-in (Facebook PKCE), 12-hour sliding sessions with active-tab keepalive and explicit expiry handling, Bikes as the signed-in landing tab, and admin roles |
 | F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts; Bike Models filters and ordered sorting stay above the grid instead of in the sidebar |
-| F-07 | ✅ Admin: Bike variant CRUD, published control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus published/review/image state, and Bulk-style ordered multi-sort; model labels show assigned bike counts |
+| F-07 | ✅ Admin: Bike variant CRUD, published control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus published/review/image state, and Bulk-style ordered multi-sort including review completion time; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management and drag-and-drop ordering |
 | F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, displayed-bike review updates, Excel export, and Excel import for exactly the displayed variants |
@@ -263,6 +263,10 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-23** — Expanded and aligned the displayed-bike review actions: the grid and bulk-edit workflow use "Set displayed to 'Draft'", "Set displayed to 'In Progress'", and "Set displayed to 'Completed'"; bulk-edit status changes remain staged until save.
+
+**2026-11-23** — Hid the Review completed timestamp from the admin Bikes grid and added Review completed as an ordered sort option, while preserving the Review status column and controls. The admin production build and focused lint passed; lint retains the existing `useEffect` dependency warning.
 
 **2026-11-23** — Changed public bike-detail highlights to one column on mobile and two columns from the small breakpoint onward. Focused web lint and production build passed.
 

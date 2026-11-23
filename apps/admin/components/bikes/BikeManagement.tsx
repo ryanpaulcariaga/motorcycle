@@ -55,7 +55,15 @@ const emptyForm = {
   resetVerifications: false,
 };
 
-type SortField = 'variant' | 'model' | 'brand' | 'year' | 'msrp' | 'status' | 'reviewed';
+type SortField =
+  | 'variant'
+  | 'model'
+  | 'brand'
+  | 'year'
+  | 'msrp'
+  | 'status'
+  | 'reviewed'
+  | 'reviewCompleted';
 
 const sortFieldOptions: { key: SortField; label: string }[] = [
   { key: 'year', label: 'Year' },
@@ -65,6 +73,7 @@ const sortFieldOptions: { key: SortField; label: string }[] = [
   { key: 'msrp', label: 'MSRP' },
   { key: 'status', label: 'Published' },
   { key: 'reviewed', label: 'Review status' },
+  { key: 'reviewCompleted', label: 'Review completed' },
 ];
 
 export default function BikeManagement({
@@ -180,6 +189,9 @@ export default function BikeManagement({
       msrp: (a, b) => (a.msrpPrice ?? -1) - (b.msrpPrice ?? -1),
       status: (a, b) => Number(a.isPublished) - Number(b.isPublished),
       reviewed: (a, b) => reviewStatusOptions.findIndex((option) => option.value === a.reviewStatus) - reviewStatusOptions.findIndex((option) => option.value === b.reviewStatus),
+      reviewCompleted: (a, b) =>
+        (a.reviewCompletedAt ? Date.parse(a.reviewCompletedAt) : 0) -
+        (b.reviewCompletedAt ? Date.parse(b.reviewCompletedAt) : 0),
     }
   );
   const primarySort = sortRules[0];
@@ -725,7 +737,7 @@ export default function BikeManagement({
         }
         onClick={() => void resetVisibleConfirmations()}
       >
-        {resettingTags ? 'Resetting...' : "Reset displayed to 'Draft'"}
+        {resettingTags ? 'Resetting...' : "Set displayed to 'Draft'"}
       </AdminToolbarButton>
       <AdminToolbarButton disabled={loading} onClick={() => void load()}>
         {loading ? 'Refreshing...' : 'Refresh'}
@@ -939,7 +951,6 @@ export default function BikeManagement({
                   {sortHeader('status', 'Published')}
                   <th className="p-2">In Progress</th>
                   {sortHeader('reviewed', 'Review status')}
-                  <th className="p-2">Review completed</th>
                   <th className="relative p-2">
                     <span className="sr-only">Actions</span>
                   </th>
@@ -1035,11 +1046,6 @@ export default function BikeManagement({
                           <option key={option.value} value={option.value}>{option.label}</option>
                         ))}
                       </select>
-                    </td>
-                    <td className="p-2 whitespace-nowrap">
-                      {bike.reviewCompletedAt
-                        ? new Date(bike.reviewCompletedAt).toLocaleString()
-                        : '—'}
                     </td>
                     <td className="p-2">
                       <div className="flex items-center justify-end gap-1">
