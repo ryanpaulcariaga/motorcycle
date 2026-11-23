@@ -13,7 +13,7 @@ Legend: ✅ done · 🔄 started (note says what is left) · ⬜ not started
 
 **LIVE IN AZURE; NOT YET READY FOR GENERAL PUBLIC PROMOTION** (2026-10-23). All three apps are deployed and healthy. The verdict becomes READY only when every blocker gate is ticked with evidence.
 
-**Progress: 57 of 117 tasks done · 7 in progress · 53 not started.**
+**Progress: 58 of 118 tasks done · 7 in progress · 53 not started.**
 
 **Next up:** Configure the production legal operator/contact/jurisdiction values and complete the privacy, inquiry retention, log-retention, and backup-deletion review in T-112 before G-10 can be ticked. Verify the contact form and admin inbox with a test database and authenticated session under T-113. Verify ratings/comments, interest-profile, and account privacy controls in authenticated public browser sessions, and verify the analytics dashboard with an authenticated admin session. Finish T-85 image performance verification, then T-11 to T-15 (tests and CI), followed by production verification of the security baseline before G-07 can be ticked.
 
@@ -42,7 +42,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-04 | ✅ Public sign-in with Facebook |
 | F-05 | ✅ Admin sign-in (Facebook PKCE), 12-hour sliding sessions with active-tab keepalive and explicit expiry handling, Bikes as the signed-in landing tab, and admin roles |
 | F-06 | ✅ Admin: Brand, Category, BikeModel CRUD; model labels show assigned bike counts; Bike Models filters and ordered sorting stay above the grid instead of in the sidebar |
-| F-07 | ✅ Admin: Bike variant CRUD, published control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus published/review/image state, and Bulk-style ordered multi-sort including review completion time; model labels show assigned bike counts |
+| F-07 | ✅ Admin: Bike variant CRUD, published control, move to another model, collapsible above-grid filters for brand/category/model/year/MSRP plus published/review/image state, and Bulk-style ordered multi-sort including review completion time; the main Bikes grid requires a brand and queries only that brand; model labels show assigned bike counts |
 | F-08 | ✅ Admin: image upload, drag-and-drop ordering, primary image, file-signature validation |
 | F-09 | ✅ Admin: spec group/definition management and drag-and-drop ordering |
 | F-10 | ✅ Admin Bikes: one screen keeps individual variant actions, filters and ordered sorting alongside grid editing, displayed-bike review updates, Excel export, and Excel import for exactly the displayed variants |
@@ -54,7 +54,7 @@ For an accepted idea, add any user-facing capability to **Features**, add action
 | F-18 | ✅ Security baseline: proxy-aware rate limits, response headers, admin Origin validation, and mutation audit trail; audit log navigation highlights independently of Administrators |
 | F-19 | ✅ SEO metadata: social sharing images, canonical URLs, and bike Product structured data |
 | F-20 | ✅ Responsive public and admin layouts for mobile, tablet, and desktop; bike-detail highlights use one column on phones and two at wider widths, mobile account-menu rows and browse links are consistently right-aligned, sidebar sections expand independently, pages scroll to content, and the bulk-edit modal uses one vertical scroller with fixed title and actions |
-| F-21 | ✅ Admin shared per-bike Draft/In Progress/Completed status with a recorded UTC completion timestamp, per-spec verifications and progress, and a dedicated one-click In Progress checkbox per bike; populated specs drive automatic Completed status, with manual override, and toolbar labels clarify that review updates and resets apply only to displayed bikes |
+| F-21 | ✅ Admin shared per-bike Draft/In Progress/Completed status with a recorded UTC completion timestamp, per-spec verifications and progress, and a dedicated one-click In Progress checkbox per bike; the Bikes-grid status picker lazily creates options only for the open record, matching the Brand picker, while populated specs drive automatic Completed status with manual override and toolbar labels clarify that updates and resets apply only to displayed bikes |
 | F-22 | ✅ Public and admin display brand-prefixed model/variant names without repeating the brand |
 | F-23 | ✅ Shared brand-navigation sidebar on public home, catalog, detail, comparison, and settings pages; all browse filters are in a collapsed-by-default Advanced filters panel with an active-filter count, compare-picker filters stay with the compare controls, and browse filter state is retained from results to bike details |
 | F-24 | ✅ Opt-in aggregate interest analytics and protected admin dashboard; no analytics identifiers or raw search terms; preferences available through header settings |
@@ -233,6 +233,7 @@ The API stores the uploaded original and generates smaller copies for the public
 
 | # | Task | Evidence |
 |---|---|---|
+| T-119 | ✅ Require an admin Bikes brand before loading variants | The main Bikes screen opens with its required brand filter, requests only the selected brand through `/api/admin/bikes?brandId={id}`, preserves the brand while clearing optional filters, and keeps model-scoped views unchanged; focused API filtering coverage and admin/API builds pass |
 | T-117 | ✅ Refine public browse keyword and publication filtering | Browse keyword matching is variant-only; Keyword and an Include discontinued checkbox live inside Advanced filters, default results remain published, checked results include both states, state persists through pagination and detail links, and unpublished details suppress published-only compare/review/comment actions. API visibility tests pass (5 focused tests); web lint and production build pass |
 | T-116 | ✅ Add a visible keyword search option to public bike browsing | Browse has a keyword field with Search bikes and Clear keyword actions, preserves advanced filters and sorting, and uses the same anonymous search analytics flow; keywords now match variant names only. Web lint and production build pass |
 | T-114 | ✅ Make Bikes the admin landing page | `/`, `/admin`, and `/admin/` render the Bikes variant screen and highlight Bikes after sign-in; explicit admin deep links remain unchanged. Admin build and lint pass |
@@ -242,7 +243,7 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-50 | ✅ Terms page | `/terms`, shared footer link, configurable operator/contact/jurisdiction, web lint and production build pass |
 | T-49 | ✅ Privacy policy page | `/privacy`, shared footer link, configured data/consent/retention/deletion disclosures, web lint and production build pass |
 | T-111 | ✅ Unify admin editing toolbars | Bikes supports single and displayed-bike grid editing, Excel export/import, and one unified UI with exact-ID protection. All admin CRUD tabs use shared readable Refresh/Add buttons with one color treatment, full-width on mobile and natural width on larger screens. 40 focused API tests, admin build and lint pass; authenticated browser acceptance remains under T-23/T-24 |
-| T-110 | ✅ Track shared admin review progress | Draft/In Progress/Completed status, UTC completion timestamp, per-spec verification, list/grid/export filtering and bulk marking; focused API tests and admin build pass. Authenticated browser acceptance remains under T-55 |
+| T-110 | ✅ Track shared admin review progress | Draft/In Progress/Completed status, UTC completion timestamp, per-spec verification, list/grid/export filtering, bulk marking, and a lazily rendered Bikes-grid status list matching Brand; focused API tests and admin build pass. Authenticated browser acceptance remains under T-55 |
 | T-109 | ✅ Replace browse sort direction dropdowns with toggles | Each sort level uses the admin-style A→Z/Z→A toggle; existing form serialization remains. Focused web lint and production build pass; browser acceptance remains under T-16 |
 | T-108 | ✅ Add unsupported-browser fallback to both frontends | Capability tests, web lint/build and admin build pass; public nonce and admin production CSP/asset responses checked. Live browser verification unavailable; G-05 remains open |
 | T-107 | ✅ Replace secondary sort control with ordered multi-field sorting | Sort is in a collapsed-by-default bordered box matching Advanced filters; add/remove/reorder supported fields for one or more criteria. API applies all criteria before paging. Focused API test covers three levels and paging; web ESLint/build pass |
@@ -268,6 +269,10 @@ The API stores the uploaded original and generates smaller copies for the public
 | T-98 | ✅ Add consent-controlled user interest storage | Isolated PostgreSQL migration, active-user checks, 12-month retention, account isolation and concurrent withdrawal/ingestion tested; 27 focused tests pass |
 
 ## Session log
+
+**2026-11-24** — Required a brand before the admin Bikes grid loads and added server-side brand filtering to the list endpoint, so the main screen sends only the selected brand while model-scoped admin views remain unchanged. Clear filters now preserves the required brand; a focused service test covers cross-brand exclusion.
+
+**2026-11-24** — Changed the admin Bikes review-status control to a Brand-aligned lazy list: closed records no longer create repeated status option nodes, and only the selected record renders its three choices. The control closes on selection, outside interaction, or Escape and keeps the current status marked. The admin production build and focused lint pass; lint retains the component's existing `useEffect` dependency warning.
 
 **2026-11-24** — Fixed the admin Bikes grid action icons to the right edge during horizontal scrolling, with opaque header/row backgrounds and an edge shadow separating the frozen column from scrolling data. The admin production build and focused lint pass; lint retains the component's existing `useEffect` dependency warning.
 

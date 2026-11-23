@@ -121,7 +121,7 @@ public sealed class BikeImportService : IBikeImportService
         var modelLookup = models
             .GroupBy(m => ModelKey(m.Brand?.Name, m.Name))
             .ToDictionary(g => g.Key, g => g.First());
-        var allBikes = await _repository.GetAllAsync(null, ct);
+        var allBikes = await _repository.GetAllAsync(null, null, ct);
         var bikesById = allBikes.ToDictionary(b => b.Id);
 
         var parsedRows = new List<ParsedRow>();

@@ -110,9 +110,11 @@ export default function BikeManagement({
   const [markingDisplayedInReview, setMarkingDisplayedInReview] = useState(false);
   const [updatingBikeId, setUpdatingBikeId] = useState<number | null>(null);
   const [openBrandBikeId, setOpenBrandBikeId] = useState<number | null>(null);
+  const [openReviewBikeId, setOpenReviewBikeId] = useState<number | null>(null);
   const [loadingBrands, setLoadingBrands] = useState(false);
   const [updatingModelId, setUpdatingModelId] = useState<number | null>(null);
   const inlineSavingRef = useRef(new Set<string>());
+  const loadVersionRef = useRef(0);
   const [openingGrid, setOpeningGrid] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [gridBikes, setGridBikes] = useState<BikeSpecGridRow[]>([]);
@@ -148,7 +150,7 @@ export default function BikeManagement({
   const [imageFilter, setImageFilter] = useState('');
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(() =>
-    window.matchMedia('(min-width: 768px)').matches
+    modelId === undefined || window.matchMedia('(min-width: 768px)').matches
   );
   const [yearMin, setYearMin] = useState('');
   const [yearMax, setYearMax] = useState('');
@@ -169,31 +171,34 @@ export default function BikeManagement({
     () => new Map(models.map((model) => [model.id, model])),
     [models]
   );
-  const brandNames = useMemo(
-    () =>
-      [...new Set(models.map((model) => model.brandName))].sort((a, b) =>
-        a.localeCompare(b)
-      ),
-    [models]
+  const brandModels = models.filter(
+    (model) => !brandFilter || model.brandId === Number(brandFilter)
   );
   const categoryNames = useMemo(
     () =>
-      [...new Set(models.map((model) => model.categoryName))].sort((a, b) =>
-        a.localeCompare(b)
-      ),
-    [models]
+      [
+        ...new Set(
+          models
+            .filter(
+              (model) =>
+                !brandFilter || model.brandId === Number(brandFilter)
+            )
+            .map((model) => model.categoryName)
+        ),
+      ].sort((a, b) => a.localeCompare(b)),
+    [brandFilter, models]
   );
-  const filterModels = models.filter(
+  const filterModels = brandModels.filter(
     (model) =>
-      (!brandFilter || model.brandName === brandFilter) &&
-      (!categoryFilter || model.categoryName === categoryFilter)
+      !categoryFilter || model.categoryName === categoryFilter
   );
   const visibleBikes = useMemo(
     () =>
       sortRows(
         bikes.filter(
           (bike) =>
-            (!brandFilter || bike.brandName === brandFilter) &&
+            (!brandFilter ||
+              modelById.get(bike.modelId)?.brandId === Number(brandFilter)) &&
             (!categoryFilter ||
               modelById.get(bike.modelId)?.categoryName === categoryFilter) &&
             (!modelFilter || String(bike.modelId) === modelFilter) &&
@@ -274,7 +279,6 @@ export default function BikeManagement({
   const primarySort = sortRules[0];
   const activeFilterCount = [
     search,
-    brandFilter,
     categoryFilter,
     modelFilter,
     yearMin || yearMax,
@@ -301,30 +305,48 @@ export default function BikeManagement({
       </th>
     );
   }
-  async function load() {
+  const load = useCallback(async () => {
+    const loadVersion = ++loadVersionRef.current;
     setLoading(true);
     setError(null);
     try {
-      const [bikeResult, specGroupResult, modelResult] = await Promise.all([
-        getAdminBikes(modelId),
-        getSpecGroups(),
-        getBikeModels(),
-      ]);
+      const bikeRequest =
+        modelId !== undefined
+          ? getAdminBikes(modelId)
+          : brandFilter
+            ? getAdminBikes(undefined, Number(brandFilter))
+            : Promise.resolve([]);
+      const [bikeResult, specGroupResult, modelResult, brandResult] =
+        await Promise.all([
+          bikeRequest,
+          getSpecGroups(),
+          getBikeModels(),
+          getBrands(),
+        ]);
+      if (loadVersion !== loadVersionRef.current) {
+        return;
+      }
       setBikes(bikeResult);
       setSpecGroups(specGroupResult);
       setModels(modelResult);
+      setBrands(brandResult);
     } catch (cause) {
+      if (loadVersion !== loadVersionRef.current) {
+        return;
+      }
       setError(
         cause instanceof AdminApiError ? cause.message : 'Unable to load bikes.'
       );
     } finally {
-      setLoading(false);
+      if (loadVersion === loadVersionRef.current) {
+        setLoading(false);
+      }
     }
-  }
+  }, [brandFilter, modelId]);
 
   useEffect(() => {
     queueMicrotask(() => void load());
-  }, [modelId]);
+  }, [load]);
 
   useEffect(() => {
     queueMicrotask(() => setBikeGridPage(1));
@@ -345,7 +367,7 @@ export default function BikeManagement({
   ]);
 
   useEffect(() => {
-    if (openBrandBikeId === null) {
+    if (openBrandBikeId === null && openReviewBikeId === null) {
       return;
     }
 
@@ -357,10 +379,14 @@ export default function BikeManagement({
       if (!event.target.closest('[data-brand-dropdown]')) {
         window.setTimeout(() => setOpenBrandBikeId(null), 0);
       }
+      if (!event.target.closest('[data-review-dropdown]')) {
+        window.setTimeout(() => setOpenReviewBikeId(null), 0);
+      }
     };
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setOpenBrandBikeId(null);
+        setOpenReviewBikeId(null);
       }
     };
 
@@ -370,7 +396,7 @@ export default function BikeManagement({
       document.removeEventListener('pointerdown', closeOnOutsideInteraction);
       document.removeEventListener('keydown', closeOnEscape);
     };
-  }, [openBrandBikeId]);
+  }, [openBrandBikeId, openReviewBikeId]);
 
   const reset = useCallback(() => {
     setForm(emptyForm);
@@ -812,6 +838,7 @@ export default function BikeManagement({
       return;
     }
 
+    setOpenReviewBikeId(null);
     setOpenBrandBikeId(bikeId);
     if (brands.length > 0) {
       return;
@@ -875,6 +902,7 @@ export default function BikeManagement({
   }
 
   async function setReviewStatus(bike: BikeAdminListItem, reviewStatus: ReviewStatus) {
+    setOpenReviewBikeId(null);
     setError(null);
     try {
       await updateAdminBikeSpecGrid({ reviewStatusChanges: [{ bikeId: bike.id, reviewStatus }] });
@@ -1064,7 +1092,12 @@ export default function BikeManagement({
       <AdminToolbarButton disabled={loading} onClick={() => void load()}>
         {loading ? 'Refreshing...' : 'Refresh'}
       </AdminToolbarButton>
-      <AdminToolbarButton onClick={startCreate}>Add variant</AdminToolbarButton>
+      <AdminToolbarButton
+        disabled={loading || (modelId === undefined && !brandFilter)}
+        onClick={startCreate}
+      >
+        Add variant
+      </AdminToolbarButton>
     </AdminToolbar>
   );
 
@@ -1127,18 +1160,20 @@ export default function BikeManagement({
                 </label>
                 {showModel && (
                   <label className="block text-sm font-semibold">
-                    Brand
+                    Brand <span className="text-red-700">(required)</span>
                     <select
                       className="mt-1 block w-full border border-black/20 bg-white px-3 py-2 font-normal"
                       value={brandFilter}
                       onChange={(event) => {
+                        setBikes([]);
                         setBrandFilter(event.target.value);
                         setModelFilter('');
                       }}
+                      required
                     >
-                      <option value="">All brands</option>
-                      {brandNames.map((brand) => (
-                        <option key={brand} value={brand}>{brand}</option>
+                      <option value="">Select a brand</option>
+                      {brands.map((brand) => (
+                        <option key={brand.id} value={brand.id}>{brand.name}</option>
                       ))}
                     </select>
                   </label>
@@ -1170,7 +1205,7 @@ export default function BikeManagement({
                       onChange={(event) => setModelFilter(event.target.value)}
                     >
                       <option value="">All models</option>
-                      {filterModels.map((model) => (
+                      {brandModels.map((model) => (
                         <option key={model.id} value={model.id}>{model.name}</option>
                       ))}
                     </select>
@@ -1237,7 +1272,6 @@ export default function BikeManagement({
                 type="button"
                 onClick={() => {
                   setSearch('');
-                  setBrandFilter('');
                   setCategoryFilter('');
                   setModelFilter('');
                   setYearMin('');
@@ -1263,7 +1297,11 @@ export default function BikeManagement({
             <div className="mt-4">{managementActions}</div>
           </>
         )}
-        {loading && bikes.length === 0 ? (
+        {showModel && !brandFilter ? (
+          <p className="mt-8 border-l-4 border-brand-gold bg-brand-button/10 p-4 text-brand-grey">
+            Select a brand above to load and manage its bike variants.
+          </p>
+        ) : loading && bikes.length === 0 ? (
           <p className="mt-8 text-brand-grey">Loading bikes...</p>
         ) : bikes.length === 0 ? (
           <p className="mt-8 text-brand-grey">
@@ -1490,17 +1528,55 @@ export default function BikeManagement({
                         }}
                       />
                     </td>
-                    <td className="p-2">
-                      <select
-                        className="border border-black/20 px-2 py-1"
-                        value={bike.reviewStatus}
+                    <td className="relative p-2" data-review-dropdown>
+                      <button
+                        type="button"
+                        className="inline-flex min-w-32 items-center justify-between gap-2 border border-black/20 bg-white px-2 py-1 text-left"
+                        aria-expanded={openReviewBikeId === bike.id}
+                        aria-haspopup="listbox"
                         aria-label={`Review status for ${bike.variantName} (${bike.year})`}
-                        onChange={(event) => void setReviewStatus(bike, event.target.value as ReviewStatus)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setOpenBrandBikeId(null);
+                          setOpenReviewBikeId((current) =>
+                            current === bike.id ? null : bike.id
+                          );
+                        }}
                       >
-                        {reviewStatusOptions.map((option) => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </select>
+                        <span>
+                          {reviewStatusOptions.find(
+                            (option) => option.value === bike.reviewStatus
+                          )?.label}
+                        </span>
+                        <span aria-hidden="true">▾</span>
+                      </button>
+                      {openReviewBikeId === bike.id && (
+                        <div
+                          className="absolute left-2 top-full z-20 min-w-40 overflow-hidden border border-black/20 bg-white shadow-lg"
+                          role="listbox"
+                          aria-label="Review statuses"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {reviewStatusOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              role="option"
+                              aria-selected={bike.reviewStatus === option.value}
+                              className={`block w-full px-3 py-2 text-left hover:bg-brand-button/10 ${
+                                bike.reviewStatus === option.value
+                                  ? 'bg-brand-button/10 font-semibold'
+                                  : ''
+                              }`}
+                              onClick={() =>
+                                void setReviewStatus(bike, option.value)
+                              }
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="p-2">
                       <input
@@ -1632,7 +1708,7 @@ export default function BikeManagement({
                   {editingId === null && (
                     <option value="">Select a model</option>
                   )}
-                  {models.map((model) => (
+                  {filterModels.map((model) => (
                     <option key={model.id} value={model.id}>
                       {model.name}
                     </option>

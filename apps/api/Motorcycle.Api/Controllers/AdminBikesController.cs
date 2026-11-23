@@ -93,8 +93,17 @@ public sealed class AdminBikesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<BikeAdminListItemDto>>> GetAll([FromQuery] int? modelId, CancellationToken ct) =>
-        Ok(await _service.GetAllAsync(modelId, ct));
+    public async Task<ActionResult<IReadOnlyList<BikeAdminListItemDto>>> GetAll(
+        [FromQuery] int? modelId,
+        [FromQuery] int? brandId,
+        CancellationToken ct)
+    {
+        if (brandId.HasValue && brandId <= 0) {
+            return BadRequest(new { message = "Brand must be a positive ID." });
+        }
+
+        return Ok(await _service.GetAllAsync(modelId, brandId, ct));
+    }
 
     [HttpGet("spec-values")]
     public async Task<ActionResult<IReadOnlyList<BikeSpecValueItemDto>>> GetSpecValues([FromQuery] int? brandId, [FromQuery] int? categoryId, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, [FromQuery] string specCode, CancellationToken ct)

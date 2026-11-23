@@ -13,8 +13,10 @@ public sealed class FakeBikeAdminRepository : IBikeAdminRepository
 
     public void SetDependentImageCount(int bikeId, int count) => _dependentImageCounts[bikeId] = count;
 
-    public Task<List<Bike>> GetAllAsync(int? modelId, CancellationToken ct = default) =>
-        Task.FromResult(_bikes.Where(b => !modelId.HasValue || b.ModelId == modelId.Value).ToList());
+    public Task<List<Bike>> GetAllAsync(int? modelId, int? brandId, CancellationToken ct = default) =>
+        Task.FromResult(_bikes.Where(b =>
+            (!modelId.HasValue || b.ModelId == modelId.Value)
+            && (!brandId.HasValue || b.Model?.BrandId == brandId.Value)).ToList());
 
     public Task<List<Bike>> GetForSpecEditAsync(
         int? brandId,

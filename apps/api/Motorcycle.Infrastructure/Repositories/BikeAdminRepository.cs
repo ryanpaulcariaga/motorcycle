@@ -10,11 +10,15 @@ public sealed class BikeAdminRepository : IBikeAdminRepository
     private readonly MotorcycleDbContext _context;
     public BikeAdminRepository(MotorcycleDbContext context) => _context = context;
 
-    public async Task<List<Bike>> GetAllAsync(int? modelId, CancellationToken ct = default)
+    public async Task<List<Bike>> GetAllAsync(int? modelId, int? brandId, CancellationToken ct = default)
     {
         var query = _context.Bikes.AsNoTracking().Include(x => x.Model).ThenInclude(m => m.Brand).Include(x => x.Images).AsQueryable();
         if (modelId.HasValue) {
             query = query.Where(x => x.ModelId == modelId.Value);
+        }
+
+        if (brandId.HasValue) {
+            query = query.Where(x => x.Model.BrandId == brandId.Value);
         }
 
         return await query.OrderBy(x => x.Model.Name).ThenBy(x => x.Year).ThenBy(x => x.VariantName).ToListAsync(ct);

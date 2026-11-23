@@ -4,7 +4,7 @@ namespace Motorcycle.Application.Interfaces;
 
 public interface IBikeAdminRepository
 {
-    Task<List<Bike>> GetAllAsync(int? modelId, CancellationToken ct = default);
+    Task<List<Bike>> GetAllAsync(int? modelId, int? brandId, CancellationToken ct = default);
     Task<List<Bike>> GetForSpecEditAsync(
         int? brandId,
         int? categoryId,

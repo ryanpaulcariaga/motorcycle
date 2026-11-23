@@ -19,8 +19,8 @@ public sealed class BikeAdminService : IBikeAdminService
         _specGroupRepository = specGroupRepository;
     }
 
-    public async Task<IReadOnlyList<BikeAdminListItemDto>> GetAllAsync(int? modelId, CancellationToken ct = default) =>
-        (await _repository.GetAllAsync(modelId, ct)).Select(ToListItemDto).ToList();
+    public async Task<IReadOnlyList<BikeAdminListItemDto>> GetAllAsync(int? modelId, int? brandId, CancellationToken ct = default) =>
+        (await _repository.GetAllAsync(modelId, brandId, ct)).Select(ToListItemDto).ToList();
 
     public async Task<IReadOnlyList<BikeSpecValueItemDto>> GetSpecValuesAsync(int? brandId, int? categoryId, decimal? minPrice, decimal? maxPrice, string specCode, CancellationToken ct = default)
     {
@@ -477,7 +477,7 @@ public sealed class BikeAdminService : IBikeAdminService
     }
 
     private async Task<bool> SlugExistsAsync(string slug, CancellationToken ct) =>
-        (await _repository.GetAllAsync(null, ct)).Any(b => string.Equals(b.Slug, slug, StringComparison.OrdinalIgnoreCase));
+        (await _repository.GetAllAsync(null, null, ct)).Any(b => string.Equals(b.Slug, slug, StringComparison.OrdinalIgnoreCase));
 
     private static string ToSlug(string source) =>
         Regex.Replace(source.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');

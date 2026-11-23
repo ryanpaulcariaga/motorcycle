@@ -100,6 +100,51 @@ public class BikeSpecVerificationTests
     }
 
     [Fact]
+    public async Task AdminBikeListCanBeScopedToBrand()
+    {
+        var options = new DbContextOptionsBuilder<MotorcycleDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        await using (var db = new MotorcycleDbContext(options)) {
+            var category = new Category { Id = 1, Name = "Road" };
+            db.Bikes.AddRange(
+                new Bike
+                {
+                    Id = 1,
+                    Model = new BikeModel
+                    {
+                        Id = 1,
+                        Name = "First",
+                        Brand = new Brand { Id = 1, Name = "Brand A" },
+                        Category = category
+                    },
+                    VariantName = "One",
+                    Year = 2024,
+                    Slug = "brand-a-first-one-2024"
+                },
+                new Bike
+                {
+                    Id = 2,
+                    Model = new BikeModel
+                    {
+                        Id = 2,
+                        Name = "Second",
+                        Brand = new Brand { Id = 2, Name = "Brand B" },
+                        Category = category
+                    },
+                    VariantName = "Two",
+                    Year = 2024,
+                    Slug = "brand-b-second-two-2024"
+                });
+            await db.SaveChangesAsync();
+        }
+
+        await using var scopedDb = new MotorcycleDbContext(options);
+        var result = await AdminService(scopedDb).GetAllAsync(null, 2);
+
+        Assert.Equal(2, Assert.Single(result).Id);
+    }
+
+    [Fact]
     public async Task ReviewStatusPersistsFiltersGridAndExportAndCompletesFromVerifications()
     {
         var options = await SeedAsync();
@@ -109,7 +154,7 @@ public class BikeSpecVerificationTests
         }
         await using (var db = new MotorcycleDbContext(options)) {
             var service = AdminService(db);
-            Assert.All(await service.GetAllAsync(null), row => Assert.Equal("inProgress", row.ReviewStatus));
+            Assert.All(await service.GetAllAsync(null, null), row => Assert.Equal("inProgress", row.ReviewStatus));
             Assert.Equal(2, (await service.GetSpecGridAsync(null, null, null, null, reviewStatus: "inProgress")).Count);
             Assert.Equal(2, (await ImportService(db).GetExportAsync(null, null, null, null, reviewStatus: "inProgress")).Rows.Count);
             await service.UpdateSpecGridAsync(new(null, VerificationChanges: [new(1, "abs", true, null)]));

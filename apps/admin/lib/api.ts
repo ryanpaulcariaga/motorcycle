@@ -105,8 +105,16 @@ export function getSpecGroups(): Promise<{ code: string; name: string; sortOrder
   return publicApiFetch("/spec-groups");
 }
 
-export function getAdminBikes(modelId?: number): Promise<BikeAdminListItem[]> {
-  return apiFetch(modelId ? `/api/admin/bikes?modelId=${modelId}` : "/api/admin/bikes");
+export function getAdminBikes(modelId?: number, brandId?: number): Promise<BikeAdminListItem[]> {
+  const params = new URLSearchParams();
+  if (modelId !== undefined) {
+    params.set("modelId", String(modelId));
+  }
+  if (brandId !== undefined) {
+    params.set("brandId", String(brandId));
+  }
+  const query = params.toString();
+  return apiFetch(`/api/admin/bikes${query ? `?${query}` : ""}`);
 }
 export function getAdminBikeSpecValues(filters: SpecValueFilters): Promise<BikeSpecValueItem[]> {
   const params = new URLSearchParams({ specCode: filters.specCode });

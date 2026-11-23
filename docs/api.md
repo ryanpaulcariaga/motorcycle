@@ -352,7 +352,7 @@ Protected endpoints under `/api/admin/spec-groups` and `/api/admin/spec-definiti
 
 Stage 2 provides typed contracts for administering `Bike` (year/trim variant) records under `/api/admin/bikes`:
 
-- `GET /api/admin/bikes?modelId={id}` lists variants, optionally scoped to one BikeModel.
+- `GET /api/admin/bikes[?modelId={id}][&brandId={id}]` lists variants, optionally scoped to one BikeModel and/or brand. The admin Bikes screen requires a brand selection and sends `brandId`, so unselected brands are not fetched for the main grid.
 - `GET /api/admin/bikes/{id}` returns one variant's full detail, including current spec values and `specVerifications`, an object keyed by confirmed spec code with `{ sourceUrl, verifiedAt }`.
 - `POST /api/admin/bikes` creates a variant under an existing BikeModel; defaults to unpublished.
 - `PUT /api/admin/bikes/{id}` edits a variant's core fields and specs, whether or not it is currently published; changes to a published variant are visible on the public catalog immediately. An optional `modelId` moves the variant to another BikeModel (`404` if unknown; `409`-style duplicate check applies against the target model). The slug is unchanged.
